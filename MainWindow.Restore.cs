@@ -64,12 +64,26 @@ namespace Kahya
             }
             Tabs.SelectedItem = FormatTab;
 
+            // Sıkıştırılmış yedekte içerik arşiv açılmadan görülemez; o zaman .kahya'da yazanlara güvenilir.
+            var archive = m.Archive != null ? Path.Combine(m.Root, m.Archive) : null;
+            bool archived = archive != null && File.Exists(archive);
+            if (m.Archive != null && !archived)
+            {
+                Info(T("Yedeğin arşivi ({0}) .kahya dosyasının yanında bulunamadı. Yedek klasörünü olduğu gibi kopyaladığından emin ol.", m.Archive));
+                return;
+            }
+
             List<ProgramEntry> programs = null;
-            if (m.Programs != null)
-                try { programs = Core.ProgramList.Load(m.Full(m.Programs)).Where(p => p.Installable).ToList(); } catch { }
-            var folders = m.Folders.Where(f => Directory.Exists(m.Full(f.Value)) && FormatBackup.KnownFolderPath(f.Key) != null).ToList();
+            void LoadPrograms()
+            {
+                programs = null;
+                if (m.Programs != null)
+                    try { programs = Core.ProgramList.Load(m.Full(m.Programs)).Where(p => p.Installable).ToList(); } catch { }
+            }
+            bool Has(string rel) => rel != null && (Directory.Exists(m.Full(rel)) || archived && m.Extracted == null);
+            if (!archived) LoadPrograms();
+            var folderKeys = m.Folders.Keys.Where(k => FormatBackup.KnownFolderPath(k) != null && Has(m.Folders[k])).ToList();
             bool drivers = m.Drivers != null && (Directory.Exists(m.Full(m.Drivers)) || File.Exists(m.Full(m.Drivers)));
-            bool Has(string rel) => rel != null && Directory.Exists(m.Full(rel));
 
             if (!confirmed)
             {
@@ -77,10 +91,12 @@ namespace Kahya
                 if (drivers) steps.Add(T("Sürücüler") + (Elevation.IsAdmin ? "" : " " + T("(yönetici izni istenir)")));
                 if (Has(m.Wifi)) steps.Add(T("Wi-Fi ağları"));
                 if (Has(m.Fonts)) steps.Add(T("Fontlar"));
-                if (folders.Count > 0) steps.Add(T("Kişisel klasörler ({0})", string.Join(", ", folders.Select(f => T(FolderTitle(f.Key))))));
+                if (folderKeys.Count > 0) steps.Add(T("Kişisel klasörler ({0})", string.Join(", ", folderKeys.Select(k => T(FolderTitle(k))))));
                 if (programs?.Count > 0) steps.Add(T("Programlar ({0} tane, winget ile en yeni sürümü)", programs.Count));
+                else if (archived && m.Programs != null) steps.Add(T("Programlar (winget ile en yeni sürümü)"));
                 if (Has(m.Settings)) steps.Add(T("Program ayarları"));
                 if (Has(m.Games)) steps.Add(T("Oyun kayıtları ve Minecraft"));
+                if (archived) steps.Insert(drivers ? 1 : 0, T("Önce {0} açılır", m.Archive));
                 if (steps.Count == 0)
                 {
                     Info(T("Bu yedekte geri yüklenecek bir şey bulunamadı. Dosyanın yedek klasörünün içinde durduğundan emin ol."));
@@ -102,16 +118,13 @@ namespace Kahya
             }
             if (!Elevation.IsAdmin) drivers = false;
 
-            // Kurulum araçları meşgul durumundan önce hazırlanır (kendi sorularını ve meşgul durumlarını açarlar).
-            if (drivers && m.Drivers.EndsWith(".7z", StringComparison.OrdinalIgnoreCase) && !await EnsureSevenZipAsync())
+            // winget meşgul durumundan önce hazırlanır (kendi sorusunu ve meşgul durumunu açar).
+            // Arşivler için 7-Zip gerekmez: yoksa Windows'un kendi tar'ı açar.
+            bool wingetOk = true;
+            if ((programs?.Count > 0 || archived && m.Programs != null) && !await EnsureWingetAsync())
             {
-                Log("! " + T("7-Zip olmadan .7z sürücü yedeği açılamaz; sürücüler atlandı."));
-                drivers = false;
-            }
-            if (programs?.Count > 0 && !await EnsureWingetAsync())
-            {
-                Log("! " + T("winget olmadan programlar kurulamaz; programlar atlandı. Listeden sonra elle kurabilirsin: {0}", m.Full(m.Programs)));
-                programs = null;
+                Log("! " + T("winget olmadan programlar kurulamaz; programlar atlandı. Listeden sonra elle kurabilirsin: {0}", m.Programs));
+                wingetOk = false;
             }
 
             var token = SetBusy(T("geri yükleniyor…"));
@@ -139,8 +152,10 @@ namespace Kahya
                 }
             }
 
+            string extracted = null, bookmarksCopy = null;
             try
             {
+                // Sürücüler ve Wi-Fi arşivin dışında: internet için önce onlar, sonra arşiv.
                 if (drivers)
                     await Step(T("Sürücüler"), () =>
                     {
@@ -149,14 +164,32 @@ namespace Kahya
                         if (code == 3010) reboot = true;
                         return code == 0 || code == 3010;
                     });
-                if (Has(m.Wifi))
+                if (m.Wifi != null && Directory.Exists(m.Full(m.Wifi)))
                     await Step(T("Wi-Fi ağları"), () => FormatBackup.RestoreWifi(m.Full(m.Wifi), ctx) > 0);
+
+                if (archived)
+                {
+                    extracted = ExtractTarget(archive);
+                    bool opened = false;
+                    await Step(T("Arşiv açılıyor ({0})", Format.Bytes(new FileInfo(archive).Length)), () =>
+                    {
+                        FormatBackup.Extract(archive, ctx, extracted);
+                        return opened = true;
+                    });
+                    if (!opened) throw new InvalidOperationException(T("Arşiv açılamadı; geri kalan adımlar yapılamıyor."));
+                    m.Extracted = extracted;
+                    LoadPrograms();
+                    folderKeys = m.Folders.Keys.Where(k => FormatBackup.KnownFolderPath(k) != null && Directory.Exists(m.Full(m.Folders[k]))).ToList();
+                }
+                if (!wingetOk) programs = null;
+
                 if (Has(m.Fonts))
                     await Step(T("Fontlar"), () => { var (installed, skipped) = FormatExtras.RestoreFonts(m.Full(m.Fonts), ctx); ctx.Log("   " + T("{0} font kuruldu, {1} tanesi zaten vardı.", installed, skipped)); return true; });
-                foreach (var f in folders)
+                foreach (var key in folderKeys)
                 {
-                    var dest = FormatBackup.KnownFolderPath(f.Key);
-                    await Step(T(FolderTitle(f.Key)), () => FormatBackup.RestoreFolder(m.Full(f.Value), dest, ctx));
+                    var dest = FormatBackup.KnownFolderPath(key);
+                    var source = m.Full(m.Folders[key]);
+                    await Step(T(FolderTitle(key)), () => FormatBackup.RestoreFolder(source, dest, ctx));
                 }
                 if (programs?.Count > 0)
                     await Step(T("Programlar"), () => InstallPrograms(programs, ctx));
@@ -164,14 +197,33 @@ namespace Kahya
                     await Step(T("Program ayarları"), () => FormatExtras.RestoreAppSettings(m.Full(m.Settings), ctx) > 0);
                 if (Has(m.Games))
                     await Step(T("Oyun kayıtları"), () => FormatExtras.RestoreAppSettings(m.Full(m.Games), ctx) > 0);
+
+                // Yer imlerini tarayıcı kendisi içe aktarır; açılan arşiv silineceği için Masaüstü'ne kopyalanır.
+                if (extracted != null && m.Bookmarks != null && Directory.Exists(m.Full(m.Bookmarks)))
+                {
+                    bookmarksCopy = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), T("Kahya - yer imleri"));
+                    var from = m.Full(m.Bookmarks);
+                    await Task.Run(() => FormatBackup.RestoreFolder(from, bookmarksCopy, ctx));
+                }
             }
             catch (OperationCanceledException)
             {
                 Log(T("Geri yükleme iptal edildi."));
                 return;
             }
+            catch (Exception ex)
+            {
+                failed++;
+                Log("! " + ex.Message);
+            }
             finally
             {
+                if (extracted != null)
+                {
+                    var dir = extracted;
+                    await Task.Run(() => { try { Directory.Delete(dir, true); } catch { } });
+                    m.Extracted = null;
+                }
                 ApplyBusy(false);
                 _programsLoaded = false;
             }
@@ -179,13 +231,29 @@ namespace Kahya
             Log(failed > 0 ? T("Geri yükleme bitti: {0} adım tamam, {1} adımda sorun var.", ok, failed) : T("Geri yükleme bitti: {0} adım tamam ✔", ok));
             var end = failed > 0 ? T("Geri yükleme bitti. {0} adım tamam, {1} adımda sorun var (ayrıntılar işlem kaydında).", ok, failed) : T("Geri yükleme bitti, hepsi tamam ✔");
             if (reboot) end += "\n\n" + T("Sürücülerin bitmesi için bilgisayarı yeniden başlat.");
-            if (m.Bookmarks != null && Directory.Exists(m.Full(m.Bookmarks)))
+            var bookmarks = bookmarksCopy ?? (m.Bookmarks != null ? m.Full(m.Bookmarks) : null);
+            if (bookmarks != null && Directory.Exists(bookmarks))
             {
                 end += "\n\n" + T("Yer imlerini tarayıcı kendisi içe aktarır: Ayarlar › Yer imlerini içe aktar › HTML dosyası. 'yer-imleri' klasörü açılsın mı?");
                 if (Confirm(end))
-                    try { Process.Start(new ProcessStartInfo(m.Full(m.Bookmarks)) { UseShellExecute = true }); } catch { }
+                    try { Process.Start(new ProcessStartInfo(bookmarks) { UseShellExecute = true }); } catch { }
             }
             else Info(end);
+        }
+
+        /// <summary>
+        /// Arşivin açılacağı yer: format sonrası C: genelde boş olduğu için Temp; yer yetmezse arşivin yanı (USB / ikinci disk).
+        /// </summary>
+        static string ExtractTarget(string archive)
+        {
+            long need = (long)(new FileInfo(archive).Length * 1.6) + 1024L * 1024 * 1024;
+            var temp = Path.Combine(Path.GetTempPath(), "Kahya-geri-yukleme");
+            try
+            {
+                if (new DriveInfo(Path.GetPathRoot(temp)).AvailableFreeSpace > need) return temp;
+            }
+            catch { }
+            return Path.Combine(Path.GetDirectoryName(archive), "_" + T("acilan"));
         }
 
         /// <summary>Listedeki programlardan kurulu olmayanları sırayla kurar. Hepsi kurulduysa true.</summary>

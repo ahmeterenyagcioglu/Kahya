@@ -117,13 +117,14 @@ namespace Kahya.Core
             new System.Text.RegularExpressions.Regex(@"\d{1,3}([.,]\d+)?\s?%|%\s?\d{1,3}");
 
         /// <param name="encoding">Çıktı kodlaması; null ise konsolun OEM kod sayfası (dism, chkdsk, pnputil…).</param>
-        public static int Run(string file, string args, CleanContext ctx, bool hidden = true, bool logOutput = false, Encoding encoding = null)
+        public static int Run(string file, string args, CleanContext ctx, bool hidden = true, bool logOutput = false, Encoding encoding = null, string workingDirectory = null)
         {
             var psi = new ProcessStartInfo(file, args)
             {
                 UseShellExecute = false,
                 CreateNoWindow = hidden,
             };
+            if (workingDirectory != null) psi.WorkingDirectory = workingDirectory;
             if (logOutput)
             {
                 psi.RedirectStandardOutput = true;

@@ -23,13 +23,27 @@ namespace Kahya.Core
         /// <summary>Yedek klasörüne göre yollar. Boşsa o parça yedekte yok.</summary>
         public string Programs, Wifi, ProductKey, Drivers, Fonts, Settings, Games, Bookmarks;
 
+        /// <summary>Yedeğin sıkıştırılmış kısmı (yedek.7z / yedek.zip); sürücüler ve Wi-Fi bunun dışında durur.</summary>
+        public string Archive;
+
         /// <summary>Kişisel klasörler: anahtar (Desktop, Documents…) → yedekteki yol.</summary>
         public Dictionary<string, string> Folders = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>Okunurken: .kahya dosyasının bulunduğu klasör (yedeğin kökü).</summary>
         public string Root { get; private set; }
 
-        public string Full(string relative) => string.IsNullOrEmpty(relative) || Root == null ? null : Path.Combine(Root, relative);
+        /// <summary>Geri yüklerken arşivin açıldığı klasör.</summary>
+        public string Extracted { get; set; }
+
+        /// <summary>Yedekteki tam yol: önce yedeğin kökünde, yoksa açılmış arşivde.</summary>
+        public string Full(string relative)
+        {
+            if (string.IsNullOrEmpty(relative) || Root == null) return null;
+            var path = Path.Combine(Root, relative);
+            if (Extracted != null && !File.Exists(path) && !Directory.Exists(path))
+                return Path.Combine(Extracted, relative);
+            return path;
+        }
 
         public bool IsEmpty => new[] { Programs, Wifi, ProductKey, Drivers, Fonts, Settings, Games, Bookmarks }.All(string.IsNullOrEmpty) && Folders.Count == 0;
 
@@ -56,6 +70,7 @@ namespace Kahya.Core
             W("Settings", Settings);
             W("Games", Games);
             W("Bookmarks", Bookmarks);
+            W("Archive", Archive);
             if (Folders.Count > 0)
             {
                 sb.AppendLine();
@@ -99,6 +114,7 @@ namespace Kahya.Core
                         case "Settings": m.Settings = value; break;
                         case "Games": m.Games = value; break;
                         case "Bookmarks": m.Bookmarks = value; break;
+                        case "Archive": m.Archive = value; break;
                     }
                 }
             }

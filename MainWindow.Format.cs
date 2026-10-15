@@ -332,6 +332,8 @@ namespace Kahya
             try
             {
                 long need = drivers.Sum(d => d.Size) + folders.Where(f => f.Size > 0).Sum(f => f.Size) + ExtrasSize();
+                // Sıkıştırırken arşiv bitene kadar kopyalar da diskte durur.
+                if (_backupFormat != "folder") need = (long)(need * 1.8);
                 long free = new DriveInfo(Path.GetPathRoot(_backupTarget)).AvailableFreeSpace;
                 if (need > free)
                 {
@@ -426,15 +428,8 @@ namespace Kahya
                     var target = Path.Combine(folder, T("suruculer"));
                     Log(T("   {0} sürücü paketi kopyalanıyor…", drivers.Count));
                     int ok = await Task.Run(() => FormatBackup.CopyDrivers(drivers, target, ctx));
-                    var result = target;
-                    if (_backupFormat != "folder")
-                    {
-                        SetStatus(T("Sürücüler sıkıştırılıyor ({0})…", _backupFormat.ToUpperInvariant()));
-                        Log("   " + T("Sıkıştırılıyor ({0})…", _backupFormat.ToUpperInvariant()));
-                        result = await Task.Run(() => FormatBackup.Compress(target, _backupFormat, ctx));
-                    }
-                    if (ok > 0) manifest.Drivers = Path.GetFileName(result);
-                    done.Add(T("Sürücüler ({0}/{1}) → {2}", ok, drivers.Count, Path.GetFileName(result)));
+                    if (ok > 0) manifest.Drivers = T("suruculer");
+                    done.Add(T("Sürücüler ({0}/{1})", ok, drivers.Count));
                     Log("   ✔ " + done.Last());
                 }
 
@@ -448,6 +443,28 @@ namespace Kahya
                     manifest.Folders[f.Key] = Path.Combine(T("klasorler"), FormatBackup.BackupName(f));
                     if (ok) done.Add(f.Name);
                     Log(ok ? "   ✔ " + f.Name : "   ✖ " + T("{0} tam kopyalanamadı (bazı dosyalar kullanımda olabilir).", f.Name));
+                }
+
+                // Format sonrası Kahya'yı indirmeye gerek kalmasın: yedeğin yanında dursun.
+                try
+                {
+                    File.Copy(Process.GetCurrentProcess().MainModule.FileName, Path.Combine(folder, "Kahya.exe"), true);
+                    done.Add(T("Kahya (format sonrası buradan açabilirsin)"));
+                }
+                catch (Exception ex) { Log("   ! " + T("Kahya.exe yedeğe kopyalanamadı: {0}", ex.Message)); }
+
+                // Sürücüler, Wi-Fi ve Kahya dışarıda kalır: format sonrası internet ve 7-Zip yokken de ilk onlar lazım.
+                if (_backupFormat != "folder")
+                {
+                    SetStatus(T("Yedek sıkıştırılıyor ({0})…", _backupFormat.ToUpperInvariant()));
+                    Log("   " + T("Yedek sıkıştırılıyor ({0}); büyük yedeklerde birkaç dakika sürebilir…", _backupFormat.ToUpperInvariant()));
+                    long before = FormatBackup.FolderSize(folder);
+                    var keep = new[] { BackupManifest.FileName(manifest.Computer), "Kahya.exe", T("suruculer"), "wifi" };
+                    var format = _backupFormat;
+                    manifest.Archive = await Task.Run(() => FormatBackup.CompressBackup(folder, format, keep, ctx));
+                    long after = FormatBackup.FolderSize(folder);
+                    if (manifest.Archive != null)
+                        Log("   ✔ " + T("Sıkıştırıldı: {0} → {1}", Format.Bytes(before), Format.Bytes(after)));
                 }
 
                 manifest.Save(folder, ReadMe(done));
@@ -490,9 +507,9 @@ namespace Kahya
             sb.AppendLine(T("İçindekiler:"));
             foreach (var d in done) sb.AppendLine("  • " + d);
             sb.AppendLine();
-            sb.AppendLine(T("Format sonrası en kolayı: Kahya'yı aç › Format yardımcısı › 'Yedekten geri yükle' › bu dosyayı seç. Her şey sırayla geri yüklenir."));
+            sb.AppendLine(T("Format sonrası en kolayı: bu dosyanın yanındaki Kahya.exe'yi aç › Format yardımcısı › 'Yedekten geri yükle' › bu dosyayı seç. Her şey sırayla geri yüklenir."));
             sb.AppendLine();
-            sb.AppendLine(T("Kahya olmadan elle yapmak istersen:"));
+            sb.AppendLine(T("Kahya olmadan elle yapmak istersen (yedek sıkıştırıldıysa önce yedek.7z / yedek.zip'i aç; sürücüler ve wifi onun dışında):"));
             sb.AppendLine(T("  1. Önce sürücüleri kur (özellikle Wi-Fi/Ethernet): Kahya › Format yardımcısı › Sürücüler › Seç… (klasör, .zip ya da .7z)."));
             sb.AppendLine(T("     Kahya yoksa: yönetici komut isteminde  pnputil /add-driver \"suruculer\\*.inf\" /subdirs /install"));
             sb.AppendLine(T("  2. Wi-Fi ağları: Kahya › Format yardımcısı › Wi-Fi ağları › Seç… ('wifi' klasörü). Şifreler wifi-sifreleri.txt içinde de yazılı."));

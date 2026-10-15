@@ -65,11 +65,16 @@ Format atmadan önce tek ekrandan yedek:
 - Tarayıcı yer imleri, sonradan kurulan fontlar
 - Program ayarları (Premiere, Photoshop, Lightroom, CapCut, OBS…)
 - 🎮 **Oyun kayıtları:** Minecraft dünyaları, modları, kaynak ve gölgelendirici paketleri (CurseForge, Prism,
-  Modrinth ve Bedrock dahil), Kayıtlı Oyunlar, My Games ve Unity oyunlarının kayıtları. Oyunun kendisi yedeklenmez,
-  sadece senin kayıtların.
+  Modrinth ve Bedrock dahil), Steam kayıtları, Unreal Engine (Epic) oyunları, Ubisoft Connect, Rockstar, Kayıtlı Oyunlar,
+  My Games ve Unity oyunları. Oyunun kendisi yedeklenmez, sadece senin kayıtların. Bilinen yerlere bakılır; kaydını
+  bambaşka bir yerde tutan oyunlar kaçabilir (Steam Cloud'u olanlar zaten güvende).
 
-Yedeğin içinde `BILGISAYARADI.kahya` adında bir dosya oluşur. Format sonrası Kahya'da **Yedekten geri yükle** deyip bu
-dosyayı seçmen (ya da dosyaya çift tıklaman) yeterli: sürücüler, Wi-Fi, fontlar, kişisel klasörler, programlar, ayarlar
+Yedek bitince tek bir arşive (**7z** ya da **ZIP**) sıkıştırılır; çoğu zaman üçte bir küçülür. Yanına `Kahya.exe` de konur,
+format sonrası indirmen gerekmez. Sürücüler ve Wi-Fi arşivin dışında kalır: format sonrası internet ve 7-Zip yokken de
+hemen kurulabilsinler (7-Zip yoksa arşivi Windows'un kendi aracı açar).
+
+Yedeğin içinde `BILGISAYARADI.kahya` adında bir dosya oluşur. Format sonrası yanındaki Kahya'yı açıp **Yedekten geri yükle**
+deyip bu dosyayı seçmen (ya da dosyaya çift tıklaman) yeterli: sürücüler, Wi-Fi, fontlar, kişisel klasörler, programlar, ayarlar
 ve oyun kayıtları sırayla, tek seferde geri yüklenir. Sürücüler için yönetici izni gerekirse Kahya yeniden başlayıp
 kaldığı yerden devam eder.
 

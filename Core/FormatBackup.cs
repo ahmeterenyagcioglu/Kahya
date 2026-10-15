@@ -210,42 +210,78 @@ namespace Kahya.Core
             return File.Exists(pf) ? pf : null;
         }
 
-        /// <summary>Klasörü .zip ya da .7z yapar, başarılıysa klasörü siler ve arşivin yolunu döndürür.</summary>
-        public static string Compress(string folder, string format, CleanContext ctx)
-        {
-            var archive = folder.TrimEnd('\\') + (format == "7z" ? ".7z" : ".zip");
-            if (File.Exists(archive)) File.Delete(archive);
-            if (format == "7z")
-            {
-                var exe = SevenZip() ?? throw new InvalidOperationException(T("7-Zip kurulu değil."));
-                int code = ProcessRunner.Run(exe, $"a -t7z -mx=7 \"{archive}\" \"{Path.Combine(folder, "*")}\"", ctx);
-                if (code != 0) throw new InvalidOperationException(T("7-Zip {0} koduyla bitti.", code));
-            }
-            else
-            {
-                ZipFile.CreateFromDirectory(folder, archive, CompressionLevel.Optimal, includeBaseDirectory: false);
-            }
-            Directory.Delete(folder, true);
-            return archive;
-        }
-
         /// <summary>.zip / .7z'yi geçici bir klasöre açar ve o klasörü döndürür; klasör verilirse olduğu gibi döner.</summary>
-        public static string Extract(string path, CleanContext ctx)
+        public static string Extract(string path, CleanContext ctx, string dir = null)
         {
             if (Directory.Exists(path)) return path;
-            var dir = Path.Combine(Path.GetTempPath(), "Kahya-geri-yukleme-" + Path.GetFileNameWithoutExtension(path));
+            dir = dir ?? Path.Combine(Path.GetTempPath(), "Kahya-geri-yukleme-" + Path.GetFileNameWithoutExtension(path));
             if (Directory.Exists(dir)) Directory.Delete(dir, true);
+            Directory.CreateDirectory(dir);
             if (path.EndsWith(".7z", StringComparison.OrdinalIgnoreCase))
             {
-                var exe = SevenZip() ?? throw new InvalidOperationException(T("Bu dosyayı açmak için 7-Zip kurulu olmalı."));
-                if (ProcessRunner.Run(exe, $"x \"{path}\" -o\"{dir}\" -y", ctx) != 0)
-                    throw new InvalidOperationException(T("Arşiv açılamadı."));
+                var exe = SevenZip();
+                if (exe != null)
+                {
+                    if (ProcessRunner.Run(exe, $"x \"{path}\" -o\"{dir}\" -y", ctx) != 0)
+                        throw new InvalidOperationException(T("Arşiv açılamadı."));
+                }
+                // 7-Zip yoksa Windows'un kendi tar'ı (libarchive) 7z'yi de açabilir: format sonrası internet yokken bile.
+                else if (ProcessRunner.Run(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "tar.exe"), $"-xf \"{path}\" -C \"{dir}\"", ctx) != 0)
+                    throw new InvalidOperationException(T("Arşiv açılamadı. 7-Zip'i kurup tekrar dene."));
             }
             else
             {
                 ZipFile.ExtractToDirectory(path, dir);
             }
             return dir;
+        }
+
+        /// <summary>
+        /// Yedek klasörünün içeriğini tek bir arşive koyar (<paramref name="keep"/> içindekiler hariç: format sonrası
+        /// arşiv açılmadan önce lazım olanlar) ve arşive giren dosyaları siler. Arşivin adını döndürür.
+        /// </summary>
+        public static string CompressBackup(string folder, string format, ICollection<string> keep, CleanContext ctx)
+        {
+            var name = T("yedek") + (format == "7z" ? ".7z" : ".zip");
+            var archive = Path.Combine(folder, name);
+            if (File.Exists(archive)) File.Delete(archive);
+            var items = Directory.GetFileSystemEntries(folder)
+                .Where(p => !keep.Contains(Path.GetFileName(p), StringComparer.OrdinalIgnoreCase) && !p.Equals(archive, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            if (items.Count == 0) return null;
+
+            if (format == "7z")
+            {
+                var exe = SevenZip() ?? throw new InvalidOperationException(T("7-Zip kurulu değil."));
+                // Liste dosyasıyla: komut satırı uzunluğuna takılmasın. -mx=5 hız/boyut dengesi, -mmt tüm çekirdekler.
+                var list = Path.Combine(Path.GetTempPath(), "kahya-7z-" + Guid.NewGuid().ToString("N") + ".txt");
+                File.WriteAllLines(list, items.Select(Path.GetFileName), new UTF8Encoding(false));
+                try
+                {
+                    int code = ProcessRunner.Run(exe, $"a -t7z -mx=5 -mmt=on -scsUTF-8 \"{archive}\" @\"{list}\"", ctx, workingDirectory: folder);
+                    if (code > 1) throw new InvalidOperationException(T("7-Zip {0} koduyla bitti.", code)); // 1: bazı dosyalar okunamadı (uyarı)
+                }
+                finally { try { File.Delete(list); } catch { } }
+            }
+            else
+            {
+                using (var zip = ZipFile.Open(archive, ZipArchiveMode.Create, Encoding.UTF8))
+                    foreach (var item in items)
+                    {
+                        var files = File.Exists(item) ? new[] { item } : Directory.GetFiles(item, "*", SearchOption.AllDirectories);
+                        foreach (var file in files)
+                        {
+                            ctx.Token.ThrowIfCancellationRequested();
+                            var rel = file.Substring(folder.TrimEnd('\\').Length + 1);
+                            try { zip.CreateEntryFromFile(file, rel.Replace('\\', '/'), CompressionLevel.Optimal); }
+                            catch (IOException ex) { ctx.Log("   ! " + T("{0} arşive eklenemedi: {1}", rel, ex.Message)); }
+                        }
+                    }
+            }
+
+            foreach (var item in items)
+                try { if (File.Exists(item)) File.Delete(item); else Directory.Delete(item, true); } catch { }
+            return name;
         }
 
         // ───────────── Wi-Fi ─────────────

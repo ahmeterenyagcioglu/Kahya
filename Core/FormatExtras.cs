@@ -65,6 +65,7 @@ namespace Kahya.Core
         {
             var list = new List<FontBackupItem>();
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var office = OfficeFonts();
 
             void Read(RegistryKey key, bool perUser)
             {
@@ -76,6 +77,7 @@ namespace Kahya.Core
                     try
                     {
                         if (!File.Exists(path) || !seen.Add(path)) continue;
+                        if (!perUser && office.Contains(System.IO.Path.GetFileName(path))) continue;
                         if (!perUser && File.GetAccessControl(path).GetOwner(typeof(SecurityIdentifier)).Value == TrustedInstallerSid) continue;
                         list.Add(new FontBackupItem { RegistryName = name, Path = path, Size = new FileInfo(path).Length, PerUser = perUser, IsChecked = true });
                     }
@@ -97,6 +99,27 @@ namespace Kahya.Core
             }
             catch { }
             return list.OrderBy(f => f.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
+        }
+
+        /// <summary>
+        /// Microsoft Office'in kurduğu fontlar (Agency FB, Bodoni MT… ~200 tane). Office bunların kopyasını kendi klasöründe
+        /// tutar; Office yeniden kurulunca geri geldikleri için yedeklenmezler.
+        /// </summary>
+        static HashSet<string> OfficeFonts()
+        {
+            var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var pf in new[] { Environment.SpecialFolder.ProgramFiles, Environment.SpecialFolder.ProgramFilesX86 })
+            {
+                var dir = System.IO.Path.Combine(Environment.GetFolderPath(pf), @"Microsoft Office\root\VFS\Fonts");
+                try
+                {
+                    if (Directory.Exists(dir))
+                        foreach (var f in Directory.EnumerateFiles(dir, "*", SearchOption.AllDirectories))
+                            set.Add(System.IO.Path.GetFileName(f));
+                }
+                catch { }
+            }
+            return set;
         }
 
         /// <summary>Fontları hedef klasöre kopyalar ve geri yükleme için ad listesini (fontlar.txt) yazar.</summary>
@@ -186,6 +209,9 @@ namespace Kahya.Core
 
         static readonly (string token, Func<string> path)[] Tokens =
         {
+            // Steam herhangi bir yere kurulabilir (çoğu zaman Program Files (x86)); onun altındakiler önce eşleşmeli.
+            ("{STEAM}", SteamPath),
+            ("{PROGRAMFILESX86}", () => Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86)),
             ("{LOCALAPPDATA}", () => Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)),
             ("{APPDATA}", () => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)),
             ("{DOCUMENTS}", () => Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)),
@@ -194,19 +220,38 @@ namespace Kahya.Core
             ("{USERPROFILE}", () => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)),
         };
 
+        /// <summary>Simgeyi bu bilgisayardaki yola çevirir; karşılığı yoksa (ör. Steam kurulu değil) null.</summary>
         static string Expand(string tokenized)
         {
             foreach (var (token, path) in Tokens)
                 if (tokenized.StartsWith(token, StringComparison.OrdinalIgnoreCase))
-                    return path() + tokenized.Substring(token.Length);
+                {
+                    var root = path();
+                    return string.IsNullOrEmpty(root) ? null : root + tokenized.Substring(token.Length);
+                }
             return tokenized;
+        }
+
+        /// <summary>Steam'in kurulu olduğu klasör (HKCU\Software\Valve\Steam › SteamPath); yoksa null.</summary>
+        static string SteamPath()
+        {
+            try
+            {
+                using (var k = Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam"))
+                    if (k?.GetValue("SteamPath") is string p && p.Length > 0 && Directory.Exists(p))
+                        return System.IO.Path.GetFullPath(p).TrimEnd('\\');
+            }
+            catch { }
+            return null;
         }
 
         static string Tokenize(string path)
         {
             foreach (var (token, root) in Tokens)
             {
-                var r = root().TrimEnd('\\');
+                var value = root();
+                if (string.IsNullOrEmpty(value)) continue;
+                var r = value.TrimEnd('\\');
                 if (path.StartsWith(r + "\\", StringComparison.OrdinalIgnoreCase) || path.TrimEnd('\\').Equals(r, StringComparison.OrdinalIgnoreCase))
                     return token + path.TrimEnd('\\').Substring(r.Length);
             }
@@ -261,6 +306,15 @@ namespace Kahya.Core
                 Patterns = new[] { @"{USERPROFILE}\Saved Games" } },
             new SettingsDef { Id = "mygames", Game = true, Name = "Belgeler › My Games", Description = "Birçok oyunun kayıtları ve ayarları",
                 Patterns = new[] { @"{DOCUMENTS}\My Games" } },
+            new SettingsDef { Id = "steam", Game = true, Name = "Steam oyun kayıtları", Description = "Steam'in userdata klasörü: bulut kaydı olmayan oyunların kayıtları, oyun ayarları ve ekran görüntüleri",
+                Processes = new[] { "steam" }, Patterns = new[] { @"{STEAM}\userdata" } },
+            // Unreal Engine oyunlarının çoğu (Epic'tekiler dahil) kayıtlarını AppData\Local\<oyun>\Saved\SaveGames'te tutar.
+            new SettingsDef { Id = "unreal", Game = true, Name = "Unreal Engine oyunlarının kayıtları", Description = "AppData › Local › <oyun> › Saved › SaveGames (Epic oyunlarının çoğu)",
+                Patterns = new[] { @"{LOCALAPPDATA}\*\Saved\SaveGames" } },
+            new SettingsDef { Id = "ubisoft", Game = true, Name = "Ubisoft Connect kayıtları", Description = "Ubisoft oyunlarının yerel kayıtları",
+                Processes = new[] { "upc", "UbisoftConnect" }, Patterns = new[] { @"{PROGRAMFILESX86}\Ubisoft\Ubisoft Game Launcher\savegames" } },
+            new SettingsDef { Id = "rockstar", Game = true, Name = "Rockstar oyunları", Description = "GTA V, Red Dead Redemption 2 vb. kayıtları ve ayarları",
+                Processes = new[] { "GTA5", "PlayGTAV", "RDR2" }, Patterns = new[] { @"{DOCUMENTS}\Rockstar Games" } },
             new SettingsDef { Id = "locallow", Game = true, Name = "Unity oyunlarının kayıtları", Description = "AppData › LocalLow: Unity ile yapılmış oyunların kayıtları",
                 Exclude = new[] { "Microsoft", "Sun", "Intel", "Adobe", "Mozilla", "Google", "NVIDIA", "AMD", "Temp", "Unity", "Oracle", "Apple Computer", "Comms" },
                 Patterns = new[] { @"{LOCALLOW}" } },
@@ -274,8 +328,16 @@ namespace Kahya.Core
             {
                 var item = new AppSettingsItem { Id = def.Id, Name = T(def.Name), Description = T(def.Description), Exclude = def.Exclude, IsGame = def.Game, IsChecked = true };
                 foreach (var pattern in def.Patterns)
-                    foreach (var dir in FileCleaner.ResolveDirectories(Expand(pattern)))
-                        item.Folders.Add(Tokenize(dir));
+                {
+                    var expanded = Expand(pattern);
+                    if (expanded == null) continue;
+                    foreach (var dir in FileCleaner.ResolveDirectories(expanded))
+                    {
+                        var tokenized = Tokenize(dir);
+                        // Simgeye çevrilemeyen yol başka bir bilgisayara taşınamaz (ve yedekte yeri olmaz): alınmaz.
+                        if (tokenized.StartsWith("{")) item.Folders.Add(tokenized);
+                    }
+                }
                 item.Size = item.Folders.Sum(f => SizeExcluding(Expand(f), def.Exclude));
                 if (item.Size > 0) list.Add(item);
             }
@@ -344,6 +406,11 @@ namespace Kahya.Core
                     continue;
                 }
                 var dest = Expand(tokenized);
+                if (dest == null)
+                {
+                    ctx.Log("   ! " + T("{0}: hedef klasör bu bilgisayarda yok (program henüz kurulmamış olabilir), atlandı.", name));
+                    continue;
+                }
                 int code = ProcessRunner.Run("robocopy.exe", $"\"{source}\" \"{dest}\" /E /XO /R:1 /W:1 /XJ /NFL /NDL /NP", ctx);
                 if (code < 8)
                 {

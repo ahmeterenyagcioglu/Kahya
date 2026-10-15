@@ -1766,6 +1766,23 @@
                                     </DockPanel>
                                     <TextBlock x:Name="BackupTargetText" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
                                     <TextBlock x:Name="BackupTargetHint" Style="{StaticResource Hint}" Margin="0,3,0,0"/>
+                                    <DockPanel Margin="0,12,0,0">
+                                        <Border DockPanel.Dock="Right" Style="{StaticResource SegBar}" Background="{DynamicResource Row}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Button x:Name="FmtFolderBtn" Content="Yok" Style="{StaticResource Seg}" Tag="folder" Click="BackupFormat_Click"
+                                                        ToolTip="Sıkıştırmadan, klasör olarak (en hızlı, en çok yer kaplar)"/>
+                                                <Button x:Name="FmtZipBtn" Content="ZIP" Style="{StaticResource Seg}" Tag="zip" Click="BackupFormat_Click"
+                                                        ToolTip="Her Windows'ta ek program olmadan açılır"/>
+                                                <Button x:Name="Fmt7zBtn" Content="7z" Style="{StaticResource Seg}" Tag="7z" Click="BackupFormat_Click"
+                                                        ToolTipService.ShowOnDisabled="True"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="Sıkıştırma" FontWeight="SemiBold"/>
+                                            <TextBlock Style="{StaticResource Hint}" TextWrapping="Wrap" Margin="0,2,12,0"
+                                                       Text="Yedek bitince tek bir arşive konur; çoğu zaman üçte bir küçülür. Sürücüler, Wi-Fi ve Kahya.exe dışarıda kalır ki format sonrası internet yokken de hemen kurulabilsin."/>
+                                        </StackPanel>
+                                    </DockPanel>
                                 </StackPanel>
                             </Border>
 
@@ -1995,20 +2012,7 @@
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
-                                    <DockPanel Margin="0,6,0,0">
-                                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                                            <TextBlock Text="Kaydetme biçimi" Style="{StaticResource Label}"/>
-                                            <Border Style="{StaticResource SegBar}" Background="{DynamicResource Row}">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <Button x:Name="FmtFolderBtn" Content="Klasör" Style="{StaticResource Seg}" Tag="folder" Click="BackupFormat_Click"/>
-                                                    <Button x:Name="FmtZipBtn" Content="ZIP" Style="{StaticResource Seg}" Tag="zip" Click="BackupFormat_Click"/>
-                                                    <Button x:Name="Fmt7zBtn" Content="7z" Style="{StaticResource Seg}" Tag="7z" Click="BackupFormat_Click"
-                                                            ToolTipService.ShowOnDisabled="True"/>
-                                                </StackPanel>
-                                            </Border>
-                                        </StackPanel>
-                                        <TextBlock x:Name="BackupDriverInfo" Style="{StaticResource Hint}" VerticalAlignment="Center" Text="Sürücüler okunuyor…"/>
-                                    </DockPanel>
+                                    <TextBlock x:Name="BackupDriverInfo" Style="{StaticResource Hint}" Margin="0,6,0,0" Text="Sürücüler okunuyor…"/>
                                 </StackPanel>
                             </Border>
 

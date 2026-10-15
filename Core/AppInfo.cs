@@ -38,6 +38,11 @@ namespace Kahya.Core
         {
             new ReleaseNote
             {
+                Version = "1.3.0", Date = T("16 Ekim 2026"),
+                Notes = T("• Format yedeği bitince tamamı tek bir arşive (7z ya da ZIP) sıkıştırılır; sürücüler, Wi-Fi ve Kahya dışarıda kalır ki format sonrası internet yokken de kurulabilsin\n• Yedeğin içine Kahya.exe de konur: format sonrası indirmeye gerek yok\n• 7-Zip kurulu değilse arşiv Windows'un kendi aracıyla açılır\n• Daha çok oyun: Steam kayıtları, Unreal Engine (Epic) oyunları, Ubisoft Connect ve Rockstar oyunları\n• Font yedeğinde Microsoft Office'in fontları artık listelenmiyor (Office kurulunca geri gelirler)"),
+            },
+            new ReleaseNote
+            {
                 Version = "1.2.0", Date = T("16 Ekim 2026"),
                 Notes = T("• Format yedeği artık bir .kahya dosyası içeriyor: format sonrası 'Yedekten geri yükle' (ya da dosyaya çift tıklama) her şeyi sırayla geri yükler — sürücüler, Wi-Fi, fontlar, kişisel klasörler, programlar, ayarlar ve oyun kayıtları\n• Oyun kayıtları yedeği: Minecraft (dünyalar, modlar, kaynak/gölgelendirici paketleri; CurseForge, Prism, Modrinth ve Bedrock dahil), Kayıtlı Oyunlar, My Games ve Unity oyunları\n• Genel bakışta açılış süresi: son açılış, 30 günlük ortalamaya göre değişim ve açılışı en çok yavaşlatanlar\n• Hata bildir: hata penceresinden ya da Hakkında'dan hazır doldurulmuş bir hata bildirimi açılır"),
             },
