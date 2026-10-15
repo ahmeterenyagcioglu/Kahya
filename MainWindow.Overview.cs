@@ -43,6 +43,7 @@ namespace Kahya
     {
         readonly ObservableCollection<HealthTile> _tiles = new ObservableCollection<HealthTile>();
         HealthTile _tDisk, _tClean, _tUpdates, _tLast, _tAuto, _tHealth, _tStartup, _tPrivacy, _tExtra;
+        int _startupOn = -1;
         Task _bgUpdates;
         bool _overviewRefreshing;
 
@@ -92,7 +93,7 @@ namespace Kahya
                 {
                     RefreshScheduleTileAsync(),
                     RefreshHealthTileAsync(),
-                    RefreshStartupTileAsync(),
+                    RefreshStartupAndBootAsync(),
                     RefreshPrivacyTileAsync(),
                     RefreshExtraTileAsync(),
                     _updatesChecked ? Task.CompletedTask : (_bgUpdates = BackgroundUpdatesAsync()),
@@ -206,6 +207,8 @@ namespace Kahya
             {
                 int on = _startupLoaded ? _startup.Count(s => s.IsEnabled)
                                         : await Task.Run(() => StartupManager.Load().Count(s => s.IsEnabled));
+                _startupOn = on;
+                _tStartup.Title = T("Açılışta başlayanlar");
                 _tStartup.Set(on.ToString(), T("uygulama Windows açılırken başlıyor"), on > 8 ? "warn" : "good");
                 _tStartup.Tooltip = on > 8 ? T("Ne kadar çok uygulama açılışta başlarsa bilgisayar o kadar geç açılır. Kullanmadıklarını kapatabilirsin.") : null;
             }
@@ -221,6 +224,61 @@ namespace Kahya
             int left = list.Count(p => p.Recommended && !p.IsApplied);
             _tPrivacy.Set(left == 0 ? T("Tamam") : T("{0} öneri", left),
                           left == 0 ? T("Önerilen ayarların hepsi uygulanmış") : T("reklam/öneri ayarı hâlâ açık"), left == 0 ? "good" : "warn");
+        }
+
+        /// <summary>
+        /// Son açılışın süresi (masaüstü görünene kadar) ve son 30 günün ortalamasına göre değişim. Ölçümler yalnızca
+        /// yönetici olarak okunabildiği için yöneticiyken kaydedilir; normalde kayıttan gösterilir.
+        /// </summary>
+        /// <remarks>
+        /// Ayrı kutucuk değil: "Açılışta başlayanlar" kutucuğu ölçüm varsa "Açılış süresi"ne dönüşür ve başlayan uygulama
+        /// sayısını alt satırda gösterir (ikisi aynı sorunun cevabı: bilgisayar neden geç açılıyor?).
+        /// </remarks>
+        async Task RefreshStartupAndBootAsync()
+        {
+            await RefreshStartupTileAsync();
+            try { await RefreshBootTileAsync(); } catch { }
+        }
+
+        async Task RefreshBootTileAsync()
+        {
+            var (times, slow) = await Task.Run(() =>
+            {
+                BootTimes.Record();
+                return (BootTimes.LoadTimes(), BootTimes.Slowest());
+            });
+            if (times.Count == 0)
+            {
+                if (!Elevation.IsAdmin)
+                    _tStartup.Tooltip = (_tStartup.Tooltip != null ? _tStartup.Tooltip + "\n\n" : "") +
+                        T("Açılış süresini görmek için Kahya'yı bir kez yönetici olarak aç: Windows bu ölçümleri sadece yöneticiye gösterir. Sonra hep görünür (otomatik bakım da günceller).");
+                return;
+            }
+
+            var last = times[times.Count - 1];
+            var month = times.Where(t => t.Date >= DateTime.Now.AddDays(-30) && t != last).ToList();
+            double sec = last.MainPathMs / 1000.0;
+            string detail;
+            string level = sec > 90 ? "bad" : sec > 45 ? "warn" : "good";
+            if (month.Count >= 3)
+            {
+                double avg = month.Average(t => t.MainPathMs) / 1000.0, diff = sec - avg;
+                detail = Math.Abs(diff) < 3 ? T("Son 30 günün ortalamasıyla aynı ({0:0} sn)", avg)
+                       : diff > 0 ? T("Ortalamadan {0:0} sn yavaş (ortalama {1:0} sn)", diff, avg)
+                       : T("Ortalamadan {0:0} sn hızlı (ortalama {1:0} sn)", -diff, avg);
+                if (diff > 15 && diff > avg * 0.3 && level == "good") level = "warn";
+            }
+            else detail = T("Masaüstü görünene kadar · {0:dd.MM HH:mm}", last.Date);
+
+            // Açılışta başlayan uygulama çok olması da uyarı sebebi; ikisinin kötü olanı geçerli.
+            if (_tStartup.Level == "warn" && level == "good") level = "warn";
+            var startupText = _startupOn >= 0 ? T("{0} uygulama açılışta başlıyor", _startupOn) : null;
+
+            _tStartup.Title = T("Açılış süresi");
+            _tStartup.Set(T("{0:0} sn", sec), startupText != null ? detail + " · " + startupText : detail, level);
+            _tStartup.Tooltip = T("Masaüstü görünene kadar geçen süre. Tamamen hazır olana kadar: {0:0} sn.", last.TotalMs / 1000.0) +
+                (slow.Count == 0 ? "" : "\n\n" + T("Son 30 günde açılışı en çok yavaşlatanlar:") + "\n" +
+                  string.Join("\n", slow.Select(x => T("• {0} (+{1:0.0} sn, {2} kez)", x.name, x.avgMs / 1000.0, x.count))));
         }
 
         /// <summary>Dizüstünde pil sağlığı, masaüstünde bilgisayarın ne zamandır açık olduğu.</summary>

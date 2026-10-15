@@ -231,6 +231,13 @@ namespace Kahya
 
         async void CheckAppUpdate_Click(object sender, RoutedEventArgs e) => await CheckAppUpdateAsync(silent: false);
 
+        void ReportIssue_Click(object sender, RoutedEventArgs e)
+        {
+            try { Clipboard.SetText(IssueReport.Body()); } catch { }
+            IssueReport.OpenOnGitHub();
+            Log(T("Hata bildirimi açıldı; metin panoya da kopyalandı (GitHub hesabın yoksa WhatsApp vb. ile gönderebilirsin)."));
+        }
+
         async Task CheckAppUpdateAsync(bool silent)
         {
             if (!UpdateChecker.Configured) return;

@@ -38,6 +38,11 @@ namespace Kahya.Core
         {
             new ReleaseNote
             {
+                Version = "1.2.0", Date = T("16 Ekim 2026"),
+                Notes = T("• Format yedeği artık bir .kahya dosyası içeriyor: format sonrası 'Yedekten geri yükle' (ya da dosyaya çift tıklama) her şeyi sırayla geri yükler — sürücüler, Wi-Fi, fontlar, kişisel klasörler, programlar, ayarlar ve oyun kayıtları\n• Oyun kayıtları yedeği: Minecraft (dünyalar, modlar, kaynak/gölgelendirici paketleri; CurseForge, Prism, Modrinth ve Bedrock dahil), Kayıtlı Oyunlar, My Games ve Unity oyunları\n• Genel bakışta açılış süresi: son açılış, 30 günlük ortalamaya göre değişim ve açılışı en çok yavaşlatanlar\n• Hata bildir: hata penceresinden ya da Hakkında'dan hazır doldurulmuş bir hata bildirimi açılır"),
+            },
+            new ReleaseNote
+            {
                 Version = "1.1.0", Date = T("16 Ekim 2026"),
                 Notes = T("• winget yoksa Kahya kurmayı teklif eder ve tek tıkla kurar\n• Format yedeğinde 7z seçilince 7-Zip yoksa tek tıkla kurulur\n• .NET Framework 4.8 eksikse açılışta söylenir ve indirme sayfası açılır"),
             },
@@ -146,7 +151,7 @@ namespace Kahya.Core
 
         static KeyValuePair<string, string> Pair(string k, string v) => new KeyValuePair<string, string>(k, v?.Trim());
 
-        static string WindowsVersion()
+        public static string WindowsVersion()
         {
             const string key = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion";
             var name = Registry(key, "ProductName") ?? "Windows";

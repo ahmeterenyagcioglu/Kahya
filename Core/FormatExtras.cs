@@ -39,6 +39,8 @@ namespace Kahya.Core
         /// <summary>Kopyalanmayacak alt klasör adları (önbellek, yapay zekâ modelleri…).</summary>
         public string[] Exclude { get; set; } = new string[0];
         public long Size { get; set; }
+        /// <summary>Oyun kaydı (ayrı kartta listelenir, yedekte 'oyunlar' klasörüne gider).</summary>
+        public bool IsGame { get; set; }
 
         public string Details => Description + " · " + Format.Bytes(Size);
     }
@@ -187,6 +189,9 @@ namespace Kahya.Core
             ("{LOCALAPPDATA}", () => Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)),
             ("{APPDATA}", () => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)),
             ("{DOCUMENTS}", () => Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)),
+            ("{LOCALLOW}", () => System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"AppData\LocalLow")),
+            // En sonda: diğerlerinin hepsi bunun altında, önce onlar eşleşmeli.
+            ("{USERPROFILE}", () => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)),
         };
 
         static string Expand(string tokenized)
@@ -202,8 +207,8 @@ namespace Kahya.Core
             foreach (var (token, root) in Tokens)
             {
                 var r = root().TrimEnd('\\');
-                if (path.StartsWith(r + "\\", StringComparison.OrdinalIgnoreCase))
-                    return token + path.Substring(r.Length);
+                if (path.StartsWith(r + "\\", StringComparison.OrdinalIgnoreCase) || path.TrimEnd('\\').Equals(r, StringComparison.OrdinalIgnoreCase))
+                    return token + path.TrimEnd('\\').Substring(r.Length);
             }
             return path;
         }
@@ -215,6 +220,7 @@ namespace Kahya.Core
         {
             public string Id, Name, Description;
             public string[] Processes = new string[0], Exclude = new string[0], Patterns;
+            public bool Game;
         }
 
         /// <summary>Yedeklenen program ayarları. Desenlerdeki '*' sürüm klasörlerini yakalar (Premiere 24.0, 25.0…).</summary>
@@ -235,6 +241,29 @@ namespace Kahya.Core
                 Processes = new[] { "Photoshop" }, Patterns = new[] { @"{APPDATA}\Adobe\Adobe Photoshop *\Presets" } },
             new SettingsDef { Id = "obs", Name = "OBS sahneleri ve profilleri", Description = "Sahneler, kaynaklar ve yayın/kayıt profilleri",
                 Processes = new[] { "obs64", "obs32" }, Patterns = new[] { @"{APPDATA}\obs-studio\basic" } },
+
+            // ───── oyunlar ─────
+            // Minecraft: oyunun kendisi (versions, libraries, assets…) yedeğe girmez, başlatıcı yeniden indirir.
+            new SettingsDef { Id = "minecraft", Game = true, Name = "Minecraft", Description = "Dünyalar, modlar, kaynak/gölgelendirici paketleri, ayarlar ve sunucu listesi",
+                Processes = new[] { "javaw", "Minecraft", "MinecraftLauncher" },
+                Exclude = new[] { "versions", "libraries", "assets", "runtime", "logs", "crash-reports", "webcache", "webcache2", "bin", "cache", "debug" },
+                Patterns = new[] { @"{APPDATA}\.minecraft" } },
+            new SettingsDef { Id = "mc-curseforge", Game = true, Name = "Minecraft · CurseForge profilleri", Description = "Mod paketleri, dünyalar ve ayarlar",
+                Processes = new[] { "javaw", "CurseForge" }, Patterns = new[] { @"{USERPROFILE}\curseforge\minecraft\Instances" } },
+            new SettingsDef { Id = "mc-prism", Game = true, Name = "Minecraft · Prism Launcher profilleri", Description = "Mod paketleri, dünyalar ve ayarlar",
+                Processes = new[] { "javaw", "prismlauncher" }, Patterns = new[] { @"{APPDATA}\PrismLauncher\instances" } },
+            new SettingsDef { Id = "mc-modrinth", Game = true, Name = "Minecraft · Modrinth profilleri", Description = "Mod paketleri, dünyalar ve ayarlar",
+                Processes = new[] { "javaw", "Modrinth App" }, Patterns = new[] { @"{APPDATA}\ModrinthApp\profiles", @"{APPDATA}\com.modrinth.theseus\profiles" } },
+            new SettingsDef { Id = "mc-bedrock", Game = true, Name = "Minecraft Bedrock", Description = "Dünyalar, kaynak paketleri ve ayarlar",
+                Processes = new[] { "Minecraft.Windows" },
+                Patterns = new[] { @"{LOCALAPPDATA}\Packages\Microsoft.MinecraftUWP_8wekyb3d8bbwe\LocalState\games\com.mojang", @"{APPDATA}\Minecraft Bedrock" } },
+            new SettingsDef { Id = "savedgames", Game = true, Name = "Kayıtlı Oyunlar klasörü", Description = "Birçok oyunun kayıtları (Saved Games)",
+                Patterns = new[] { @"{USERPROFILE}\Saved Games" } },
+            new SettingsDef { Id = "mygames", Game = true, Name = "Belgeler › My Games", Description = "Birçok oyunun kayıtları ve ayarları",
+                Patterns = new[] { @"{DOCUMENTS}\My Games" } },
+            new SettingsDef { Id = "locallow", Game = true, Name = "Unity oyunlarının kayıtları", Description = "AppData › LocalLow: Unity ile yapılmış oyunların kayıtları",
+                Exclude = new[] { "Microsoft", "Sun", "Intel", "Adobe", "Mozilla", "Google", "NVIDIA", "AMD", "Temp", "Unity", "Oracle", "Apple Computer", "Comms" },
+                Patterns = new[] { @"{LOCALLOW}" } },
         };
 
         /// <summary>Bu bilgisayarda bulunan (boş olmayan) program ayarları.</summary>
@@ -243,7 +272,7 @@ namespace Kahya.Core
             var list = new List<AppSettingsItem>();
             foreach (var def in SettingsDefs)
             {
-                var item = new AppSettingsItem { Id = def.Id, Name = T(def.Name), Description = T(def.Description), Exclude = def.Exclude, IsChecked = true };
+                var item = new AppSettingsItem { Id = def.Id, Name = T(def.Name), Description = T(def.Description), Exclude = def.Exclude, IsGame = def.Game, IsChecked = true };
                 foreach (var pattern in def.Patterns)
                     foreach (var dir in FileCleaner.ResolveDirectories(Expand(pattern)))
                         item.Folders.Add(Tokenize(dir));
@@ -272,9 +301,11 @@ namespace Kahya.Core
             foreach (var folder in item.Folders)
             {
                 ctx.Token.ThrowIfCancellationRequested();
-                var exclude = item.Exclude.Length > 0 ? " /XD " + string.Join(" ", item.Exclude.Select(x => "\"" + x + "\"")) : "";
+                var source = Expand(folder);
+                // Sadece üst düzeydeki klasörler hariç tutulur (tam yolla): bir kaynak paketinin kendi 'assets' klasörü kalsın.
+                var exclude = item.Exclude.Length > 0 ? " /XD " + string.Join(" ", item.Exclude.Select(x => "\"" + System.IO.Path.Combine(source, x) + "\"")) : "";
                 int code = ProcessRunner.Run("robocopy.exe",
-                    $"\"{Expand(folder)}\" \"{System.IO.Path.Combine(target, BackupRelative(folder))}\" /E /R:1 /W:1 /XJ /NFL /NDL /NP{exclude}", ctx);
+                    $"\"{source}\" \"{System.IO.Path.Combine(target, BackupRelative(folder))}\" /E /R:1 /W:1 /XJ /NFL /NDL /NP{exclude}", ctx);
                 if (code < 8) manifest.AppendLine(item.Id + "\t" + item.Name + "\t" + folder);
                 else ok = false;
             }

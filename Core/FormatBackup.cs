@@ -56,6 +56,8 @@ namespace Kahya.Core
     /// <summary>Masaüstü, Belgeler gibi kişisel klasörler.</summary>
     public sealed class PersonalFolder : BackupChoice
     {
+        /// <summary>Desktop, Documents, Downloads, Pictures, Videos, Music: geri yüklerken yeni Windows'taki yeri bulmak için.</summary>
+        public string Key { get; set; }
         public string Name { get; set; }
         public string Path { get; set; }
         public bool OnSystemDrive { get; set; }
@@ -393,38 +395,55 @@ namespace Kahya.Core
 
         static readonly Guid Downloads = new Guid("374DE290-123F-4565-9164-39C4925E467B");
 
+        /// <summary>Kişisel klasör anahtarı → (Türkçe ad, bu bilgisayardaki yolu).</summary>
+        static readonly (string key, string name, Func<string> path)[] KnownFolders =
+        {
+            ("Desktop", "Masaüstü", () => Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory)),
+            ("Documents", "Belgeler", () => Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)),
+            ("Downloads", "İndirilenler", () => { string p = null; try { SHGetKnownFolderPath(Downloads, 0, IntPtr.Zero, out p); } catch { } return p; }),
+            ("Pictures", "Resimler", () => Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)),
+            ("Videos", "Videolar", () => Environment.GetFolderPath(Environment.SpecialFolder.MyVideos)),
+            ("Music", "Müzik", () => Environment.GetFolderPath(Environment.SpecialFolder.MyMusic)),
+        };
+
+        /// <summary>Anahtarın (Desktop, Documents…) bu bilgisayardaki yolu; bilinmiyorsa null.</summary>
+        public static string KnownFolderPath(string key) => KnownFolders.FirstOrDefault(k => k.key.Equals(key, StringComparison.OrdinalIgnoreCase)).path?.Invoke();
+
         public static List<PersonalFolder> PersonalFolders()
         {
             var sys = Path.GetPathRoot(Environment.GetFolderPath(Environment.SpecialFolder.Windows));
-            string downloads = null;
-            try { SHGetKnownFolderPath(Downloads, 0, IntPtr.Zero, out downloads); } catch { }
-
             var list = new List<PersonalFolder>();
-            void Add(string name, string path)
+            foreach (var (key, name, getPath) in KnownFolders)
             {
-                if (string.IsNullOrEmpty(path) || !Directory.Exists(path) || list.Any(f => f.Path.Equals(path, StringComparison.OrdinalIgnoreCase))) return;
+                var path = getPath();
+                if (string.IsNullOrEmpty(path) || !Directory.Exists(path) || list.Any(f => f.Path.Equals(path, StringComparison.OrdinalIgnoreCase))) continue;
                 list.Add(new PersonalFolder
                 {
+                    Key = key,
                     Name = T(name),
                     Path = path,
                     OnSystemDrive = path.StartsWith(sys, StringComparison.OrdinalIgnoreCase),
                     InCloud = Regex.IsMatch(path, @"\\(OneDrive|Google Drive|Dropbox|iCloudDrive)", RegexOptions.IgnoreCase),
                 });
             }
-            Add("Masaüstü", Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory));
-            Add("Belgeler", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
-            Add("İndirilenler", downloads);
-            Add("Resimler", Environment.GetFolderPath(Environment.SpecialFolder.MyPictures));
-            Add("Videolar", Environment.GetFolderPath(Environment.SpecialFolder.MyVideos));
-            Add("Müzik", Environment.GetFolderPath(Environment.SpecialFolder.MyMusic));
             return list;
         }
+
+        /// <summary>Kişisel klasörün yedekteki alt klasör adı.</summary>
+        public static string BackupName(PersonalFolder f) => Safe(f.Name);
 
         /// <summary>Klasörü yedeğe kopyalar (robocopy: kilitli dosyada takılmaz, bağlantıları izlemez). Başarılıysa true.</summary>
         public static bool CopyFolder(PersonalFolder f, string target, CleanContext ctx)
         {
-            int code = ProcessRunner.Run("robocopy.exe", $"\"{f.Path}\" \"{Path.Combine(target, Safe(f.Name))}\" /E /R:1 /W:1 /XJ /NFL /NDL /NP", ctx);
+            int code = ProcessRunner.Run("robocopy.exe", $"\"{f.Path}\" \"{Path.Combine(target, BackupName(f))}\" /E /R:1 /W:1 /XJ /NFL /NDL /NP", ctx);
             return code < 8; // robocopy: 0-7 başarılı
+        }
+
+        /// <summary>Yedekteki kişisel klasörü yerine kopyalar; var olan daha yeni dosyaların üzerine yazmaz (/XO).</summary>
+        public static bool RestoreFolder(string source, string dest, CleanContext ctx)
+        {
+            int code = ProcessRunner.Run("robocopy.exe", $"\"{source}\" \"{dest}\" /E /XO /R:1 /W:1 /XJ /NFL /NDL /NP", ctx);
+            return code < 8;
         }
 
         // ───────────── yardımcılar ─────────────

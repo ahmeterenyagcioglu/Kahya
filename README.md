@@ -64,8 +64,14 @@ Format atmadan önce tek ekrandan yedek:
 - Masaüstü, Belgeler, İndirilenler gibi kişisel klasörler
 - Tarayıcı yer imleri, sonradan kurulan fontlar
 - Program ayarları (Premiere, Photoshop, Lightroom, CapCut, OBS…)
+- 🎮 **Oyun kayıtları:** Minecraft dünyaları, modları, kaynak ve gölgelendirici paketleri (CurseForge, Prism,
+  Modrinth ve Bedrock dahil), Kayıtlı Oyunlar, My Games ve Unity oyunlarının kayıtları. Oyunun kendisi yedeklenmez,
+  sadece senin kayıtların.
 
-Format sonrası aynı sayfadan hepsi geri yüklenir.
+Yedeğin içinde `BILGISAYARADI.kahya` adında bir dosya oluşur. Format sonrası Kahya'da **Yedekten geri yükle** deyip bu
+dosyayı seçmen (ya da dosyaya çift tıklaman) yeterli: sürücüler, Wi-Fi, fontlar, kişisel klasörler, programlar, ayarlar
+ve oyun kayıtları sırayla, tek seferde geri yüklenir. Sürücüler için yönetici izni gerekirse Kahya yeniden başlayıp
+kaldığı yerden devam eder.
 
 ### 📊 Disk analizi
 En çok yer kaplayan klasörler, büyük ve uzun süredir dokunulmamış dosyalar, dosya türlerine göre dağılım,
@@ -73,6 +79,9 @@ En çok yer kaplayan klasörler, büyük ve uzun süredir dokunulmamış dosyala
 
 ### 🚀 Başlangıç
 Windows açılınca başlayan uygulamalar, zamanlanmış görevler ve servisler; tek anahtarla açılıp kapatılır, hiçbir şey silinmez.
+Genel bakışta **açılış süresi** görünür: son açılış kaç saniye sürdü, 30 günlük ortalamaya göre yavaşladı mı ve açılışı
+en çok hangi uygulama ya da servisler geciktiriyor. (Windows bu ölçümleri sadece yöneticiye gösterir; Kahya bir kez
+yönetici olarak açılınca kaydedilir, sonra hep görünür.)
 
 ### 🛡 Gizlilik
 Reklam kimliği, Başlat önerileri, kilit ekranı reklamları, Bing araması, telemetri gibi ayarlar tek yerde.
@@ -94,14 +103,18 @@ Windows Update durumu ve erteleme, güç planları, geri yükleme noktaları.
 - Açık olan programların önbelleklerine dokunulmaz, kullanımdaki dosyalar atlanır.
 - Kopya ve büyük dosyalar Geri Dönüşüm Kutusu'na gider.
 - Sistem, program ve oyun klasörleri dosya aramalarında hiç taranmaz.
-- **Taşınabilir:** tüm ayarlar exe'nin yanındaki `Data` klasöründe durur. Klasörü silmek programı tamamen kaldırır.
+- **Taşınabilir:** tüm ayarlar exe'nin yanındaki `Data` klasöründe durur. Klasörü silmek programı kaldırır.
+  Windows'a yazdığı tek şey `.kahya` dosyalarının çift tıklayınca Kahya ile açılması için bir dosya ilişkilendirmesidir
+  (sadece senin kullanıcın için).
 
 Kaynak kodun tamamı bu depoda.
 
 ## Sorun bildirme
 
-Bir hata görürsen [Issues](https://github.com/ahmeterenyagcioglu/Kahya/issues) sayfasından bildirebilirsin.
-Kahya beklenmeyen hataları `Data\errors.log` dosyasına yazar; o dosyayı eklemek sorunu bulmayı çok kolaylaştırır.
+Bir hata çıkarsa hata penceresinde **Evet** de ya da **Hakkında › Hata bildir**'e bas: sürüm, Windows ve hatanın
+ayrıntısı hazır doldurulmuş bir [Issues](https://github.com/ahmeterenyagcioglu/Kahya/issues) sayfası açılır.
+Aynı metin panoya da kopyalanır; GitHub hesabın yoksa WhatsApp vb. ile gönderebilirsin.
+Hataların ayrıntıları `Data\errors.log` dosyasında da durur.
 
 ---
 
@@ -123,8 +136,13 @@ dotnet build -c Release
 - **Çeviriler:** kod ve XAML'de metinler Türkçe yazılır, İngilizceleri `Core/LangEn.cs` içinde.
 - **Tema:** renkler `Core/Theme.cs` içinde iki palet olarak durur.
 - **Sürüm yayınlama:** `Kahya.csproj` içindeki `<Version>`'ı yükselt (düzeltme → `1.0.x`, yeni özellik → `1.x.0`),
-  `Core/AppInfo.cs` içindeki `ReleaseNotes`'a not ekle, `vX.Y.Z` etiketiyle GitHub Release oluşturup `Kahya.exe`'yi ekle.
-  Kullanıcılardaki Kahya yeni sürümü buradan bulur.
+  `Core/AppInfo.cs` içindeki `ReleaseNotes`'a not ekle ve commit'le. Sonra:
+  ```powershell
+  git tag -a v1.2.0 -m "• yeni şey"     # etiket mesajı sürüm notu olur
+  git push --follow-tags
+  ```
+  GitHub Actions exe'yi derleyip Release olarak yayınlar (`.github/workflows/build.yml`); kullanıcılardaki Kahya yeni
+  sürümü buradan bulur. Her push'ta da derleme kontrol edilir.
 
 ---
 

@@ -89,6 +89,7 @@ namespace Kahya
             w.Show();
             if (w.WindowState == WindowState.Minimized) w.WindowState = WindowState.Normal;
             w.Activate();
+            w.CheckPendingRestore();
         }
 
         /// <summary>Programı tamamen kapatır (bildirim alanından da).</summary>

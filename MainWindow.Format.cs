@@ -20,6 +20,7 @@ namespace Kahya
         List<ProgramBackupItem> _backupApps = new List<ProgramBackupItem>();
         List<FontBackupItem> _backupFonts = new List<FontBackupItem>();
         List<AppSettingsItem> _backupSettings = new List<AppSettingsItem>();
+        List<AppSettingsItem> _backupGames = new List<AppSettingsItem>();
         bool _backupAppsLoaded;
         List<WifiProfile> _wifi;
         string _productKey;
@@ -39,6 +40,7 @@ namespace Kahya
             Fmt7zBtn.ToolTip = FormatBackup.SevenZip() != null ? T("En iyi sıkıştırma (7-Zip ile)") : T("En iyi sıkıştırma (7-Zip ile). 7-Zip kurulu değil; seçince kurulur.");
             UpdateBackupTarget();
             UpdateBackupFormat();
+            RegisterKahyaFiles();
         }
 
         /// <summary>Sistem diski dışındaki ilk sürücü (USB bellek ya da ikinci disk); yoksa Masaüstü.</summary>
@@ -141,10 +143,13 @@ namespace Kahya
             BackupFontsBox.IsChecked = fonts.Count > 0;
             FilterFonts();
 
-            _backupSettings = settings;
-            foreach (var a in _backupSettings) a.PropertyChanged += (s, e) => { if (e.PropertyName == nameof(BackupChoice.IsChecked)) UpdateBackupSummary(); };
+            _backupSettings = settings.Where(a => !a.IsGame).ToList();
+            _backupGames = settings.Where(a => a.IsGame).ToList();
+            foreach (var a in settings) a.PropertyChanged += (s, e) => { if (e.PropertyName == nameof(BackupChoice.IsChecked)) UpdateBackupSummary(); };
             BackupSettingsList.ItemsSource = _backupSettings;
-            AppSettingsCard.Visibility = settings.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            BackupGamesList.ItemsSource = _backupGames;
+            AppSettingsCard.Visibility = _backupSettings.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            GamesCard.Visibility = _backupGames.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
             UpdateBackupSummary();
         }
 
@@ -267,7 +272,8 @@ namespace Kahya
                                  (risky > 0 ? " · " + T("{0} kişisel klasör C: diskinde ve seçili değil", risky) : "");
         }
 
-        long ExtrasSize() => _backupFonts.Where(f => f.IsChecked).Sum(f => f.Size) + _backupSettings.Where(s => s.IsChecked).Sum(s => s.Size);
+        long ExtrasSize() => _backupFonts.Where(f => f.IsChecked).Sum(f => f.Size) +
+                             _backupSettings.Concat(_backupGames).Where(s => s.IsChecked).Sum(s => s.Size);
 
         void BackupTarget_Click(object sender, RoutedEventArgs e)
         {
@@ -310,9 +316,10 @@ namespace Kahya
             var programs = _backupApps.Where(a => a.IsChecked).Select(a => a.Entry).ToList();
             var fonts = _backupFonts.Where(f => f.IsChecked).ToList();
             var settings = _backupSettings.Where(s => s.IsChecked).ToList();
+            var games = _backupGames.Where(s => s.IsChecked).ToList();
             bool apps = programs.Count > 0 || !_backupAppsLoaded, wifi = BackupWifiBox.IsChecked == true, key = BackupKeyBox.IsChecked == true;
             bool bookmarks = BackupBookmarksBox.IsChecked == true && BackupBookmarksBox.IsEnabled;
-            if (!apps && !wifi && !key && !bookmarks && drivers.Count == 0 && folders.Count == 0 && fonts.Count == 0 && settings.Count == 0)
+            if (!apps && !wifi && !key && !bookmarks && drivers.Count == 0 && folders.Count == 0 && fonts.Count == 0 && settings.Count == 0 && games.Count == 0)
             {
                 Info(T("Önce yedeklenecek en az bir şey seç."));
                 return;
@@ -339,6 +346,7 @@ namespace Kahya
             ShowLog(true);
             Log("──────────\n" + T("Format yedeği başladı: {0}", folder));
             var done = new List<string>();
+            var manifest = new BackupManifest();
             try
             {
                 var ctx = Context(token);
@@ -350,6 +358,7 @@ namespace Kahya
                     // Liste henüz yüklenmediyse (winget yavaş) hepsi yazılır.
                     var list = _backupAppsLoaded ? programs : await Task.Run(() => CollectPrograms(ctx));
                     Core.ProgramList.Save(Path.Combine(folder, T("programlar.txt")), list);
+                    manifest.Programs = T("programlar.txt");
                     done.Add(T("Program listesi ({0} program)", list.Count));
                     Log("   ✔ " + done.Last());
                 }
@@ -358,6 +367,7 @@ namespace Kahya
                 {
                     var profiles = _wifi ?? await Task.Run(() => FormatBackup.WifiProfiles(ctx));
                     FormatBackup.SaveWifi(profiles, Path.Combine(folder, "wifi"));
+                    manifest.Wifi = "wifi";
                     done.Add(T("Wi-Fi ({0} ağ)", profiles.Count));
                     Log("   ✔ " + done.Last());
                 }
@@ -367,6 +377,7 @@ namespace Kahya
                     var (k, note) = await Task.Run(() => FormatBackup.ProductKey());
                     File.WriteAllText(Path.Combine(folder, T("urun-anahtari.txt")),
                         (k ?? T("bulunamadı")) + Environment.NewLine + Environment.NewLine + note + Environment.NewLine, new UTF8Encoding(true));
+                    manifest.ProductKey = T("urun-anahtari.txt");
                     done.Add(T("Ürün anahtarı"));
                     Log("   ✔ " + done.Last());
                 }
@@ -374,6 +385,7 @@ namespace Kahya
                 if (bookmarks)
                 {
                     int n = await Task.Run(() => FormatExtras.ExportBookmarks(Path.Combine(folder, T("yer-imleri")), ctx));
+                    if (n > 0) manifest.Bookmarks = T("yer-imleri");
                     done.Add(T("Yer imleri ({0} tarayıcı profili)", n));
                     Log("   ✔ " + done.Last());
                 }
@@ -382,6 +394,7 @@ namespace Kahya
                 {
                     SetStatus(T("Fontlar kopyalanıyor…"));
                     int n = await Task.Run(() => FormatExtras.CopyFonts(fonts, Path.Combine(folder, T("fontlar")), ctx));
+                    if (n > 0) manifest.Fonts = T("fontlar");
                     done.Add(T("Fontlar ({0}/{1})", n, fonts.Count));
                     Log("   ✔ " + done.Last());
                 }
@@ -392,8 +405,20 @@ namespace Kahya
                     s.Status = "…";
                     bool ok = await Task.Run(() => FormatExtras.CopyAppSettings(s, Path.Combine(folder, T("ayarlar")), ctx));
                     s.Status = ok ? "✔" : "✖";
+                    manifest.Settings = T("ayarlar");
                     if (ok) done.Add(s.Name);
                     Log(ok ? "   ✔ " + s.Name : "   ✖ " + T("{0} tam kopyalanamadı (bazı dosyalar kullanımda olabilir).", s.Name));
+                }
+
+                foreach (var g in games)
+                {
+                    SetStatus(T("{0} kopyalanıyor…", g.Name));
+                    g.Status = "…";
+                    bool ok = await Task.Run(() => FormatExtras.CopyAppSettings(g, Path.Combine(folder, T("oyunlar")), ctx));
+                    g.Status = ok ? "✔" : "✖";
+                    manifest.Games = T("oyunlar");
+                    if (ok) done.Add(g.Name);
+                    Log(ok ? "   ✔ " + g.Name : "   ✖ " + T("{0} tam kopyalanamadı (oyun açık olabilir).", g.Name));
                 }
 
                 if (drivers.Count > 0)
@@ -408,6 +433,7 @@ namespace Kahya
                         Log("   " + T("Sıkıştırılıyor ({0})…", _backupFormat.ToUpperInvariant()));
                         result = await Task.Run(() => FormatBackup.Compress(target, _backupFormat, ctx));
                     }
+                    if (ok > 0) manifest.Drivers = Path.GetFileName(result);
                     done.Add(T("Sürücüler ({0}/{1}) → {2}", ok, drivers.Count, Path.GetFileName(result)));
                     Log("   ✔ " + done.Last());
                 }
@@ -419,20 +445,23 @@ namespace Kahya
                     f.Status = "…";
                     bool ok = await Task.Run(() => FormatBackup.CopyFolder(f, Path.Combine(folder, T("klasorler")), ctx));
                     f.Status = ok ? "✔" : "✖";
+                    manifest.Folders[f.Key] = Path.Combine(T("klasorler"), FormatBackup.BackupName(f));
                     if (ok) done.Add(f.Name);
                     Log(ok ? "   ✔ " + f.Name : "   ✖ " + T("{0} tam kopyalanamadı (bazı dosyalar kullanımda olabilir).", f.Name));
                 }
 
-                File.WriteAllText(Path.Combine(folder, T("OKU-BENI.txt")), ReadMe(done), new UTF8Encoding(true));
+                manifest.Save(folder, ReadMe(done));
                 Log(T("Yedek tamamlandı: {0}", folder));
             }
             catch (OperationCanceledException)
             {
+                SaveManifest(manifest, folder, done);
                 Log(T("Yedekleme iptal edildi; yarım kalan yedek: {0}", folder));
                 return;
             }
             catch (Exception ex)
             {
+                SaveManifest(manifest, folder, done);
                 Log("! " + T("Yedekleme hatası: {0}", ex.Message));
                 Info(T("Yedekleme yarıda kaldı:\n{0}", ex.Message));
                 return;
@@ -442,8 +471,15 @@ namespace Kahya
                 ApplyBusy(false);
             }
 
-            if (Confirm(T("Yedek hazır:\n{0}\n\n{1}\n\nKlasör açılsın mı?", folder, string.Join("\n", done.Select(d => "• " + d)))))
+            if (Confirm(T("Yedek hazır:\n{0}\n\n{1}\n\nFormat sonrası Kahya'yı açıp Format yardımcısı › 'Yedekten geri yükle' ile {2} dosyasını seçmen yeterli; hepsi sırayla geri yüklenir.\n\nKlasör açılsın mı?",
+                    folder, string.Join("\n", done.Select(d => "• " + d)), BackupManifest.FileName(Environment.MachineName))))
                 try { Process.Start(new ProcessStartInfo(folder) { UseShellExecute = true }); } catch { }
+        }
+
+        /// <summary>Yarıda kalan yedekte de o ana kadar alınanlar geri yüklenebilsin.</summary>
+        static void SaveManifest(BackupManifest manifest, string folder, List<string> done)
+        {
+            try { if (Directory.Exists(folder) && !manifest.IsEmpty) manifest.Save(folder, ReadMe(done)); } catch { }
         }
 
         static string ReadMe(List<string> done)
@@ -454,7 +490,9 @@ namespace Kahya
             sb.AppendLine(T("İçindekiler:"));
             foreach (var d in done) sb.AppendLine("  • " + d);
             sb.AppendLine();
-            sb.AppendLine(T("Format sonrası:"));
+            sb.AppendLine(T("Format sonrası en kolayı: Kahya'yı aç › Format yardımcısı › 'Yedekten geri yükle' › bu dosyayı seç. Her şey sırayla geri yüklenir."));
+            sb.AppendLine();
+            sb.AppendLine(T("Kahya olmadan elle yapmak istersen:"));
             sb.AppendLine(T("  1. Önce sürücüleri kur (özellikle Wi-Fi/Ethernet): Kahya › Format yardımcısı › Sürücüler › Seç… (klasör, .zip ya da .7z)."));
             sb.AppendLine(T("     Kahya yoksa: yönetici komut isteminde  pnputil /add-driver \"suruculer\\*.inf\" /subdirs /install"));
             sb.AppendLine(T("  2. Wi-Fi ağları: Kahya › Format yardımcısı › Wi-Fi ağları › Seç… ('wifi' klasörü). Şifreler wifi-sifreleri.txt içinde de yazılı."));
@@ -464,6 +502,7 @@ namespace Kahya
             sb.AppendLine(T("  6. Program ayarları: programları kurduktan sonra Kahya › Format yardımcısı › Program ayarları › Seç… ('ayarlar' klasörü)."));
             sb.AppendLine(T("  7. Yer imleri: tarayıcıda Ayarlar › Yer imlerini içe aktar › HTML dosyası ('yer-imleri' klasörü)."));
             sb.AppendLine(T("     Firefox: Yer imleri › Yer imlerini yönet › İçe aktar ve yedekle › Geri yükle › Dosya seç (.jsonlz4)."));
+            sb.AppendLine(T("  8. Oyun kayıtları ve Minecraft: oyunları kurduktan sonra Kahya › Format yardımcısı › Oyun kayıtları › Seç… ('oyunlar' klasörü)."));
             return sb.ToString();
         }
 
@@ -566,6 +605,29 @@ namespace Kahya
             {
                 int n = await Task.Run(() => FormatExtras.RestoreAppSettings(folder, Context(token)));
                 Log(T("{0} ayar klasörü geri yüklendi.", n));
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
+            {
+                Log("! " + ex.Message);
+                Info(ex.Message);
+            }
+            finally
+            {
+                ApplyBusy(false);
+            }
+        }
+
+        async void RestoreGames_Click(object sender, RoutedEventArgs e)
+        {
+            var folder = PickFolder(T("Yedekteki 'oyunlar' klasörünü seç"));
+            if (folder == null) return;
+            var token = SetBusy(T("oyun kayıtları geri yükleniyor…"));
+            ShowLog(true);
+            try
+            {
+                int n = await Task.Run(() => FormatExtras.RestoreAppSettings(folder, Context(token)));
+                Log(T("{0} oyun klasörü geri yüklendi.", n));
             }
             catch (OperationCanceledException) { }
             catch (Exception ex)

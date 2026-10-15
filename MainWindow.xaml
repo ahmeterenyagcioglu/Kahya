@@ -1884,6 +1884,38 @@
                                 </StackPanel>
                             </Border>
 
+                            <Border x:Name="GamesCard" Style="{StaticResource ToolCard}" Visibility="Collapsed">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,4">
+                                        <TextBlock Style="{StaticResource CardIcon}" Text="&#xE7FC;"/>
+                                        <TextBlock Text="Oyun kayıtları" Style="{StaticResource CardTitle}"/>
+                                    </DockPanel>
+                                    <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,10" TextWrapping="Wrap"
+                                               Text="Oyunların kendisi değil, kayıtların, dünyaların ve modların yedeklenir. Minecraft'ın oyun dosyaları alınmaz; başlatıcı onları yeniden indirir. Steam bulut kaydı olan oyunlar zaten güvende."/>
+                                    <ItemsControl x:Name="BackupGamesList">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Style="{StaticResource RowBorder}" MouseLeftButtonUp="Row_MouseLeftButtonUp">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                                        <StackPanel Grid.Column="1">
+                                                            <TextBlock Text="{Binding Name}" Style="{StaticResource RowTitle}"/>
+                                                            <TextBlock Text="{Binding Details}" Style="{StaticResource RowSub}"/>
+                                                        </StackPanel>
+                                                        <TextBlock Grid.Column="2" Text="{Binding Status}" Foreground="{DynamicResource Good}" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+
                             <Border Style="{StaticResource ToolCard}">
                                 <StackPanel>
                                     <DockPanel Margin="0,0,0,4">
@@ -2029,6 +2061,18 @@
                                         <TextBlock Style="{StaticResource CardIcon}" Text="&#xE777;"/>
                                         <TextBlock Text="Format sonrası geri yükle" Style="{StaticResource CardTitle}"/>
                                     </DockPanel>
+                                    <Border Style="{StaticResource StaticRow}" Margin="0,0,8,10">
+                                        <DockPanel>
+                                            <Button DockPanel.Dock="Right" Content="Yedekten geri yükle…" Style="{StaticResource AccentBtn}" Margin="12,0,0,0"
+                                                    VerticalAlignment="Center" Click="RestoreFromBackup_Click"/>
+                                            <StackPanel>
+                                                <TextBlock Text="Hepsini tek seferde" Style="{StaticResource RowTitle}"/>
+                                                <TextBlock Style="{StaticResource RowSub}" TextWrapping="Wrap"
+                                                           Text="Yedeğin içindeki .kahya dosyasını seç: sürücüler, Wi-Fi, fontlar, kişisel klasörler, programlar, ayarlar ve oyun kayıtları sırayla geri yüklenir. Dosyaya çift tıklamak da yeter."/>
+                                            </StackPanel>
+                                        </DockPanel>
+                                    </Border>
+                                    <TextBlock Text="Ya da tek tek:" Style="{StaticResource Hint}" Margin="2,0,0,8"/>
                                     <UniformGrid Columns="3">
                                         <Border Style="{StaticResource ActionRow}">
                                             <DockPanel>
@@ -2078,6 +2122,15 @@
                                         </Border>
                                         <Border Style="{StaticResource ActionRow}">
                                             <DockPanel>
+                                                <Button DockPanel.Dock="Right" Content="Seç…" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" Click="RestoreGames_Click" VerticalAlignment="Center"/>
+                                                <StackPanel>
+                                                    <TextBlock Text="Oyun kayıtları" Style="{StaticResource RowTitle}"/>
+                                                    <TextBlock Text="Yedekteki 'oyunlar' klasörü" Style="{StaticResource RowSub}"/>
+                                                </StackPanel>
+                                            </DockPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource ActionRow}">
+                                            <DockPanel>
                                                 <Button DockPanel.Dock="Right" Content="Nasıl?" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" Click="RestoreBookmarks_Click" VerticalAlignment="Center"/>
                                                 <StackPanel>
                                                     <TextBlock Text="Yer imleri" Style="{StaticResource RowTitle}"/>
@@ -2113,6 +2166,8 @@
                                         </TextBlock>
                                         <DockPanel Margin="0,14,0,0">
                                             <Button x:Name="CheckAppUpdateBtn" Content="Yeni sürüm var mı?" Style="{StaticResource SmallBtn}" Click="CheckAppUpdate_Click"/>
+                                            <Button Content="Hata bildir" Style="{StaticResource SmallBtn}" Click="ReportIssue_Click"
+                                                    ToolTip="GitHub'da hazır doldurulmuş bir hata bildirimi açar (sürüm, Windows ve son hata). Metin panoya da kopyalanır."/>
                                             <TextBlock x:Name="AppUpdateText" Style="{StaticResource Hint}" VerticalAlignment="Center" Margin="4,0,0,0"/>
                                         </DockPanel>
                                     </StackPanel>

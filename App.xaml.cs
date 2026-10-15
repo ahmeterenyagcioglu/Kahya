@@ -18,6 +18,12 @@ namespace Kahya
         /// <summary>Yeniden başlatma tek tıkla bakım için istendiyse bakım penceresi kendiliğinden açılır (--maintenance).</summary>
         public static bool StartMaintenance { get; private set; }
 
+        /// <summary>Çift tıklanan .kahya dosyası (--restore yol): açılınca geri yükleme başlar.</summary>
+        public static string StartRestore { get; private set; }
+
+        /// <summary>Geri yükleme onaylandıktan sonra yönetici olarak yeniden başlatıldı; tekrar sorulmaz.</summary>
+        public static bool StartRestoreConfirmed { get; private set; }
+
         protected override void OnStartup(StartupEventArgs e)
         {
             if (!NetFrameworkOk())
@@ -32,6 +38,8 @@ namespace Kahya
             {
                 if (e.Args[i] == "--tab" && i + 1 < e.Args.Length && int.TryParse(e.Args[i + 1], out var tab)) StartTab = tab;
                 if (e.Args[i] == "--maintenance") StartMaintenance = true;
+                if (e.Args[i] == "--restore" && i + 1 < e.Args.Length) StartRestore = e.Args[i + 1];
+                if (e.Args[i] == "--restore-confirmed") StartRestoreConfirmed = true;
             }
 
             Settings.Read();
@@ -103,7 +111,7 @@ namespace Kahya
         }
 
         /// <summary>Beklenmeyen hataların ayrıntıları (yığın izi dahil) buraya yazılır.</summary>
-        public static string ErrorLogPath => Path.Combine(Settings.Folder, "errors.log");
+        public static string ErrorLogPath => IssueReport.ErrorLogPath;
 
         static readonly System.Collections.Generic.HashSet<string> _shownErrors = new System.Collections.Generic.HashSet<string>();
         static bool _errorDialogOpen;
@@ -130,8 +138,15 @@ namespace Kahya
             _errorDialogOpen = true;
             try
             {
-                MessageBox.Show(T("{0}\n\nAyrıntılar şu dosyaya kaydedildi:\n{1}", ex.Message, ErrorLogPath) + "\n\n" + ex,
-                    T("Kahya - beklenmeyen hata"), MessageBoxButton.OK, MessageBoxImage.Error);
+                var answer = MessageBox.Show(
+                    T("{0}\n\nAyrıntılar şu dosyaya kaydedildi:\n{1}", ex.Message, ErrorLogPath) + "\n\n" +
+                    T("Bu hatayı geliştiriciye bildirmek ister misin? GitHub'da hazır doldurulmuş bir sayfa açılır; ayrıntılar panoya da kopyalanır, istersen WhatsApp vb. ile de gönderebilirsin."),
+                    T("Kahya - beklenmeyen hata"), MessageBoxButton.YesNo, MessageBoxImage.Error);
+                if (answer == MessageBoxResult.Yes)
+                {
+                    try { Clipboard.SetText(IssueReport.Body(ex)); } catch { }
+                    IssueReport.OpenOnGitHub(ex);
+                }
             }
             finally { _errorDialogOpen = false; }
         }
@@ -154,6 +169,9 @@ namespace Kahya
                 {
                     try
                     {
+                        // Çift tıklanan .kahya dosyasını açık olan kopyaya ilet (ShowMain okur).
+                        if (StartRestore != null)
+                            try { Directory.CreateDirectory(Settings.Folder); File.WriteAllText(Kahya.MainWindow.PendingRestoreFile, StartRestore); } catch { }
                         EventWaitHandle.OpenExisting(@"Local\Kahya.Show").Set();
                         return false;
                     }
@@ -228,6 +246,9 @@ namespace Kahya
                 File.WriteAllText(Path.Combine(Settings.Folder, "last-run.log"), log.ToString(), Encoding.UTF8);
             }
             catch { }
+
+            // Otomatik bakım yönetici olarak çalışır: açılış sürelerini kaydetmek için iyi bir an.
+            try { BootTimes.Record(); } catch { }
 
             var lowSpace = SystemDrive.LowSpaceWarning();
             if (lowSpace != null) write(lowSpace);
