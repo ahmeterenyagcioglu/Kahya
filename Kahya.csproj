@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>Kahya</AssemblyName>
+    <RootNamespace>Kahya</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <!-- Sadece yayınlarken yükselt: düzeltme 1.0.x, yeni özellik 1.x.0. Notlar: Core/AppInfo.cs -->
+    <Version>1.0.1</Version>
+    <Product>Kahya</Product>
+    <Authors>Ahmet Eren Yağcıoğlu</Authors>
+    <Company>Ahmet Eren Yağcıoğlu</Company>
+    <Copyright>© 2026 Ahmet Eren Yağcıoğlu</Copyright>
+    <Description>Windows temizlik, güncelleme ve bakım aracı</Description>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="app.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="Microsoft.VisualBasic" />  </ItemGroup>
+
+</Project>
