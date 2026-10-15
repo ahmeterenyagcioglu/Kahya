@@ -38,6 +38,11 @@ namespace Kahya.Core
         {
             new ReleaseNote
             {
+                Version = "1.1.0", Date = T("16 Ekim 2026"),
+                Notes = T("• winget yoksa Kahya kurmayı teklif eder ve tek tıkla kurar\n• Format yedeğinde 7z seçilince 7-Zip yoksa tek tıkla kurulur\n• .NET Framework 4.8 eksikse açılışta söylenir ve indirme sayfası açılır"),
+            },
+            new ReleaseNote
+            {
                 Version = "1.0.1", Date = T("16 Ekim 2026"),
                 Notes = T("• Beklenmeyen hatalar artık errors.log dosyasına kaydediliyor; aynı hata üst üste pencere açmıyor\n• Kendini güncelleme etkin: yeni sürümler GitHub'dan kontrol edilip tek tıkla kuruluyor"),
             },

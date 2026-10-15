@@ -20,6 +20,11 @@ namespace Kahya
 
         protected override void OnStartup(StartupEventArgs e)
         {
+            if (!NetFrameworkOk())
+            {
+                Shutdown();
+                return;
+            }
             base.OnStartup(e);
             UpdateChecker.CleanupOld();
 
@@ -68,6 +73,33 @@ namespace Kahya
             var window = new MainWindow();
             MainWindow = window;
             window.Show();
+        }
+
+        /// <summary>
+        /// .NET Framework 4.8 yüklü mü (Release ≥ 528040)? Daha eski bir 4.x varsa program açılır ama bazı yerlerde çöker;
+        /// bu yüzden en başta bakılır ve indirme sayfası önerilir. Bu metot 4.8'e özgü hiçbir şey kullanmamalı
+        /// (ValueTuple, Lang, Settings…): eski sürümde de çalışabilmesi gerekir.
+        /// </summary>
+        static bool NetFrameworkOk()
+        {
+            int release = 0;
+            try
+            {
+                using (var k = Microsoft.Win32.RegistryKey.OpenBaseKey(Microsoft.Win32.RegistryHive.LocalMachine, Microsoft.Win32.RegistryView.Registry64)
+                           .OpenSubKey(@"SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full"))
+                    release = k?.GetValue("Release") is int r ? r : 0;
+            }
+            catch { return true; } // okunamıyorsa engelleme
+            if (release >= 528040) return true;
+
+            bool tr = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "tr";
+            var answer = MessageBox.Show(tr
+                    ? "Kahya'nın çalışması için .NET Framework 4.8 gerekiyor; bu bilgisayardaki sürüm daha eski.\n\nMicrosoft'un indirme sayfası açılsın mı? Kurduktan sonra bilgisayarı yeniden başlatıp Kahya'yı tekrar aç."
+                    : "Kahya needs .NET Framework 4.8; this PC has an older version.\n\nOpen Microsoft's download page? After installing, restart the PC and open Kahya again.",
+                "Kahya", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (answer == MessageBoxResult.Yes)
+                try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("https://dotnet.microsoft.com/download/dotnet-framework/net48") { UseShellExecute = true }); } catch { }
+            return false;
         }
 
         /// <summary>Beklenmeyen hataların ayrıntıları (yığın izi dahil) buraya yazılır.</summary>

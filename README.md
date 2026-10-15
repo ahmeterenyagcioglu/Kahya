@@ -24,14 +24,17 @@ Yeni sürüm çıktığında Kahya bunu kendisi fark eder ve üstte bir şerit g
 | | |
 |---|---|
 | **İşletim sistemi** | Windows 10 (sürüm 1903 ya da sonrası) veya Windows 11 |
-| **.NET Framework 4.8** | Windows 10 1903 ve sonrasında, Windows 11'de **zaten yüklüdür**. Daha eski bir Windows 10'da açılmazsa [buradan](https://dotnet.microsoft.com/download/dotnet-framework/net48) kurulur. |
+| **.NET Framework 4.8** | Windows 10 1903 ve sonrasında, Windows 11'de **zaten yüklüdür**. Daha eski bir sürüm varsa Kahya açılışta söyler ve [indirme sayfasını](https://dotnet.microsoft.com/download/dotnet-framework/net48) açar. |
 | **İnternet** | Sadece uygulama güncellemeleri, program kurma ve yeni sürüm kontrolü için. Temizlik ve diğer her şey çevrimdışı çalışır. |
 
-İsteğe bağlı:
+Gerektiğinde Kahya kendisi kurar (önce sorar):
 
 - **winget (Uygulama Yükleyici):** Güncellemeler ve Program kur sayfaları için. Windows 10/11'de genelde yüklü gelir;
-  yoksa Microsoft Store'dan "Uygulama Yükleyici" (App Installer) kurulur.
-- **7-Zip:** Format yedeğindeki sürücüleri `.7z` olarak sıkıştırmak için. Yoksa `.zip` kullanılır.
+  yoksa Kahya tek tıkla kurar.
+- **7-Zip:** Format yedeğindeki sürücüleri `.7z` olarak sıkıştırmak için. 7z seçilince yoksa kurulur; istemezsen `.zip` kullanılır.
+
+Ayrıca:
+
 - **Yönetici izni:** Kahya normal kullanıcı olarak açılır. Yönetici isteyen özellikler (Windows Temp, Prefetch,
   SFC/DISM, sürücüler, geri yükleme noktaları…) kalkan simgesiyle işaretlidir; tıklayınca Kahya yönetici olarak
   yeniden başlar ve aynı sayfaya döner.

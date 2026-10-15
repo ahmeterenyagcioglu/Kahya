@@ -619,6 +619,7 @@ namespace Kahya
 
         async Task CheckUpdatesAsync()
         {
+            await EnsureWingetAsync();
             _sizeCts?.Cancel();
             var token = SetBusy(T("kontrol ediliyor…"));
             UpdatesEmpty.Text = T("winget ile güncellemeler kontrol ediliyor…");

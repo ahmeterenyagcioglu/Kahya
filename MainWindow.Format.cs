@@ -36,8 +36,7 @@ namespace Kahya
             _backupTarget = Settings.BackupTarget ?? DefaultBackupTarget();
             _backupFormat = Settings.BackupFormat ?? (FormatBackup.SevenZip() != null ? "7z" : "zip");
             if (_backupFormat == "7z" && FormatBackup.SevenZip() == null) _backupFormat = "zip";
-            Fmt7zBtn.IsEnabled = FormatBackup.SevenZip() != null;
-            Fmt7zBtn.ToolTip = Fmt7zBtn.IsEnabled ? T("En iyi sıkıştırma (7-Zip ile)") : T("7-Zip kurulu değil. Uygulamalar › Program kur'dan kurabilirsin.");
+            Fmt7zBtn.ToolTip = FormatBackup.SevenZip() != null ? T("En iyi sıkıştırma (7-Zip ile)") : T("En iyi sıkıştırma (7-Zip ile). 7-Zip kurulu değil; seçince kurulur.");
             UpdateBackupTarget();
             UpdateBackupFormat();
         }
@@ -287,9 +286,11 @@ namespace Kahya
             UpdateBackupTarget();
         }
 
-        void BackupFormat_Click(object sender, RoutedEventArgs e)
+        async void BackupFormat_Click(object sender, RoutedEventArgs e)
         {
-            _backupFormat = (sender as FrameworkElement)?.Tag as string ?? "zip";
+            var format = (sender as FrameworkElement)?.Tag as string ?? "zip";
+            if (format == "7z" && !await EnsureSevenZipAsync()) return;
+            _backupFormat = format;
             Settings.BackupFormat = _backupFormat;
             SaveSettings();
             UpdateBackupFormat();
@@ -506,6 +507,7 @@ namespace Kahya
             };
             string source = dialog.ShowDialog(this) == true ? dialog.FileName : PickFolder(T("Sürücü yedeği klasörünü seç ('suruculer')"));
             if (source == null) return;
+            if (source.EndsWith(".7z", StringComparison.OrdinalIgnoreCase) && !await EnsureSevenZipAsync()) return;
 
             var token = SetBusy(T("sürücüler kuruluyor…"));
             ShowLog(true);
@@ -582,6 +584,37 @@ namespace Kahya
                    "Chrome / Edge / Brave: Ayarlar › Yer imlerini ve ayarları içe aktar › Yer imleri HTML dosyası.\n" +
                    "Firefox: Yer imleri › Yer imlerini yönet › İçe aktar ve yedekle › HTML'den içe aktar.\n\n" +
                    "Firefox yedeği (.jsonlz4) için: İçe aktar ve yedekle › Geri yükle › Dosya seç."));
+
+        /// <summary>7-Zip yoksa winget ile kurmayı teklif eder. Hazırsa true.</summary>
+        async Task<bool> EnsureSevenZipAsync()
+        {
+            if (FormatBackup.SevenZip() != null) return true;
+            if (!Confirm(T("Bunun için 7-Zip gerekiyor ama kurulu değil. Kahya şimdi kursun mu? (ücretsiz, birkaç saniye sürer)")))
+                return false;
+            if (!await EnsureWingetAsync()) return false;
+
+            var token = SetBusy(T("7-Zip kuruluyor…"));
+            ShowLog(true);
+            Log("──────────\n" + T("7-Zip kuruluyor…"));
+            string error = null;
+            try
+            {
+                var ctx = Context(token);
+                error = await Task.Run(() => Winget.InstallId("7zip.7zip", ctx));
+            }
+            catch (OperationCanceledException) { return false; }
+            catch (Exception ex) { error = ex.Message; }
+            finally { ApplyBusy(false); }
+
+            if (error == null && FormatBackup.SevenZip() != null)
+            {
+                Log("✔ " + T("7-Zip kuruldu."));
+                Fmt7zBtn.ToolTip = T("En iyi sıkıştırma (7-Zip ile)");
+                return true;
+            }
+            Info(T("7-Zip kurulamadı: {0}", error ?? T("bilinmeyen hata")));
+            return false;
+        }
 
         static string PickFolder(string description)
         {

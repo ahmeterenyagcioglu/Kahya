@@ -22,6 +22,53 @@ namespace Kahya
             FilterInstall();
         }
 
+        bool _wingetDeclined;
+
+        /// <summary>
+        /// winget yoksa kurmayı teklif eder ve kurar. Hazırsa true. Kullanıcı bir kez "hayır" derse oturum boyunca tekrar sormaz.
+        /// Meşgulken çağrılmamalı (kendi meşgul durumunu açar).
+        /// </summary>
+        async Task<bool> EnsureWingetAsync()
+        {
+            if (await Task.Run(() => Winget.IsInstalled())) return true;
+            if (_wingetDeclined) return false;
+            if (!Confirm(T("Bu özellik için winget (Microsoft'un Uygulama Yükleyicisi) gerekiyor ama bu bilgisayarda bulunamadı.\n\nKahya şimdi kursun mu? İnternet gerekir, birkaç dakika sürebilir.")))
+            {
+                _wingetDeclined = true;
+                return false;
+            }
+
+            var token = SetBusy(T("winget kuruluyor…"));
+            ShowLog(true);
+            Log("──────────\n" + T("winget kuruluyor…"));
+            bool ok = false;
+            try
+            {
+                var ctx = Context(token);
+                ok = await Task.Run(() => Winget.EnsureInstalled(ctx));
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
+            {
+                Log("! " + ex.Message);
+            }
+            finally
+            {
+                ApplyBusy(false);
+            }
+
+            if (ok)
+            {
+                Log("✔ " + T("winget kuruldu."));
+                return true;
+            }
+            Log("! " + T("winget kurulamadı."));
+            if (Confirm(T("winget kurulamadı. Microsoft Store'daki 'Uygulama Yükleyici' sayfası açılsın mı? Oradan 'Al' ya da 'Güncelleştir' deyip Kahya'ya geri dönebilirsin.")))
+                try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("ms-windows-store://pdp/?productid=9NBLGGH4NNS1") { UseShellExecute = true }); } catch { }
+            _wingetDeclined = true;
+            return false;
+        }
+
         void Hook(CatalogApp a) =>
             a.PropertyChanged += (s, e) => { if (e.PropertyName == nameof(CatalogApp.IsChecked)) UpdateInstallInfo(); };
 
@@ -37,6 +84,7 @@ namespace Kahya
         /// <summary>Hangilerinin zaten kurulu olduğunu winget'e sorar (birkaç saniye sürer).</summary>
         async Task LoadInstalledAsync()
         {
+            await EnsureWingetAsync();
             var token = SetBusy(T("kurulu programlar okunuyor…"));
             AppsInfo.Text = T("Hangi programların kurulu olduğuna bakılıyor…");
             try

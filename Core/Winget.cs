@@ -344,6 +344,35 @@ namespace Kahya.Core
             return -1;
         }
 
+        /// <summary>
+        /// winget'i (Uygulama Yükleyici) kurar ya da onarır. Önce Windows'ta hazır bekleyen paketi bu kullanıcıya kaydeder
+        /// (çoğu "winget yok" durumu budur), olmazsa Microsoft'un resmi Microsoft.WinGet.Client modülüyle indirip kurar.
+        /// </summary>
+        public static bool EnsureInstalled(CleanContext ctx)
+        {
+            if (IsInstalled()) return true;
+
+            ctx.Log("   " + T("Uygulama Yükleyici kaydediliyor…"));
+            PowerShellRunner.Run("try { Add-AppxPackage -RegisterByFamilyName -MainPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe -ErrorAction Stop } catch { }", ctx);
+            if (IsInstalled()) return true;
+
+            ctx.Log("   " + T("winget indiriliyor ve kuruluyor (birkaç dakika sürebilir)…"));
+            foreach (var line in PowerShellRunner.Run(@"
+[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+try {
+    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -Scope CurrentUser -ErrorAction Stop | Out-Null
+    Install-Module -Name Microsoft.WinGet.Client -Force -Scope CurrentUser -Repository PSGallery -AllowClobber -ErrorAction Stop
+    Import-Module Microsoft.WinGet.Client -ErrorAction Stop
+    Repair-WinGetPackageManager -Latest -Force -ErrorAction Stop | Out-Null
+} catch { Write-Output ('ERR' + [char]9 + $_.Exception.Message) }", ctx))
+                if (line.StartsWith("ERR\t")) ctx.Log("   ✖ " + line.Substring(4));
+            return IsInstalled();
+        }
+
+        /// <summary>Tek bir paketi kimliğiyle kurar (ör. 7zip.7zip). Başarılıysa null, değilse hata nedeni.</summary>
+        public static string InstallId(string id, CleanContext ctx) =>
+            RunLogged($"install --id \"{id}\" --exact --silent --source winget --accept-package-agreements {CommonArgs}", ctx, out _, alreadyInstalledOk: true);
+
         public static bool IsInstalled()
         {
             try
