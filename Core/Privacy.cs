@@ -7,7 +7,11 @@ using static Kahya.Core.Lang;
 
 namespace Kahya.Core
 {
-    /// <summary>Tek bir kayıt defteri değeri: "uygulanmış" hali ve Windows varsayılanı (null = değer yok).</summary>
+    /// <summary>
+    /// Tek bir kayıt defteri değeri: "uygulanmış" hali ve Windows varsayılanı (null = değer yok).
+    /// Adı boşsa DWORD değil, anahtarın boş metin varsayılan değeridir (ör. klasik sağ tık menüsü): uygulanınca
+    /// anahtar oluşturulur, geri alınınca üst anahtarıyla birlikte silinir.
+    /// </summary>
     public sealed class RegSetting
     {
         public RegistryHive Hive;
@@ -20,6 +24,8 @@ namespace Kahya.Core
         {
             Hive = hive; Path = path; Name = name; Applied = applied; Default = @default;
         }
+
+        public bool EmptyDefault => Name.Length == 0;
     }
 
     public sealed class PrivacyTweak : INotifyPropertyChanged
@@ -27,6 +33,8 @@ namespace Kahya.Core
         public string Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
+        /// <summary>Listede altında durduğu başlık.</summary>
+        public string Section { get; set; }
         public bool Recommended { get; set; }
         public bool RestartsExplorer { get; set; }
         public List<RegSetting> Values { get; } = new List<RegSetting>();
@@ -58,8 +66,23 @@ namespace Kahya.Core
         const RegistryHive U = RegistryHive.CurrentUser;
         const RegistryHive M = RegistryHive.LocalMachine;
 
+        const string SPrivacy = "Gizlilik ve reklamlar";
+        const string SWindows = "Görünüm ve kullanım";
+
         public static List<PrivacyTweak> Load()
         {
+            string section = SPrivacy;
+            PrivacyTweak Tweak(string id, string name, string description, bool recommended, bool restartsExplorer, params RegSetting[] values)
+            {
+                var t = new PrivacyTweak
+                {
+                    Id = id, Name = T(name), Description = T(description), Section = T(section),
+                    Recommended = recommended, RestartsExplorer = restartsExplorer,
+                };
+                t.Values.AddRange(values);
+                return t;
+            }
+
             var list = new List<PrivacyTweak>
             {
                 Tweak("ad_id", "Reklam kimliğini kapat",
@@ -121,6 +144,39 @@ namespace Kahya.Core
                     new RegSetting(M, @"SOFTWARE\Policies\Microsoft\Windows\System", "UploadUserActivities", 0, null)),
             };
 
+            bool win11 = PreFormat.IsWindows11();
+            if (win11)
+                list.Add(Tweak("recall", "Recall'u kapat",
+                    "Copilot+ bilgisayarlarda ekranın düzenli görüntüsünü alıp aranabilir yapan Recall kapanır, görüntü kaydedilmez. Diğer bilgisayarlarda etkisi yoktur.", false, false,
+                    new RegSetting(U, @"Software\Policies\Microsoft\Windows\WindowsAI", "DisableAIDataAnalysis", 1, null)));
+
+            section = SWindows;
+            list.Add(Tweak("file_ext", "Dosya uzantılarını göster",
+                "Gezgin'de dosya adları uzantısıyla görünür (belge.pdf). 'fatura.pdf.exe' gibi sahte dosyaları fark etmek kolaylaşır.", false, true,
+                new RegSetting(U, Adv, "HideFileExt", 0, 1)));
+            list.Add(Tweak("hidden_files", "Gizli dosyaları göster",
+                "Gezgin gizli dosya ve klasörleri soluk olarak gösterir (ör. AppData). Windows'un korunan sistem dosyaları yine gizli kalır.", false, true,
+                new RegSetting(U, Adv, "Hidden", 1, 2)));
+            list.Add(Tweak("this_pc", "Gezgin 'Bu bilgisayar'da açılsın",
+                "Gezgin, son kullanılanlar yerine diskleri gösteren 'Bu bilgisayar' ile açılır.", false, false,
+                new RegSetting(U, Adv, "LaunchTo", 1, null)));
+            if (win11)
+            {
+                list.Add(Tweak("classic_menu", "Klasik sağ tık menüsü",
+                    "Sağ tıklayınca 'Daha fazla seçenek göster'e basmadan, bütün seçenekleri içeren eski menü açılır.", false, true,
+                    new RegSetting(U, @"Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32", "", 1, null)));
+                list.Add(Tweak("copilot", "Copilot düğmesini ve kısayolunu kapat",
+                    "Görev çubuğundaki Copilot düğmesi ve Win+C kısayolu kapanır. Copilot uygulaması kuruluysa Uygulamalar › Gereksiz Windows uygulamaları'ndan kaldırılabilir.", false, true,
+                    new RegSetting(U, @"Software\Policies\Microsoft\Windows\WindowsCopilot", "TurnOffWindowsCopilot", 1, null),
+                    new RegSetting(U, Adv, "ShowCopilotButton", 0, null)));
+                list.Add(Tweak("widgets", "Pencere Öğeleri'ni (hava durumu, haberler) kapat",
+                    "Görev çubuğunun solundaki hava durumu ve haber paneli kapanır. Grup ilkesiyle uygulanır.", false, true,
+                    new RegSetting(M, @"SOFTWARE\Policies\Microsoft\Dsh", "AllowNewsAndInterests", 0, null)));
+                list.Add(Tweak("end_task", "Görev çubuğunda 'Görevi sonlandır'",
+                    "Görev çubuğunda bir uygulamaya sağ tıklayınca 'Görevi sonlandır' çıkar; donan programı Görev Yöneticisi'ni açmadan kapatırsın.", false, false,
+                    new RegSetting(U, Adv + @"\TaskbarDeveloperSettings", "TaskbarEndTask", 1, null)));
+            }
+
             foreach (var t in list)
                 t.IsApplied = t.Values.All(IsSet);
             return list;
@@ -141,8 +197,7 @@ namespace Kahya.Core
                     {
                         if (!backup.ContainsKey(Backup.Key(v)))
                             backup[Backup.Key(v)] = Current(root, v);
-                        using (var k = root.CreateSubKey(v.Path))
-                            k.SetValue(v.Name, v.Applied, RegistryValueKind.DWord);
+                        Write(root, v, v.Applied);
                     }
                     else
                     {
@@ -187,12 +242,28 @@ namespace Kahya.Core
         static int? Current(RegistryKey root, RegSetting v)
         {
             using (var k = root.OpenSubKey(v.Path))
+            {
+                if (v.EmptyDefault)
+                    return k?.GetValue("") is string s && s.Length == 0 ? 1 : (int?)null;
                 return k?.GetValue(v.Name) is int i ? i : (int?)null;
+            }
         }
 
         static void Write(RegistryKey root, RegSetting v, int? value)
         {
-            if (value.HasValue)
+            if (v.EmptyDefault)
+            {
+                if (value.HasValue)
+                {
+                    using (var k = root.CreateSubKey(v.Path))
+                        k.SetValue("", "", RegistryValueKind.String);
+                }
+                else
+                {
+                    root.DeleteSubKeyTree(v.Path.Substring(0, v.Path.LastIndexOf('\\')), throwOnMissingSubKey: false);
+                }
+            }
+            else if (value.HasValue)
             {
                 using (var k = root.CreateSubKey(v.Path))
                     k.SetValue(v.Name, value.Value, RegistryValueKind.DWord);
@@ -258,21 +329,9 @@ namespace Kahya.Core
             try
             {
                 using (var root = RegistryKey.OpenBaseKey(v.Hive, RegistryView.Registry64))
-                using (var k = root.OpenSubKey(v.Path))
-                    return k?.GetValue(v.Name) is int i && i == v.Applied;
+                    return Current(root, v) == v.Applied;
             }
             catch { return false; }
-        }
-
-        static PrivacyTweak Tweak(string id, string name, string description, bool recommended, bool restartsExplorer, params RegSetting[] values)
-        {
-            var t = new PrivacyTweak
-            {
-                Id = id, Name = T(name), Description = T(description),
-                Recommended = recommended, RestartsExplorer = restartsExplorer,
-            };
-            t.Values.AddRange(values);
-            return t;
         }
 
         /// <summary>Başlat menüsü / Gezgin ayarlarının hemen görünmesi için Gezgin'i yeniden başlatır.</summary>

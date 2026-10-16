@@ -125,15 +125,26 @@ en çok hangi uygulama ya da servisler geciktiriyor. (Windows bu ölçümleri sa
 yönetici olarak açılınca kaydedilir, sonra hep görünür.)
 
 ### 🛡 Gizlilik
-Reklam kimliği, Başlat önerileri, kilit ekranı reklamları, Bing araması, telemetri gibi ayarlar tek yerde.
+Reklam kimliği, Başlat önerileri, kilit ekranı reklamları, Bing araması, telemetri, Recall gibi ayarlar tek yerde.
+Yanında **görünüm ve kullanım** ayarları: dosya uzantılarını ve gizli dosyaları göster, Gezgin'i "Bu bilgisayar"da aç;
+Windows 11'de klasik sağ tık menüsü, Copilot ve Pencere Öğeleri'ni kapatma, görev çubuğunda "Görevi sonlandır".
 Her değişiklik yedeklenir; **Değişiklikleri geri al** ile hepsi eski haline döner. Tarayıcı eklentileri de denetlenir.
 
 ### 🔧 Araçlar
 Sistem bilgisi, disk ve pil sağlığı, SFC / DISM / CHKDSK, ağ sıfırlama, ekran kartı sürücüsü kontrolü,
-Windows Update durumu ve erteleme, güç planları, geri yükleme noktaları.
+Windows Update durumu ve erteleme, güç planları, geri yükleme noktaları. **WinSxS boyutunu analiz et** bileşen deposunun
+gerçekte ne kadar yer tuttuğunu ve temizliğin önerilip önerilmediğini söyler; temizliği Derin Temizlik'te (isteğe bağlı
+olarak `/ResetBase` ile) yaparsın.
+
+### 📦 Uygulamalar
+Program kaldırma, gereksiz Windows uygulamalarını kaldırma, sık kullanılan ~45 programı toplu kurma.
+Bir program kaldırılınca Kahya **geride kalanları** arar: programın klasörü, Program Files / AppData / ProgramData ve
+Başlat menüsünde onun adını taşıyan klasörler, kayıt defterinde `Software` altındaki anahtarı. Sadece adı tam eşleşenler
+bulunur, başka bir kurulu programın kullandığı klasörler önerilmez. Klasörler Geri Dönüşüm Kutusu'na gider, anahtarlar
+silinmeden önce `Data\Leftovers` klasörüne `.reg` olarak yedeklenir (çift tıklayınca geri gelir). AppData'dakiler
+programın ayarları olabileceği için seçili gelmez.
 
 ### Diğer
-- Uygulamalar: program kaldırma, gereksiz Windows uygulamalarını kaldırma, sık kullanılan ~45 programı toplu kurma
 - Bildirim alanında çalışma: disk dolunca ya da güncelleme çıkınca haber verir
 - Koyu / açık tema, tek sayfalık bilgisayar durum raporu, ayarları dışa/içe aktarma
 

@@ -20,6 +20,8 @@ namespace Kahya.Core
         public DateTime? InstallDate { get; set; }
         public long Size { get; set; } = -1;
         public string UninstallCommand { get; set; }
+        /// <summary>Programın klasörü: InstallLocation, yoksa simgesinin ya da kaldırıcısının klasörü. Bilinmiyorsa null.</summary>
+        public string InstallFolder { get; set; }
         public ImageSource Icon { get; set; }
 
         public string SizeText => Size > 0 ? Format.Bytes(Size) : "";
@@ -107,6 +109,20 @@ namespace Kahya.Core
             var icon = IconPath(k.GetValue("DisplayIcon") as string);
             if (icon != null)
                 app.Icon = StartupManager.ExtractIcon(icon);
+
+            try
+            {
+                var location = (k.GetValue("InstallLocation") as string)?.Trim().Trim('"').TrimEnd('\\');
+                if (!string.IsNullOrEmpty(location) && Path.IsPathRooted(location))
+                    app.InstallFolder = Environment.ExpandEnvironmentVariables(location);
+                else
+                {
+                    var exe = icon ?? SplitCommand(uninstall).exe;
+                    if (Path.IsPathRooted(exe) && !Path.GetFileName(exe).Equals("msiexec.exe", StringComparison.OrdinalIgnoreCase))
+                        app.InstallFolder = Path.GetDirectoryName(exe);
+                }
+            }
+            catch { } // geçersiz karakterli yol: klasörü bilinmez, program yine listelenir
             return app;
         }
 

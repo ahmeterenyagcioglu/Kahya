@@ -145,6 +145,53 @@ namespace Kahya
             Log(stillThere
                 ? "   " + T("{0} hâlâ listede — kaldırıcı iptal edilmiş ya da arka planda sürüyor olabilir. Bitince 'Yenile'ye bas.", app.Name)
                 : "   ✔ " + T("{0} kaldırıldı", app.Name));
+            if (!stillThere)
+                await CleanLeftoversAsync(app);
+        }
+
+        /// <summary>Kaldırıcının bıraktığı klasör ve anahtarları bulur; varsa seçtirip siler.</summary>
+        async Task CleanLeftoversAsync(InstalledApp app)
+        {
+            List<Leftover> found;
+            SetBusy(T("artıklar aranıyor…"));
+            try
+            {
+                var remaining = _programs;
+                found = await Task.Run(() => Leftovers.Find(app, remaining));
+            }
+            catch (Exception ex)
+            {
+                Log("! " + T("Artıklar aranamadı: {0}", ex.Message));
+                return;
+            }
+            finally
+            {
+                ApplyBusy(false);
+            }
+            if (found.Count == 0)
+            {
+                Log("   " + T("Geride bir şey kalmamış ✔"));
+                return;
+            }
+
+            var dialog = new LeftoversDialog(app.Name, found) { Owner = this };
+            if (dialog.ShowDialog() != true)
+            {
+                Log("   " + T("{0} artık bulundu, silinmedi.", found.Count));
+                return;
+            }
+            var selected = dialog.Selected;
+            SetBusy(T("siliniyor…"));
+            Log(T("{0} artıkları siliniyor…", app.Name));
+            try
+            {
+                int ok = await Task.Run(() => Leftovers.Remove(app.Name, selected, Log));
+                Log("   " + T("{0}/{1} artık silindi. Klasörler Geri Dönüşüm Kutusu'nda, anahtarların yedeği: {2}", ok, selected.Count, Leftovers.BackupFolder));
+            }
+            finally
+            {
+                ApplyBusy(false);
+            }
         }
 
         // ───────────── gereksiz Windows uygulamaları ─────────────

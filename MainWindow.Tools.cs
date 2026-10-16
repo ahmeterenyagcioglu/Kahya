@@ -220,6 +220,10 @@ namespace Kahya
                     title = T("Windows görüntüsü onarımı (DISM)");
                     file = "dism.exe"; args = "/Online /Cleanup-Image /RestoreHealth";
                     break;
+                case "winsxs":
+                    title = T("Bileşen deposu analizi (DISM)");
+                    file = "dism.exe"; args = "/Online /Cleanup-Image /AnalyzeComponentStore";
+                    break;
                 case "chkdsk":
                     title = T("Disk taraması (CHKDSK {0})", sysDrive);
                     file = "chkdsk.exe"; args = sysDrive + " /scan";

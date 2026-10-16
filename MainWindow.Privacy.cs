@@ -23,7 +23,9 @@ namespace Kahya
             foreach (var p in _privacy) p.PropertyChanged -= Privacy_PropertyChanged;
             _privacy = Privacy.Load();
             foreach (var p in _privacy) p.PropertyChanged += Privacy_PropertyChanged;
-            PrivacyList.ItemsSource = _privacy;
+            var view = new System.Windows.Data.ListCollectionView(_privacy);
+            view.GroupDescriptions.Add(new System.Windows.Data.PropertyGroupDescription(nameof(PrivacyTweak.Section)));
+            PrivacyList.ItemsSource = view;
             _privacyLoaded = true;
             UpdatePrivacyInfo();
         }

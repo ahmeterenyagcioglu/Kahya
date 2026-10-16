@@ -993,6 +993,16 @@
                         <Border x:Name="PrivacySettingsCard" Grid.Row="1" Style="{StaticResource ListCard}">
                             <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,6,0">
                                 <ItemsControl x:Name="PrivacyList">
+                                    <ItemsControl.GroupStyle>
+                                        <GroupStyle>
+                                            <GroupStyle.HeaderTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource AccentText}" Margin="6,8,0,8"/>
+                                                </DataTemplate>
+                                            </GroupStyle.HeaderTemplate>
+                                        </GroupStyle>
+                                    </ItemsControl.GroupStyle>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <Border Style="{StaticResource StaticRow}">
@@ -1661,6 +1671,15 @@
                                                 <StackPanel ToolTip="Güncellemeler takılıyor ya da hata veriyorsa: Update servislerini durdurur, önbelleğini (SoftwareDistribution, catroot2) sıfırlar ve yeniden başlatır. Kurulu güncellemeler etkilenmez; Ayarlar'daki güncelleme geçmişi listesi boşalır.">
                                                     <TextBlock Text="Windows Update'i sıfırla" Style="{StaticResource RowTitle}"/>
                                                     <TextBlock Text="Güncellemeler takılıyorsa" Style="{StaticResource RowSub}"/>
+                                                </StackPanel>
+                                            </DockPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource ActionRow}">
+                                            <DockPanel>
+                                                <Button DockPanel.Dock="Right" Content="Çalıştır" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" Tag="winsxs" c:Elevation.Required="True" Click="Repair_Click" VerticalAlignment="Center"/>
+                                                <StackPanel ToolTip="DISM /AnalyzeComponentStore — WinSxS klasörünün gerçek boyutunu, ne kadarının temizlenebileceğini ve temizliğin önerilip önerilmediğini yazar. Hiçbir şey silmez; temizlemek için Temizlik › Derin Temizlik.">
+                                                    <TextBlock Text="WinSxS boyutunu analiz et" Style="{StaticResource RowTitle}"/>
+                                                    <TextBlock Text="DISM · hiçbir şey silmez, sadece ölçer" Style="{StaticResource RowSub}"/>
                                                 </StackPanel>
                                             </DockPanel>
                                         </Border>

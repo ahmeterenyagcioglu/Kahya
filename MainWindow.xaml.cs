@@ -522,7 +522,7 @@ namespace Kahya
                 msg += "\n" + T("Şu programlar açık: {0}\nKapatırsan daha fazla yer açılır (açıkken kilitli dosyalar atlanır).", string.Join(", ", running)) + "\n";
             if (blocked.Count > 0)
                 msg += "\n" + T("Program açık olduğu için atlanacak: {0}\nKapatıp tekrar temizleyebilirsin.", string.Join(", ", blocked.Select(i => i.Name))) + "\n";
-            if (selected.Any(i => i.Id == "cleanmgr" || i.Id == "dism"))
+            if (selected.Any(i => i.Id == "cleanmgr" || i.Id.StartsWith("dism")))
                 msg += "\n" + T("Disk Temizleme / DISM seçili; birkaç dakika sürebilir.") + "\n";
             if (!Confirm(msg + "\n" + T("Devam edilsin mi?")))
                 return;

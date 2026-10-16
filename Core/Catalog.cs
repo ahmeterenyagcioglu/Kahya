@@ -337,6 +337,19 @@ namespace Kahya.Core
                 },
             });
 
+            items.Add(new CleanItem
+            {
+                Id = "dism_resetbase", Group = T(GDeep), Name = T("Eski güncellemeleri kalıcı sil (DISM /ResetBase)"),
+                Description = T("Bileşen deposu temizliğinden daha fazla yer açar ama kurulu güncellemeler artık kaldırılamaz. 10-30 dakika sürer."),
+                Recommended = false,
+                Action = ctx =>
+                {
+                    ctx.Log("   … " + T("DISM çalışıyor, lütfen bekleyin"));
+                    ProcessRunner.Run("dism.exe", "/Online /Cleanup-Image /StartComponentCleanup /ResetBase", ctx, logOutput: true);
+                    return -1;
+                },
+            });
+
             foreach (var item in items)
                 item.GroupKey = GroupOrder.FirstOrDefault(g => T(g) == item.Group) ?? item.Group;
             foreach (var item in items)
@@ -348,7 +361,7 @@ namespace Kahya.Core
         // ───────────── yardımcılar ─────────────
 
         /// <summary>Kuralları olmayan ama yönetici isteyen öğeler (Windows araçlarıyla çalışanlar).</summary>
-        static readonly HashSet<string> AdminIds = new HashSet<string> { "cleanmgr", "dism", "do_cache" };
+        static readonly HashSet<string> AdminIds = new HashSet<string> { "cleanmgr", "dism", "dism_resetbase", "do_cache" };
 
         /// <summary>Sadece yöneticinin yazabildiği yerler. Kullanıcı klasörü de içeren öğeler yetkisiz de kısmen temizlenebilir.</summary>
         static bool IsMachinePath(string pattern) =>
