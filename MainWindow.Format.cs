@@ -118,6 +118,14 @@ namespace Kahya
             await apps;
         }
 
+        /// <summary>Kontrol listesindeki düğme: ör. tarayıcının şifre sayfası (iç adresler yalnızca tarayıcıya argümanla verilince açılır).</summary>
+        void CheckAction_Click(object sender, RoutedEventArgs e)
+        {
+            if (!((sender as FrameworkElement)?.DataContext is CheckAction a)) return;
+            try { Process.Start(new ProcessStartInfo(a.Exe, a.Args) { UseShellExecute = false }); }
+            catch (Exception ex) { Log("! " + T("{0} açılamadı: {1}", a.Label, ex.Message)); }
+        }
+
         /// <summary>BitLocker durumu ve "formattan önce kontrol et" listesi (bu bilgisayarda kurulu olanlara göre).</summary>
         async Task LoadPreFormatAsync()
         {

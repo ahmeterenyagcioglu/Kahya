@@ -1837,4 +1837,9 @@
   <t tr="Evet">Yes</t>
   <t tr="Hayır">No</t>
   <t tr="Temizlik bitti ({0:0} sn)">Cleanup finished ({0:0} s)</t>
+  <t tr="Yedeğe girmez. Tarayıcıda hesabınla eşitlendiğinden emin ol; eşitlemiyorsan aşağıdan şifre sayfasını aç, Dışa aktar ile kaydet. Dosyadaki şifreler açık metindir: USB'de tut, formattan sonra içe aktarınca sil.">Not included in the backup. Make sure the browser syncs with your account; if it doesn't, open its password page below and save them with Export. The passwords in that file are plain text: keep it on the USB and delete it after importing.</t>
+  <t tr="{0} şifreleri">{0} passwords</t>
+  <t tr="{0} açılamadı: {1}">Couldn't open {0}: {1}</t>
+  <t tr="{0}: {1} · verilerini hemen yedekle (tıkla: Format yardımcısı)">{0}: {1} · back up your data now (click: Reinstall helper)</t>
+  <t tr="Kahya - disk uyarısı">Kahya - disk warning</t>
 </language>

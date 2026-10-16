@@ -30,6 +30,26 @@ namespace Kahya.Core
         public bool Handled;
         /// <summary>Kullanıcı işaretledi (kontrol listesinde; Kahya'nın hallettikleri işaretli gelir).</summary>
         public bool Done { get; set; }
+        /// <summary>Satırın altındaki düğmeler (ör. her tarayıcının şifre sayfasını açan).</summary>
+        public List<CheckAction> Actions { get; } = new List<CheckAction>();
+        public bool HasActions => Actions.Count > 0;
+    }
+
+    /// <summary>Kontrol listesindeki bir düğme: bir programı verilen adresle açar.</summary>
+    public sealed class CheckAction
+    {
+        public string Label { get; set; }
+        public string Exe { get; set; }
+        public string Args { get; set; }
+    }
+
+    /// <summary>Kurulu bir tarayıcı ve şifrelerini dışa aktarabileceğin sayfası.</summary>
+    public sealed class BrowserInfo
+    {
+        public string Name;
+        public string Exe;
+        /// <summary>Tarayıcının kendi iç adresi; dışarıdan ancak komut satırından açılabilir (bağlantı olarak açılmaz).</summary>
+        public string PasswordPage;
     }
 
     /// <summary>
@@ -135,8 +155,12 @@ namespace Kahya.Core
 
             var browsers = InstalledBrowsers();
             if (browsers.Count > 0)
-                Add("\uE8D7", T("Tarayıcı şifreleri ({0})", string.Join(", ", browsers)),
-                    T("Yedeğe girmez. Tarayıcıda hesabınla eşitlendiğinden emin ol; eşitlemiyorsan Ayarlar › Şifreler › Dışa aktar ile kaydet ve dosyayı güvenli bir yerde tut."));
+            {
+                Add("\uE8D7", T("Tarayıcı şifreleri ({0})", string.Join(", ", browsers.Select(b => b.Name))),
+                    T("Yedeğe girmez. Tarayıcıda hesabınla eşitlendiğinden emin ol; eşitlemiyorsan aşağıdan şifre sayfasını aç, Dışa aktar ile kaydet. Dosyadaki şifreler açık metindir: USB'de tut, formattan sonra içe aktarınca sil."));
+                foreach (var b in browsers.Where(b => b.Exe != null))
+                    list.Last().Actions.Add(new CheckAction { Label = T("{0} şifreleri", b.Name), Exe = b.Exe, Args = b.PasswordPage });
+            }
 
             if (Exists(@"%LOCALAPPDATA%\Microsoft\OneDrive\OneDrive.exe") || Process.GetProcessesByName("OneDrive").Length > 0)
                 Add("\uE753", T("OneDrive"), T("Simgede yeşil tik olana kadar bekle: henüz yüklenmemiş dosyalar formatta kaybolur."));
@@ -170,15 +194,45 @@ namespace Kahya.Core
             return Directory.Exists(p) || File.Exists(p);
         }
 
-        static List<string> InstalledBrowsers()
+        /// <summary>Kullanıcı verisi olan tarayıcılar (yalnızca kurulu olup hiç açılmamışlar sayılmaz).</summary>
+        static List<BrowserInfo> InstalledBrowsers()
         {
-            var list = new List<string>();
-            if (Exists(@"%LOCALAPPDATA%\Google\Chrome\User Data")) list.Add("Chrome");
-            if (Exists(@"%LOCALAPPDATA%\Microsoft\Edge\User Data")) list.Add("Edge");
-            if (Exists(@"%APPDATA%\Mozilla\Firefox\Profiles")) list.Add("Firefox");
-            if (Exists(@"%LOCALAPPDATA%\BraveSoftware\Brave-Browser\User Data")) list.Add("Brave");
-            if (Exists(@"%APPDATA%\Opera Software")) list.Add("Opera");
+            var list = new List<BrowserInfo>();
+            void Add(string name, string data, string exe, string page)
+            {
+                if (Exists(data)) list.Add(new BrowserInfo { Name = name, Exe = AppPath(exe), PasswordPage = page });
+            }
+            Add("Chrome", @"%LOCALAPPDATA%\Google\Chrome\User Data", "chrome.exe", "chrome://password-manager/settings");
+            Add("Edge", @"%LOCALAPPDATA%\Microsoft\Edge\User Data", "msedge.exe", "edge://wallet/passwords");
+            Add("Firefox", @"%APPDATA%\Mozilla\Firefox\Profiles", "firefox.exe", "about:logins");
+            Add("Brave", @"%LOCALAPPDATA%\BraveSoftware\Brave-Browser\User Data", "brave.exe", "brave://password-manager/settings");
+            Add("Opera", @"%APPDATA%\Opera Software", "opera.exe", "opera://settings/passwords");
             return list;
+        }
+
+        /// <summary>Programın tam yolu, Windows'un "App Paths" kaydından (Çalıştır penceresi de buradan bulur). Yoksa null.</summary>
+        static string AppPath(string exe)
+        {
+            foreach (var hive in new[] { RegistryHive.CurrentUser, RegistryHive.LocalMachine })
+            {
+                try
+                {
+                    using (var root = RegistryKey.OpenBaseKey(hive, RegistryView.Registry64))
+                    using (var k = root.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\" + exe))
+                    {
+                        var path = (k?.GetValue("") as string)?.Trim().Trim('"');
+                        if (!string.IsNullOrEmpty(path) && File.Exists(path)) return path;
+                    }
+                }
+                catch { }
+            }
+            // Opera App Paths'e yazmaz; kullanıcı klasörüne kurulur.
+            if (exe == "opera.exe")
+            {
+                var opera = Environment.ExpandEnvironmentVariables(@"%LOCALAPPDATA%\Programs\Opera\opera.exe");
+                if (File.Exists(opera)) return opera;
+            }
+            return null;
         }
 
         // ───────────── format USB'si ─────────────
