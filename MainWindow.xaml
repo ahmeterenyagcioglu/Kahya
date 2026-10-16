@@ -2545,6 +2545,73 @@
                     </ScrollViewer>
                 </TabItem>
 
+                <TabItem x:Name="DownloadsTab">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <DockPanel Margin="0,0,0,12">
+                            <Button DockPanel.Dock="Right" Content="Klasörü aç" Style="{StaticResource Btn}" Margin="0" Click="DownloadsOpen_Click"/>
+                            <TextBlock Text="Şundan eski:" Foreground="{DynamicResource Muted}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <Border Style="{StaticResource SegBar}" HorizontalAlignment="Left">
+                                <StackPanel x:Name="DownloadsAgePanel" Orientation="Horizontal">
+                                    <Button Content="1 ay" Style="{StaticResource Seg}" Tag="30" Click="DownloadsAge_Click"/>
+                                    <Button Content="3 ay" Style="{StaticResource Seg}" Tag="90" Click="DownloadsAge_Click"/>
+                                    <Button Content="6 ay" Style="{StaticResource Seg}" Tag="180" Click="DownloadsAge_Click"/>
+                                    <Button Content="Hepsi" Style="{StaticResource Seg}" Tag="0" Click="DownloadsAge_Click"/>
+                                </StackPanel>
+                            </Border>
+                        </DockPanel>
+
+                        <Border Grid.Row="1" Style="{StaticResource ListCard}">
+                            <Grid>
+                                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,6,0">
+                                    <ItemsControl x:Name="DownloadsList">
+                                        <ItemsControl.GroupStyle>
+                                            <GroupStyle>
+                                                <GroupStyle.HeaderTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding Name}" Foreground="{DynamicResource AccentText}" FontWeight="SemiBold" Margin="6,10,0,6"/>
+                                                    </DataTemplate>
+                                                </GroupStyle.HeaderTemplate>
+                                            </GroupStyle>
+                                        </ItemsControl.GroupStyle>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Style="{StaticResource RowBorder}" Padding="14,8" MouseLeftButtonUp="Row_MouseLeftButtonUp">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding Name}" Style="{StaticResource RowTitle}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Path}"/>
+                                                            <TextBlock Text="{Binding Details}" Style="{StaticResource RowSub}"/>
+                                                        </StackPanel>
+                                                        <TextBlock Grid.Column="2" Text="{Binding SizeText}" FontWeight="SemiBold" FontSize="14"
+                                                                   VerticalAlignment="Center" MinWidth="80" TextAlignment="Right" Margin="14,0,4,0"/>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                                <TextBlock x:Name="DownloadsEmpty" Style="{StaticResource EmptyText}" VerticalAlignment="Center" Visibility="Collapsed"/>
+                            </Grid>
+                        </Border>
+
+                        <DockPanel Grid.Row="2" Margin="0,12,0,0">
+                            <Button x:Name="DownloadsDeleteBtn" DockPanel.Dock="Right" Content="Geri Dönüşüm Kutusu'na taşı" Style="{StaticResource AccentBtn}" Margin="0"
+                                    Click="DownloadsDelete_Click"/>
+                            <TextBlock x:Name="DownloadsInfo" Foreground="{DynamicResource Muted}" VerticalAlignment="Center"/>
+                        </DockPanel>
+                    </Grid>
+                </TabItem>
+
             </TabControl>
 
             <!-- İşlem kaydı çekmecesi -->

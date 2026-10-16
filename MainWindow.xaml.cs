@@ -278,6 +278,10 @@ namespace Kahya
                 TotalText.Text = hiber.Enabled ? Format.Bytes(hiber.FileSize) : "—";
                 TotalCaption.Text = hiber.Enabled ? "hiberfil.sys" : T("sistem araçları");
             }
+            else if (tab == DownloadsTab)
+            {
+                UpdateDownloadsInfo();
+            }
             else if (tab == CleanTab)
             {
                 var total = _items.Where(i => i.IsChecked && i.Size > 0).Sum(i => i.Size);
@@ -302,6 +306,8 @@ namespace Kahya
             // Araçlar'ın kartları birkaç sayfaya dağıldı; hepsi aynı yükleyiciyi kullanır.
             if ((tab == ToolsTab || tab == RepairTab || tab == PowerTab || tab == WinUpdatesTab || tab == OldDriversTab || tab == NetTab) && !_toolsLoaded)
                 LoadTools();
+            if (tab == DownloadsTab && !_downloadsLoaded)
+                _ = LoadDownloadsAsync();
             if (tab == NetTab && !_wifiLoaded)
                 _ = LoadWifiAsync();
             if (tab == AboutTab)
@@ -346,6 +352,7 @@ namespace Kahya
                 case DupFile dup: dup.IsChecked = !dup.IsChecked; break;
                 case EmptyFolder empty: empty.IsChecked = !empty.IsChecked; break;
                 case RenderFolder render: render.IsChecked = !render.IsChecked; break;
+                case OldDownload dl: dl.IsChecked = !dl.IsChecked; break;
             }
         }
 

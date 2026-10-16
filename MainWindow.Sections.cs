@@ -54,6 +54,7 @@ namespace Kahya
                 S("Temizlik",
                     P("Dosyalar", CleanTab, "Gereksiz dosyaları bul ve sil"),
                     P("Disk analizi", DiskTab, "Diskte neyin yer kapladığını gör"),
+                    P("İndirilenler", DownloadsTab, "Unutulmuş kurulum dosyaları ve arşivler"),
                     P("Eski sürücüler", OldDriversTab, "Güncellemeden kalan sürücü paketleri")),
                 S("Güncellemeler",
                     P("Uygulamalar", UpdatesTab, "Programlarını tek yerden güncelle"),

@@ -1966,4 +1966,23 @@
   <t tr="{0} şifresi kopyalandı.">{0} password copied.</t>
   <t tr="Telefon kamerasıyla okut, dokununca bağlanır.">Scan it with a phone camera and tap to connect.</t>
   <t tr="Wi-Fi paylaş">Share Wi-Fi</t>
+  <t tr="Unutulmuş kurulum dosyaları ve arşivler">Forgotten installers and archives</t>
+  <t tr="Şundan eski:">Older than:</t>
+  <t tr="1 ay">1 month</t>
+  <t tr="3 ay">3 months</t>
+  <t tr="6 ay">6 months</t>
+  <t tr="Geri Dönüşüm Kutusu'na taşı">Move to Recycle Bin</t>
+  <t tr="Kurulum dosyaları">Installers</t>
+  <t tr="Arşivler">Archives</t>
+  <t tr="{0} önce">{0} ago</t>
+  <t tr="{0} yıl">{0} years</t>
+  <t tr="{0} ay">{0} months</t>
+  <t tr="{0} gün">{0} days</t>
+  <t tr="Taranıyor…">Scanning…</t>
+  <t tr="Bu süreden eski bir şey yok ✔">Nothing older than that ✔</t>
+  <t tr="{0} öğe · {1} · {2} seçili ({3})">{0} items · {1} · {2} selected ({3})</t>
+  <t tr="seçili">selected</t>
+  <t tr="{0} öğe Geri Dönüşüm Kutusu'na taşınsın mı ({1})?">Move {0} items to the Recycle Bin ({1})?</t>
+  <t tr="taşınıyor…">moving…</t>
+  <t tr="{0} taşınamadı: {1}">Couldn't move {0}: {1}</t>
 </language>

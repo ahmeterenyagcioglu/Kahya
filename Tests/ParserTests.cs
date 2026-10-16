@@ -209,3 +209,50 @@ namespace Kahya.Tests
         }
     }
 }
+
+namespace Kahya.Tests
+{
+    public class DownloadsTests : IDisposable
+    {
+        readonly string _dir = Path.Combine(Path.GetTempPath(), "kahya-dl-" + Guid.NewGuid().ToString("N"));
+        public void Dispose() => FormatBackup.ForceDelete(_dir);
+
+        string Old(string name, int daysAgo)
+        {
+            var p = Path.Combine(_dir, name);
+            File.WriteAllText(p, "x");
+            var t = DateTime.Now.AddDays(-daysAgo);
+            File.SetCreationTime(p, t);
+            File.SetLastWriteTime(p, t);
+            return p;
+        }
+
+        [Fact]
+        public void Only_old_items_and_installers_preselected()
+        {
+            Directory.CreateDirectory(_dir);
+            Old("setup.exe", 200);
+            Old("arsiv.zip", 200);
+            Old("fatura.pdf", 200);
+            Old("yeni.exe", 2);
+            Old("yarim.crdownload", 200);
+
+            var found = DownloadsFinder.Find(_dir, 90);
+
+            Assert.Equal(new[] { "arsiv.zip", "fatura.pdf", "setup.exe" }, found.Select(f => f.Name).OrderBy(n => n));
+            Assert.True(found.Single(f => f.Name == "setup.exe").IsChecked);
+            Assert.True(found.Single(f => f.Name == "arsiv.zip").IsChecked);
+            Assert.False(found.Single(f => f.Name == "fatura.pdf").IsChecked); // belge: kullanıcı seçmeli
+        }
+
+        [Fact] // İçinde yakında değişmiş dosya olan klasör "eski" sayılmaz.
+        public void Folder_age_is_its_newest_file()
+        {
+            Directory.CreateDirectory(Path.Combine(_dir, "proje"));
+            var oldDir = Path.Combine(_dir, "proje");
+            Directory.SetCreationTime(oldDir, DateTime.Now.AddDays(-300));
+            File.WriteAllText(Path.Combine(oldDir, "taze.txt"), "x");
+            Assert.Empty(DownloadsFinder.Find(_dir, 90));
+        }
+    }
+}
