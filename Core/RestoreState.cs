@@ -21,6 +21,12 @@ namespace Kahya.Core
         public HashSet<string> Done = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         public DateTime Saved = DateTime.Now;
 
+        /// <summary>
+        /// Geri yükleme gerçekten başlamış ve yarıda kesilmiş (bir şey bitmiş ya da kurulum adımına geçilmiş).
+        /// Kahya açılışta asistanı sadece o zaman kendiliğinden açar; sadece göz atılıp kapatıldıysa sormaz.
+        /// </summary>
+        public bool Interrupted => Done.Count > 0 || Page >= 5;
+
         static string FilePath => Path.Combine(Settings.Folder, "restore-state.txt");
 
         /// <summary>Kayıtlı, yarım kalmış bir geri yükleme (yedeği hâlâ yerinde olan); yoksa null.</summary>

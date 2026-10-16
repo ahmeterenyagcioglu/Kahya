@@ -25,6 +25,8 @@
     <Resource Include="app.ico" />
     <!-- .kahya yedek dosyalarının simgesi; ilk açılışta Data klasörüne çıkarılıp dosya ilişkilendirmesine verilir. -->
     <EmbeddedResource Include="kahya-file.ico" LogicalName="kahya-file.ico" />
+    <!-- Dil dosyaları (lang/en.xml, lang/de.xml…): exe'ye gömülür; Data\Lang'a konanlar da okunur. -->
+    <EmbeddedResource Include="lang\*.xml" LogicalName="lang.%(Filename).xml" />
   </ItemGroup>
 
   <ItemGroup>

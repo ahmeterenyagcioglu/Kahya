@@ -150,6 +150,19 @@ Windows Update durumu ve erteleme, güç planları, geri yükleme noktaları.
 
 Kaynak kodun tamamı bu depoda.
 
+## Çeviri
+
+Kahya Türkçe yazılır; diğer diller [`lang/`](lang) klasöründeki XML dosyalarıdır. Yeni bir dil eklemek için:
+
+1. **Hakkında › Ayarlar › Dil dosyaları…** düğmesine bas; `Data\Lang` klasörü `en.xml` şablonuyla açılır.
+2. `en.xml`'i kopyala (ör. `de.xml`), en üstteki `code="de"` ve `name="Deutsch"` kısmını değiştir.
+3. Her `<t tr="…">…</t>` satırında sadece aradaki metni çevir. `tr="…"` kısmına, `{0}` gibi yer tutuculara ve `\n`'e
+   dokunma. Çevrilmemiş satırlar Türkçe görünür.
+4. Kahya'yı yeniden aç, dil listesinden seç.
+
+Bitince dosyayı bir Pull Request ya da [Issue](https://github.com/ahmeterenyagcioglu/Kahya/issues) ile gönderirsen sonraki
+sürüme eklenir.
+
 ## Sorun bildirme
 
 Bir hata çıkarsa hata penceresinde **Evet** de ya da **Hakkında › Hata bildir**'e bas: sürüm, Windows ve hatanın
@@ -174,7 +187,7 @@ dotnet build -c Release
       R(@"%LOCALAPPDATA%\Ornek\Cache"),
       R(@"%APPDATA%\Ornek\*\GPUCache")));   // '*' klasör adında joker olarak kullanılabilir
   ```
-- **Çeviriler:** kod ve XAML'de metinler Türkçe yazılır, İngilizceleri `Core/LangEn.cs` içinde.
+- **Çeviriler:** kod ve XAML'de metinler Türkçe yazılır; diğer diller `lang/*.xml` (exe'ye gömülür, `Data\Lang\*.xml` de okunur).
 - **Tema:** renkler `Core/Theme.cs` içinde iki palet olarak durur.
 - **Sürüm yayınlama:** `Kahya.csproj` içindeki `<Version>`'ı yükselt (düzeltme → `1.0.x`, yeni özellik → `1.x.0`),
   `Core/AppInfo.cs` içindeki `ReleaseNotes`'a not ekle ve commit'le. Sonra:

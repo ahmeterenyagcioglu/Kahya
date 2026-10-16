@@ -349,6 +349,13 @@ namespace Kahya
 
         async void Resume_Click(object sender, RoutedEventArgs e) => await ResumeAsync();
 
+        void ResumeDiscard_Click(object sender, RoutedEventArgs e)
+        {
+            RestoreState.Clear();
+            _pending = null;
+            ResumeBanner.Visibility = Visibility.Collapsed;
+        }
+
         async Task ResumeAsync()
         {
             var saved = _pending;

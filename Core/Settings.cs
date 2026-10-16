@@ -140,7 +140,7 @@ namespace Kahya.Core
                         case "selected": _selected = Split(value); break;
                         case "skipRecent": SkipRecentFiles = value == "1"; break;
                         case "restorePoint": RestorePointBeforeUpdates = value == "1"; break;
-                        case "lang": Language = value == "tr" || value == "en" ? value : null; break;
+                        case "lang": Language = System.Text.RegularExpressions.Regex.IsMatch(value, "^[a-z]{2,3}(-[a-z0-9]{2,8})?$") ? value : null; break;
                         case "theme": Theme = value == "dark" || value == "light" ? value : "system"; break;
                         case "tray": TrayEnabled = value == "1"; break;
                         case "alwaysAdmin": AlwaysAdmin = value == "1"; break;

@@ -70,7 +70,7 @@ namespace Kahya
                 RefreshScheduleText();
                 // Format sonrası asistanı taramaları beklemeden açılır (ayrı penceredir).
                 // Yarıda kalmış bir geri yükleme varsa da açılır (asistan "kaldığın yerden devam et" der).
-                if (App.StartWizard || RestoreState.Load() != null)
+                if (App.StartWizard || RestoreState.Load()?.Interrupted == true)
                     OpenRestoreWizard(App.StartRestore);
                 else
                     _ = OfferRestoreOnNewWindowsAsync();

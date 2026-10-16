@@ -21,10 +21,9 @@ namespace Kahya
             AboutVersion.Text = "v" + AppInfo.Version;
             AboutAuthor.Text = AppInfo.Author;
             ReleaseNotesList.ItemsSource = AppInfo.ReleaseNotes;
-            Highlight(LangTrBtn, !Lang.English);
-            Highlight(LangEnBtn, Lang.English);
+            BuildLanguageButtons();
             // "Açık" sözlükte "On" (otomatik bakım açık) olarak çevriliyor; tema düğmesinde anlamı farklı.
-            ThemeLightBtn.Content = Lang.English ? "Light" : "Açık";
+            ThemeLightBtn.Content = Lang.Code == "tr" ? "Açık" : Lang.Code == "en" ? "Light" : T("Açık tema");
             Theme.Changed += UpdateThemeButtons;
             UpdateThemeButtons();
             TrayBox.IsChecked = Settings.TrayEnabled;
@@ -204,16 +203,45 @@ namespace Kahya
             ThemeToggleBtn.ToolTip = Theme.IsDark ? T("Açık temaya geç") : T("Koyu temaya geç");
         }
 
+        /// <summary>Türkçe ve bulunan dil dosyaları (gömülü + Data\Lang) için birer düğme.</summary>
+        void BuildLanguageButtons()
+        {
+            LangPanel.Children.Clear();
+            foreach (var lang in Lang.Available())
+            {
+                var b = new System.Windows.Controls.Button
+                {
+                    Content = lang.Name, Tag = lang.Code, Style = (Style)FindResource("Seg"),
+                    ToolTip = lang.Author != null ? lang.Name + " · " + lang.Author : lang.Name,
+                };
+                b.Click += Language_Click;
+                LangPanel.Children.Add(b);
+                Highlight(b, lang.Code == Lang.Code);
+            }
+        }
+
+        /// <summary>Dil dosyalarının klasörünü en.xml şablonuyla açar: kopyalayıp kendi dilini ekleyen için.</summary>
+        void LanguageFiles_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var folder = Lang.ExportTemplate();
+                Info(T("Dil dosyaları klasörü açılıyor. Yeni bir dil eklemek için en.xml'i kopyala (ör. de.xml), içindeki code ve name'i değiştir, metinleri çevir. Kahya'yı yeniden açınca dil listesinde çıkar."));
+                Process.Start(new ProcessStartInfo(folder) { UseShellExecute = true });
+            }
+            catch (Exception ex) { Info(ex.Message); }
+        }
+
         void Language_Click(object sender, RoutedEventArgs e)
         {
             var lang = (sender as FrameworkElement)?.Tag as string;
-            if (lang == (Lang.English ? "en" : "tr")) return;
+            if (lang == null || lang == Lang.Code) return;
 
             Settings.Language = lang;
             SaveSettings();
-            var question = lang == "en"
-                ? "Language changed to English. Restart Kahya now to apply it?"
-                : "Dil Türkçe olarak değiştirildi. Uygulamak için Kahya şimdi yeniden başlatılsın mı?";
+            var question = lang == "tr"
+                ? "Dil Türkçe olarak değiştirildi. Uygulamak için Kahya şimdi yeniden başlatılsın mı?"
+                : "Language changed. Restart Kahya now to apply it?";
             if (MessageBox.Show(this, question, "Kahya", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
                 return;
 

@@ -2163,11 +2163,12 @@
                                     </DockPanel>
                                     <DockPanel Margin="0,0,0,12">
                                         <TextBlock Text="Dil / Language" Style="{StaticResource Label}" Width="150"/>
+                                        <Button DockPanel.Dock="Right" Content="Dil dosyaları…" Style="{StaticResource SmallBtn}" Margin="10,0,0,0"
+                                                VerticalAlignment="Center" Click="LanguageFiles_Click"
+                                                ToolTip="Dil dosyalarının klasörünü açar (en.xml şablonuyla). Kopyalayıp kendi dilini ekleyebilirsin."/>
+                                        <!-- Türkçe + bulunan dil dosyaları; düğmeler koddan eklenir -->
                                         <Border Style="{StaticResource SegBar}" Background="{DynamicResource Row}">
-                                            <StackPanel Orientation="Horizontal">
-                                                <Button x:Name="LangTrBtn" Content="Türkçe" Style="{StaticResource Seg}" Tag="tr" Click="Language_Click"/>
-                                                <Button x:Name="LangEnBtn" Content="English" Style="{StaticResource Seg}" Tag="en" Click="Language_Click"/>
-                                            </StackPanel>
+                                            <WrapPanel x:Name="LangPanel" Orientation="Horizontal"/>
                                         </Border>
                                     </DockPanel>
                                     <DockPanel Margin="0,0,0,12">
