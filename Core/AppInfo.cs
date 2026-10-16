@@ -38,6 +38,11 @@ namespace Kahya.Core
         {
             new ReleaseNote
             {
+                Version = "1.7.0", Date = T("16 Ekim 2026"),
+                Notes = T("• Program kaldırınca geride kalanlar: kaldırıcının silmediği klasörler ve kayıt defteri anahtarları bulunur, istediklerini silersin. Klasörler Geri Dönüşüm Kutusu'na gider, anahtarlar önce yedeklenir\n• Gizlilik › Windows ayarları: yeni Görünüm ve kullanım bölümü (dosya uzantıları, gizli dosyalar, Gezgin'i Bu bilgisayar'da açma; Windows 11'de klasik sağ tık menüsü, Copilot ve Pencere Öğeleri'ni kapatma, görev çubuğunda Görevi sonlandır) ve Recall'u kapatma\n• Araçlar › WinSxS boyutunu analiz et; Derin Temizlik'te eski güncellemeleri kalıcı silme (DISM /ResetBase)"),
+            },
+            new ReleaseNote
+            {
                 Version = "1.6.0", Date = T("16 Ekim 2026"),
                 Notes = T("• Başka dillere çeviri: diller artık dil dosyası (XML). Hakkında › Ayarlar › Dil dosyaları… klasörü açar; içindeki lang-sample.xml'i kopyalayıp (ör. de.xml) çeviren kendi dilini ekler, dil listesinde kendiliğinden çıkar. Nasıl yapılacağı dosyanın başında Türkçe ve İngilizce yazıyor\n• Format sonrası asistanı artık her açılışta gelmiyor: sadece başlayıp yarıda kesilen bir geri yükleme varsa açılır. \"Kaldığın yerden devam et\" şeridinde Vazgeç düğmesi var"),
             },
