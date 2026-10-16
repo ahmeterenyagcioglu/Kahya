@@ -23,11 +23,18 @@ namespace Kahya
             foreach (var p in _privacy) p.PropertyChanged -= Privacy_PropertyChanged;
             _privacy = Privacy.Load();
             foreach (var p in _privacy) p.PropertyChanged += Privacy_PropertyChanged;
-            var view = new System.Windows.Data.ListCollectionView(_privacy);
-            view.GroupDescriptions.Add(new System.Windows.Data.PropertyGroupDescription(nameof(PrivacyTweak.Section)));
-            PrivacyList.ItemsSource = view;
+            PrivacyList.ItemsSource = new System.Windows.Data.ListCollectionView(_privacy);
             _privacyLoaded = true;
+            ApplyPrivacyFilter();
             UpdatePrivacyInfo();
+        }
+
+        /// <summary>Gizlilik ve Görünüm aynı listeyi kullanır; açık alt sekmenin bölümü gösterilir.</summary>
+        void ApplyPrivacyFilter()
+        {
+            if (!(PrivacyList.ItemsSource is System.Windows.Data.ListCollectionView view)) return;
+            var look = T("Görünüm ve kullanım");
+            view.Filter = o => (((PrivacyTweak)o).Section == look) == (_privacyFilter == "look");
         }
 
         void PrivacyUndo_Click(object sender, RoutedEventArgs e)

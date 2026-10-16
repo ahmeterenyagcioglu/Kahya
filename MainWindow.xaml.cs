@@ -61,9 +61,10 @@ namespace Kahya
             InitAbout();
             InitAdmin();
             InitFormat();
+            InitSections();
             UpdatePrivacyMode();
             RefreshHistory();
-            Tabs.SelectedIndex = 0; // menü ile sekmeler birbirine bağlı; ilk sayfayı açıkça seç
+            Tabs.SelectedIndex = 0; // menü sekmeleri izler (SyncNav); ilk sayfayı açıkça seç
             UpdatePageTitle();
 
             Loaded += async (s, e) =>
@@ -199,29 +200,7 @@ namespace Kahya
                 Dispatcher.BeginInvoke(new Action(UpdateHeader));
         }
 
-        static readonly string[] PageTitles =
-            { "Genel bakış", "Temizlik", "Güncellemeler", "Uygulamalar", "Başlangıç", "Gizlilik", "Disk analizi", "Araçlar", "Format yardımcısı", "Hakkında" };
-
-        static readonly string[] PageSubtitles =
-        {
-            "Bilgisayarının durumu tek bakışta",
-            "Gereksiz dosyaları bul ve sil",
-            "Programlarını tek yerden güncelle",
-            "Program kaldır, gereksiz Windows uygulamalarını temizle",
-            "Windows açılırken başlayanlar · kapattığın silinmez, istediğin zaman geri açabilirsin",
-            "Reklam, veri toplama ve Windows ayarları · anahtar açıksa ayar uygulanmış demektir",
-            "Diskte neyin yer kapladığını gör",
-            "Sistem bilgisi, sağlık ve onarım",
-            "Format öncesi yedek al, sonra kolayca geri yükle",
-            "Sürüm, ayarlar ve geçmiş",
-        };
-
-        void UpdatePageTitle()
-        {
-            int i = Math.Max(0, Tabs.SelectedIndex);
-            PageTitle.Text = T(PageTitles[i]);
-            PageSubtitle.Text = T(PageSubtitles[i]);
-        }
+        void UpdatePageTitle() => SyncNav();
 
         void UpdateHeader()
         {
@@ -299,11 +278,16 @@ namespace Kahya
                 TotalText.Text = hiber.Enabled ? Format.Bytes(hiber.FileSize) : "—";
                 TotalCaption.Text = hiber.Enabled ? "hiberfil.sys" : T("sistem araçları");
             }
-            else
+            else if (tab == CleanTab)
             {
                 var total = _items.Where(i => i.IsChecked && i.Size > 0).Sum(i => i.Size);
                 TotalText.Text = Format.Bytes(total);
                 TotalCaption.Text = T("temizlenebilir");
+            }
+            else
+            {
+                TotalText.Text = "—";
+                TotalCaption.Text = "";
             }
         }
 
@@ -315,13 +299,14 @@ namespace Kahya
                 LoadStartup();
             if (tab == PrivacyTab && !_privacyLoaded)
                 LoadPrivacy();
-            if (tab == ToolsTab && !_toolsLoaded)
+            // Araçlar'ın kartları birkaç sayfaya dağıldı; hepsi aynı yükleyiciyi kullanır.
+            if ((tab == ToolsTab || tab == RepairTab || tab == PowerTab || tab == WinUpdatesTab || tab == OldDriversTab) && !_toolsLoaded)
                 LoadTools();
             if (tab == AboutTab)
                 LoadAbout();
             if (tab == OverviewTab)
                 _ = RefreshOverviewAsync(full: false);
-            if (tab == FormatTab && !_formatLoaded)
+            if ((tab == FormatTab || tab == AutoBackupTab || tab == RestorePageTab || tab == PreFormatTab) && !_formatLoaded)
                 _ = LoadFormatAsync();
             UpdateHeader();
 

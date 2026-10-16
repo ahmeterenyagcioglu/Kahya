@@ -248,7 +248,7 @@
                 </StackPanel>
 
                 <ListBox x:Name="Nav" Style="{StaticResource NavList}" ItemContainerStyle="{StaticResource NavItem}"
-                         SelectedIndex="{Binding SelectedIndex, ElementName=Tabs, Mode=TwoWay}">
+                         SelectionChanged="Nav_SelectionChanged">
                     <ListBoxItem>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Style="{StaticResource NavIcon}" Text="&#xE80F;"/>
@@ -275,38 +275,26 @@
                     </ListBoxItem>
                     <ListBoxItem>
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Style="{StaticResource NavIcon}" Text="&#xE7E8;"/>
-                            <TextBlock Style="{StaticResource NavText}" Text="Başlangıç"/>
-                        </StackPanel>
-                    </ListBoxItem>
-                    <ListBoxItem>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Style="{StaticResource NavIcon}" Text="&#xEA18;"/>
-                            <TextBlock Style="{StaticResource NavText}" Text="Gizlilik"/>
-                        </StackPanel>
-                    </ListBoxItem>
-                    <ListBoxItem>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Style="{StaticResource NavIcon}" Text="&#xEB05;"/>
-                            <TextBlock Style="{StaticResource NavText}" Text="Disk analizi"/>
+                            <TextBlock Style="{StaticResource NavIcon}" Text="&#xE713;"/>
+                            <TextBlock Style="{StaticResource NavText}" Text="Windows ayarları"/>
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Style="{StaticResource NavIcon}" Text="&#xE90F;"/>
-                            <TextBlock Style="{StaticResource NavText}" Text="Araçlar"/>
+                            <TextBlock Style="{StaticResource NavText}" Text="Sistem"/>
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Style="{StaticResource NavIcon}" Text="&#xE78C;"/>
-                            <TextBlock Style="{StaticResource NavText}" Text="Format yardımcısı"/>
+                            <TextBlock Style="{StaticResource NavText}" Text="Yedekleme"/>
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Style="{StaticResource NavIcon}" Text="&#xE946;"/>
-                            <TextBlock Style="{StaticResource NavText}" Text="Hakkında"/>
+                            <TextBlock Style="{StaticResource NavText}" Text="Ayarlar"/>
                         </StackPanel>
                     </ListBoxItem>
                 </ListBox>
@@ -346,8 +334,11 @@
                 </StackPanel>
             </DockPanel>
 
-            <!-- Uyarı şeritleri -->
+            <!-- Uyarı şeritleri; üstte bölümün alt sekmeleri -->
             <StackPanel Grid.Row="1">
+                <Border x:Name="SubNavBar" Style="{StaticResource SegBar}" HorizontalAlignment="Left" Margin="0,0,0,14" Visibility="Collapsed">
+                    <StackPanel x:Name="SubNav" Orientation="Horizontal"/>
+                </Border>
                 <Border x:Name="AdminBanner" Background="{DynamicResource WarnSoft}" BorderBrush="{DynamicResource WarnLine}" BorderThickness="1" CornerRadius="10"
                         Padding="14,8" Margin="0,0,0,12" Visibility="Collapsed">
                     <DockPanel>
@@ -709,7 +700,7 @@
                                 <TextBlock x:Name="AppSearchHint" Text="Ara…" Foreground="{DynamicResource Faint}" IsHitTestVisible="False"
                                            VerticalAlignment="Center" Margin="33,0,0,0"/>
                             </Grid>
-                            <Border Style="{StaticResource SegBar}">
+                            <Border Style="{StaticResource SegBar}" Visibility="Collapsed">
                                 <StackPanel Orientation="Horizontal">
                                     <Button x:Name="ProgramsModeBtn" Content="Yüklü programlar" Style="{StaticResource Seg}" Click="ProgramsMode_Click"/>
                                     <Button x:Name="BloatModeBtn" Content="Gereksiz Windows uygulamaları" Style="{StaticResource Seg}" Click="BloatMode_Click"/>
@@ -940,7 +931,7 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <Border Style="{StaticResource SegBar}" Margin="0,0,0,12">
+                        <Border Style="{StaticResource SegBar}" Margin="0,0,0,12" Visibility="Collapsed">
                             <StackPanel Orientation="Horizontal">
                                 <Button x:Name="PrivacySettingsBtn" Content="Windows ayarları" Style="{StaticResource Seg}" Click="PrivacyMode_Click" Tag="settings"/>
                                 <Button x:Name="PrivacyExtBtn" Content="Tarayıcı eklentileri" Style="{StaticResource Seg}" Click="PrivacyMode_Click" Tag="ext"
@@ -1387,101 +1378,12 @@
                                         </StackPanel>
                                     </Border>
 
-                                    <Border Style="{StaticResource ToolCard}">
-                                        <StackPanel>
-                                            <DockPanel Margin="0,0,0,6">
-                                                <TextBlock Style="{StaticResource CardIcon}" Text="&#xE708;"/>
-                                                <TextBlock Text="Hazırda bekletme" Style="{StaticResource CardTitle}"
-                                                           ToolTip="Kapatırsan hiberfil.sys silinir (genelde RAM'in %40-75'i kadar yer açılır) ama Hazırda Beklet ve Hızlı Başlangıç da kapanır. 'Azaltılmış' Hızlı Başlangıç'ı korur, dosyayı yaklaşık yarıya indirir."/>
-                                            </DockPanel>
-                                            <TextBlock x:Name="HiberText" Style="{StaticResource Hint}" FontSize="12.5" Margin="0,0,0,10"/>
-                                            <Border Style="{StaticResource SegBar}" Background="{DynamicResource Row}">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <Button x:Name="HiberOffBtn" Content="Kapalı" Style="{StaticResource Seg}" Tag="off" Click="Hibernate_Click"
-                                                            ToolTip="hiberfil.sys silinir; Hazırda Beklet ve Hızlı Başlangıç kapanır"/>
-                                                    <Button x:Name="HiberReducedBtn" Content="Azaltılmış" Style="{StaticResource Seg}" Tag="reduced" Click="Hibernate_Click"
-                                                            ToolTip="Hızlı Başlangıç çalışır, dosya yaklaşık yarıya iner"/>
-                                                    <Button x:Name="HiberFullBtn" Content="Tam" Style="{StaticResource Seg}" Tag="full" Click="Hibernate_Click"/>
-                                                </StackPanel>
-                                            </Border>
-                                        </StackPanel>
-                                    </Border>
 
-                                    <Border Style="{StaticResource ToolCard}">
-                                        <StackPanel>
-                                            <DockPanel Margin="0,0,0,10">
-                                                <TextBlock Style="{StaticResource CardIcon}" Text="&#xE945;"/>
-                                                <TextBlock Text="Güç ve performans" Style="{StaticResource CardTitle}"/>
-                                            </DockPanel>
-                                            <TextBlock Text="Güç planı" Style="{StaticResource Label}" Margin="0,0,0,6"/>
-                                            <Border Style="{StaticResource SegBar}" Background="{DynamicResource Row}">
-                                                <WrapPanel x:Name="PowerPlanPanel"/>
-                                            </Border>
-                                            <Button x:Name="UltimateBtn" Content="'Nihai performans' planını ekle" Style="{StaticResource GhostBtn}" HorizontalAlignment="Left"
-                                                    Margin="0,4,0,8" Click="UltimatePlan_Click" Visibility="Collapsed"
-                                                    ToolTip="Windows'ta gizli gelen, en yüksek performans planı. Masaüstü bilgisayarlar için; dizüstünde pili hızlı tüketir."/>
-                                            <DockPanel Margin="0,8,0,0">
-                                                <CheckBox x:Name="GameModeSwitch" DockPanel.Dock="Right" Style="{StaticResource Switch}" Click="GameMode_Click"/>
-                                                <StackPanel>
-                                                    <TextBlock Text="Oyun modu" Style="{StaticResource RowTitle}"/>
-                                                    <TextBlock Text="Oyun açıkken arka plan işlerini kısar" Style="{StaticResource RowSub}"/>
-                                                </StackPanel>
-                                            </DockPanel>
-                                            <DockPanel Margin="0,10,0,0">
-                                                <CheckBox x:Name="TransparencySwitch" DockPanel.Dock="Right" Style="{StaticResource Switch}" Click="Transparency_Click"/>
-                                                <StackPanel>
-                                                    <TextBlock Text="Saydamlık efektleri" Style="{StaticResource RowTitle}"/>
-                                                    <TextBlock Text="Kapatmak eski bilgisayarlarda akıcılığı artırır" Style="{StaticResource RowSub}"/>
-                                                </StackPanel>
-                                            </DockPanel>
-                                            <DockPanel Margin="0,10,0,0">
-                                                <CheckBox x:Name="AnimationSwitch" DockPanel.Dock="Right" Style="{StaticResource Switch}" Click="Animation_Click"/>
-                                                <StackPanel>
-                                                    <TextBlock Text="Animasyonlar" Style="{StaticResource RowTitle}"/>
-                                                    <TextBlock Text="Pencere açılış/küçültme ve uygulama içi geçişler" Style="{StaticResource RowSub}"/>
-                                                </StackPanel>
-                                            </DockPanel>
-                                        </StackPanel>
-                                    </Border>
 
                                 </StackPanel>
 
                                 <!-- Sağ sütun -->
                                 <StackPanel Grid.Column="2">
-                                    <Border Style="{StaticResource ToolCard}">
-                                        <StackPanel>
-                                            <DockPanel Margin="0,0,0,10">
-                                                <Button DockPanel.Dock="Right" Content="&#xE72C;" Style="{StaticResource IconBtn}" Click="GpuCheck_Click" ToolTip="Kontrol et"/>
-                                                <TextBlock Style="{StaticResource CardIcon}" Text="&#xE7F4;"/>
-                                                <TextBlock Text="Ekran kartı sürücüsü" Style="{StaticResource CardTitle}"
-                                                           ToolTip="NVIDIA'da yeni sürücü çıkınca açılışta uyarı çıkar. AMD ve Intel otomatik sorgulanamıyor; kurulu sürüm ve tarihi gösterilir."/>
-                                            </DockPanel>
-                                            <ItemsControl x:Name="GpuList">
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <Border Style="{StaticResource StaticRow}">
-                                                            <DockPanel>
-                                                                <Button DockPanel.Dock="Right" Content="&#xE8A7;" Style="{StaticResource IconBtn}" VerticalAlignment="Center"
-                                                                        Click="GpuOpen_Click" ToolTip="{c:Tr 'Sürücü sayfası'}"/>
-                                                                <StackPanel>
-                                                                    <TextBlock Text="{Binding Name}" Style="{StaticResource RowTitle}"/>
-                                                                    <TextBlock Text="{Binding Details}" Style="{StaticResource RowSub}"/>
-                                                                    <TextBlock x:Name="st" Text="{Binding Status}" Foreground="{DynamicResource Muted}" FontSize="11.5" TextWrapping="Wrap" Margin="0,2,0,0"/>
-                                                                </StackPanel>
-                                                            </DockPanel>
-                                                        </Border>
-                                                        <DataTemplate.Triggers>
-                                                            <DataTrigger Binding="{Binding UpdateAvailable}" Value="True">
-                                                                <Setter TargetName="st" Property="Foreground" Value="{DynamicResource Warn}"/>
-                                                                <Setter TargetName="st" Property="FontWeight" Value="SemiBold"/>
-                                                            </DataTrigger>
-                                                        </DataTemplate.Triggers>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
-                                            <TextBlock x:Name="GpuInfoText" Style="{StaticResource Hint}"/>
-                                        </StackPanel>
-                                    </Border>
 
                                     <Border x:Name="BatteryCard" Style="{StaticResource ToolCard}" Visibility="Collapsed">
                                         <StackPanel>
@@ -1549,283 +1451,12 @@
                                         </StackPanel>
                                     </Border>
 
-                                    <Border Style="{StaticResource ToolCard}">
-                                        <StackPanel>
-                                            <DockPanel Margin="0,0,0,8">
-                                                <Button DockPanel.Dock="Right" Content="&#xE72C;" Style="{StaticResource IconBtn}" Click="WuCheck_Click" ToolTip="Kontrol et"/>
-                                                <TextBlock Style="{StaticResource CardIcon}" Text="&#xE895;"/>
-                                                <TextBlock Text="Windows Update" Style="{StaticResource CardTitle}"/>
-                                            </DockPanel>
-                                            <TextBlock x:Name="WuText" Style="{StaticResource Hint}" FontSize="12.5" Text="Kontrol ediliyor…"/>
-                                            <ItemsControl x:Name="WuList" Margin="0,6,0,0">
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <TextBlock Text="{Binding}" FontSize="12" TextWrapping="Wrap" Margin="0,2"/>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
-                                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                                                <Button x:Name="WuPauseBtn" Content="1 hafta ertele" Style="{StaticResource SmallBtn}" Click="WuPause_Click"
-                                                        c:Elevation.Required="True" ToolTip="Ayarlar'daki 'Güncellemeleri duraklat' ile aynı. Süre bitince güncellemeler kendiliğinden sürer."/>
-                                                <Button Content="Ayarlar'da aç" Style="{StaticResource SmallBtn}" Click="WuOpen_Click"/>
-                                            </StackPanel>
-                                        </StackPanel>
-                                    </Border>
                                 </StackPanel>
                             </Grid>
 
-                            <!-- Geri yükleme noktaları -->
-                            <Border Style="{StaticResource ToolCard}">
-                                <StackPanel>
-                                    <DockPanel Margin="0,0,0,10">
-                                        <Button DockPanel.Dock="Right" Content="Yeni nokta oluştur" Style="{StaticResource SmallBtn}" Margin="0"
-                                                Click="RestoreCreate_Click" c:Elevation.Required="True"/>
-                                        <Button DockPanel.Dock="Right" Content="Listele" Style="{StaticResource SmallBtn}" Click="RestoreList_Click" c:Elevation.Required="True"/>
-                                        <TextBlock Style="{StaticResource CardIcon}" Text="&#xE777;"/>
-                                        <TextBlock Text="Geri yükleme noktaları" Style="{StaticResource CardTitle}"
-                                                   ToolTip="Sistem Geri Yükleme'nin kayıtları. Eski noktalar diskte birkaç GB tutabilir; sınırı düşürmek ya da eskileri silmek yer açar. En yenisini saklamak iyi olur."/>
-                                    </DockPanel>
-                                    <ItemsControl x:Name="RestoreList">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Border Style="{StaticResource RowBorder}" MouseLeftButtonUp="Row_MouseLeftButtonUp">
-                                                    <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,14,0"/>
-                                                        <StackPanel Grid.Column="1">
-                                                            <TextBlock Text="{Binding Description}" Style="{StaticResource RowTitle}"/>
-                                                            <TextBlock Text="{Binding Details}" Style="{StaticResource RowSub}"/>
-                                                        </StackPanel>
-                                                        <TextBlock Grid.Column="2" Text="{Binding Status}" Foreground="{DynamicResource Muted}" FontSize="11"
-                                                                   VerticalAlignment="Center" Margin="12,0,0,0"/>
-                                                    </Grid>
-                                                </Border>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                    <DockPanel Margin="0,4,0,0">
-                                        <Button x:Name="RestoreDeleteBtn" DockPanel.Dock="Right" Content="Seçilenleri sil" Style="{StaticResource AccentBtn}"
-                                                Margin="0" Click="RestoreDelete_Click" Visibility="Collapsed"/>
-                                        <StackPanel x:Name="RestoreLimitPanel" DockPanel.Dock="Right" Orientation="Horizontal" Margin="0,0,12,0" Visibility="Collapsed">
-                                            <TextBlock Text="Alan sınırı" Style="{StaticResource Label}"
-                                                       ToolTip="Geri yükleme noktalarının en fazla kullanabileceği yer. Dolunca en eski nokta kendiliğinden silinir."/>
-                                            <Border Style="{StaticResource SegBar}" Background="{DynamicResource Row}">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <Button x:Name="RestoreLimit3" Style="{StaticResource Seg}" Tag="3" Click="RestoreLimit_Click"/>
-                                                    <Button x:Name="RestoreLimit5" Style="{StaticResource Seg}" Tag="5" Click="RestoreLimit_Click"/>
-                                                    <Button x:Name="RestoreLimit10" Style="{StaticResource Seg}" Tag="10" Click="RestoreLimit_Click"/>
-                                                </StackPanel>
-                                            </Border>
-                                        </StackPanel>
-                                        <TextBlock x:Name="RestoreInfo" Style="{StaticResource Hint}" VerticalAlignment="Center"
-                                                   Text="Görmek için 'Listele'ye bas."/>
-                                    </DockPanel>
-                                </StackPanel>
-                            </Border>
 
-                            <!-- Onarım -->
-                            <Border Style="{StaticResource ToolCard}" Padding="18,16,10,8">
-                                <StackPanel>
-                                    <DockPanel Margin="0,0,0,12">
-                                        <TextBlock Style="{StaticResource CardIcon}" Text="&#xE90F;"/>
-                                        <TextBlock Text="Sistem onarımı" Style="{StaticResource CardTitle}"/>
-                                        <TextBlock Text="Sonuçlar işlem kaydında görünür" Style="{StaticResource Hint}" VerticalAlignment="Center" Margin="12,0,0,0"/>
-                                    </DockPanel>
-                                    <UniformGrid Columns="2">
-                                        <Border Style="{StaticResource ActionRow}">
-                                            <DockPanel>
-                                                <Button DockPanel.Dock="Right" Content="Çalıştır" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" Tag="sfc" c:Elevation.Required="True" Click="Repair_Click" VerticalAlignment="Center"/>
-                                                <StackPanel ToolTip="sfc /scannow — bozuk Windows dosyalarını bulup düzeltir.">
-                                                    <TextBlock Text="Sistem dosyalarını onar" Style="{StaticResource RowTitle}"/>
-                                                    <TextBlock Text="SFC · 5-15 dk" Style="{StaticResource RowSub}"/>
-                                                </StackPanel>
-                                            </DockPanel>
-                                        </Border>
-                                        <Border Style="{StaticResource ActionRow}">
-                                            <DockPanel>
-                                                <Button DockPanel.Dock="Right" Content="Çalıştır" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" Tag="dism" c:Elevation.Required="True" Click="Repair_Click" VerticalAlignment="Center"/>
-                                                <StackPanel ToolTip="DISM /RestoreHealth — SFC'nin kullandığı kaynağı Windows Update'ten onarır. SFC düzeltemezse önce bunu çalıştır.">
-                                                    <TextBlock Text="Windows görüntüsünü onar" Style="{StaticResource RowTitle}"/>
-                                                    <TextBlock Text="DISM · 10-30 dk" Style="{StaticResource RowSub}"/>
-                                                </StackPanel>
-                                            </DockPanel>
-                                        </Border>
-                                        <Border Style="{StaticResource ActionRow}">
-                                            <DockPanel>
-                                                <Button DockPanel.Dock="Right" Content="Çalıştır" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" Tag="chkdsk" c:Elevation.Required="True" Click="Repair_Click" VerticalAlignment="Center"/>
-                                                <StackPanel ToolTip="chkdsk /scan — dosya sistemi hatalarını çevrimiçi tarar, yeniden başlatma gerektirmez.">
-                                                    <TextBlock Text="Disk hatalarını tara" Style="{StaticResource RowTitle}"/>
-                                                    <TextBlock Text="CHKDSK · yeniden başlatma yok" Style="{StaticResource RowSub}"/>
-                                                </StackPanel>
-                                            </DockPanel>
-                                        </Border>
-                                        <Border Style="{StaticResource ActionRow}">
-                                            <DockPanel>
-                                                <Button DockPanel.Dock="Right" Content="Çalıştır" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" Tag="optimize" c:Elevation.Required="True" Click="Repair_Click" VerticalAlignment="Center"/>
-                                                <StackPanel ToolTip="SSD'lere TRIM, HDD'lere birleştirme uygular (Windows hangisinin gerektiğini kendisi seçer). Fiziksel diskler için.">
-                                                    <TextBlock Text="Sürücüleri optimize et" Style="{StaticResource RowTitle}"/>
-                                                    <TextBlock Text="SSD'ye TRIM, HDD'ye birleştirme" Style="{StaticResource RowSub}"/>
-                                                </StackPanel>
-                                            </DockPanel>
-                                        </Border>
-                                        <Border Style="{StaticResource ActionRow}">
-                                            <DockPanel>
-                                                <Button DockPanel.Dock="Right" Content="Çalıştır" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" Tag="wureset" c:Elevation.Required="True" Click="Repair_Click" VerticalAlignment="Center"/>
-                                                <StackPanel ToolTip="Güncellemeler takılıyor ya da hata veriyorsa: Update servislerini durdurur, önbelleğini (SoftwareDistribution, catroot2) sıfırlar ve yeniden başlatır. Kurulu güncellemeler etkilenmez; Ayarlar'daki güncelleme geçmişi listesi boşalır.">
-                                                    <TextBlock Text="Windows Update'i sıfırla" Style="{StaticResource RowTitle}"/>
-                                                    <TextBlock Text="Güncellemeler takılıyorsa" Style="{StaticResource RowSub}"/>
-                                                </StackPanel>
-                                            </DockPanel>
-                                        </Border>
-                                        <Border Style="{StaticResource ActionRow}">
-                                            <DockPanel>
-                                                <Button DockPanel.Dock="Right" Content="Çalıştır" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" Tag="winsxs" c:Elevation.Required="True" Click="Repair_Click" VerticalAlignment="Center"/>
-                                                <StackPanel ToolTip="DISM /AnalyzeComponentStore — WinSxS klasörünün gerçek boyutunu, ne kadarının temizlenebileceğini ve temizliğin önerilip önerilmediğini yazar. Hiçbir şey silmez; temizlemek için Temizlik › Derin Temizlik.">
-                                                    <TextBlock Text="WinSxS boyutunu analiz et" Style="{StaticResource RowTitle}"/>
-                                                    <TextBlock Text="DISM · hiçbir şey silmez, sadece ölçer" Style="{StaticResource RowSub}"/>
-                                                </StackPanel>
-                                            </DockPanel>
-                                        </Border>
-                                    </UniformGrid>
-                                </StackPanel>
-                            </Border>
 
-                            <!-- Ağ -->
-                            <Border Style="{StaticResource ToolCard}" Padding="18,16,10,8">
-                                <StackPanel>
-                                    <DockPanel Margin="0,0,0,12">
-                                        <TextBlock Style="{StaticResource CardIcon}" Text="&#xE968;"/>
-                                        <TextBlock Text="Ağ araçları" Style="{StaticResource CardTitle}"/>
-                                        <TextBlock Text="Siteler açılmıyorsa sırayla dene" Style="{StaticResource Hint}" VerticalAlignment="Center" Margin="12,0,0,0"/>
-                                    </DockPanel>
-                                    <UniformGrid Columns="3">
-                                        <Border Style="{StaticResource ActionRow}">
-                                            <DockPanel>
-                                                <Button DockPanel.Dock="Right" Content="Çalıştır" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" Tag="dns" Click="Network_Click" VerticalAlignment="Center"/>
-                                                <StackPanel ToolTip="ipconfig /flushdns — eski/bozuk alan adı kayıtlarını siler. Bağlantı kopmaz.">
-                                                    <TextBlock Text="DNS'i temizle" Style="{StaticResource RowTitle}"/>
-                                                    <TextBlock Text="Bağlantı kopmaz" Style="{StaticResource RowSub}"/>
-                                                </StackPanel>
-                                            </DockPanel>
-                                        </Border>
-                                        <Border Style="{StaticResource ActionRow}">
-                                            <DockPanel>
-                                                <Button DockPanel.Dock="Right" Content="Çalıştır" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" Tag="renew" c:Elevation.Required="True" Click="Network_Click" VerticalAlignment="Center"/>
-                                                <StackPanel ToolTip="ipconfig /release + /renew — modemden yeni adres alır. İnternet birkaç saniye kopar.">
-                                                    <TextBlock Text="IP'yi yenile" Style="{StaticResource RowTitle}"/>
-                                                    <TextBlock Text="Birkaç saniye kopar" Style="{StaticResource RowSub}"/>
-                                                </StackPanel>
-                                            </DockPanel>
-                                        </Border>
-                                        <Border Style="{StaticResource ActionRow}">
-                                            <DockPanel>
-                                                <Button DockPanel.Dock="Right" Content="Çalıştır" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" Tag="reset" c:Elevation.Required="True" Click="Network_Click" VerticalAlignment="Center"/>
-                                                <StackPanel ToolTip="netsh winsock reset + int ip reset — bozulmuş ağ yığınını varsayılana döndürür. Yeniden başlatma gerekir; elle girilmiş sabit IP ayarları silinir.">
-                                                    <TextBlock Text="Ağı sıfırla" Style="{StaticResource RowTitle}"/>
-                                                    <TextBlock Text="Yeniden başlatma ister" Style="{StaticResource RowSub}"/>
-                                                </StackPanel>
-                                            </DockPanel>
-                                        </Border>
-                                    </UniformGrid>
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Border Grid.ColumnSpan="2" Style="{StaticResource ActionRow}">
-                                            <StackPanel>
-                                                <DockPanel>
-                                                    <Button DockPanel.Dock="Right" Content="&#xE72C;" Style="{StaticResource IconBtn}" Click="NetworkRefresh_Click" ToolTip="Yenile"
-                                                            VerticalAlignment="Center"/>
-                                                    <StackPanel VerticalAlignment="Center"
-                                                                ToolTip="Site adlarını adrese çeviren sunucu. Değiştirmek bazı sitelerin daha hızlı açılmasını ya da reklamların engellenmesini sağlayabilir; sorun olursa Otomatik'e dön.">
-                                                        <TextBlock Text="DNS sunucusu" Style="{StaticResource RowTitle}"/>
-                                                        <TextBlock x:Name="DnsInfo" Style="{StaticResource RowSub}" TextTrimming="CharacterEllipsis"/>
-                                                    </StackPanel>
-                                                </DockPanel>
-                                                <Border Style="{StaticResource SegBar}" Background="{DynamicResource Card}" HorizontalAlignment="Left" Margin="0,8,0,0">
-                                                    <WrapPanel x:Name="DnsPanel"/>
-                                                </Border>
-                                                <Grid x:Name="CustomDnsPanel" Margin="0,10,0,0" Visibility="Collapsed">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="Birincil" Style="{StaticResource RowSub}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                                    <TextBox x:Name="DnsPrimaryBox" Grid.Column="1" Style="{StaticResource SearchBox}" Background="{DynamicResource Card}" Padding="10,6"
-                                                             FontFamily="Cascadia Mono, Consolas" KeyDown="CustomDns_KeyDown"/>
-                                                    <TextBlock Grid.Column="2" Text="İkincil" Style="{StaticResource RowSub}" VerticalAlignment="Center" Margin="14,0,8,0"/>
-                                                    <TextBox x:Name="DnsSecondaryBox" Grid.Column="3" Style="{StaticResource SearchBox}" Background="{DynamicResource Card}" Padding="10,6"
-                                                             FontFamily="Cascadia Mono, Consolas" KeyDown="CustomDns_KeyDown"
-                                                             ToolTip="İsteğe bağlı. Birincil yanıt vermezse kullanılır."/>
-                                                    <Button Grid.Column="4" Content="Uygula" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" c:Elevation.Required="True"
-                                                            VerticalAlignment="Center" Click="CustomDnsApply_Click"/>
-                                                </Grid>
-                                            </StackPanel>
-                                        </Border>
-                                        <Border Grid.Column="2" Style="{StaticResource ActionRow}">
-                                            <DockPanel VerticalAlignment="Top">
-                                                <Button DockPanel.Dock="Right" Content="Düzenle…" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" c:Elevation.Required="True"
-                                                        VerticalAlignment="Center" Click="HostsEdit_Click"/>
-                                                <StackPanel ToolTip="Adları elle bir adrese yönlendiren dosya (C:\Windows\System32\drivers\etc\hosts). Siteleri engellemek için kullanılır; kötü amaçlı yazılımlar da değiştirebilir.">
-                                                    <TextBlock Text="hosts dosyası" Style="{StaticResource RowTitle}"/>
-                                                    <TextBlock x:Name="HostsInfo" Style="{StaticResource RowSub}"/>
-                                                </StackPanel>
-                                            </DockPanel>
-                                        </Border>
-                                    </Grid>
-                                </StackPanel>
-                            </Border>
 
-                            <!-- Eski sürücüler -->
-                            <Border Style="{StaticResource ToolCard}">
-                                <StackPanel>
-                                    <DockPanel Margin="0,0,0,10">
-                                        <Button DockPanel.Dock="Right" Content="Tara" Style="{StaticResource SmallBtn}" Margin="0" c:Elevation.Required="True" Click="DriversScan_Click"/>
-                                        <TextBlock Style="{StaticResource CardIcon}" Text="&#xE7B8;"/>
-                                        <TextBlock Text="Eski sürücü paketleri" Style="{StaticResource CardTitle}"
-                                                   ToolTip="Her sürücü güncellemesinde (özellikle NVIDIA/AMD) eski sürüm DriverStore'da kalır. Burada aynı sürücünün daha yenisi kurulu olan eski paketler listelenir. Kullanımdaki bir paketi Windows zaten silmez."/>
-                                    </DockPanel>
-                                    <ItemsControl x:Name="DriverList">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Border Style="{StaticResource RowBorder}" MouseLeftButtonUp="Row_MouseLeftButtonUp">
-                                                    <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,14,0"/>
-                                                        <StackPanel Grid.Column="1">
-                                                            <TextBlock Text="{Binding Title}" Style="{StaticResource RowTitle}"/>
-                                                            <TextBlock Text="{Binding Details}" Style="{StaticResource RowSub}"/>
-                                                        </StackPanel>
-                                                        <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="12,0,0,0">
-                                                            <TextBlock Text="{Binding SizeText}" FontWeight="SemiBold" HorizontalAlignment="Right"/>
-                                                            <TextBlock Text="{Binding Status}" Foreground="{DynamicResource Muted}" FontSize="11" HorizontalAlignment="Right"/>
-                                                        </StackPanel>
-                                                    </Grid>
-                                                </Border>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                    <DockPanel Margin="0,4,0,0">
-                                        <Button x:Name="DriversRemoveBtn" DockPanel.Dock="Right" Content="Seçilenleri kaldır" Style="{StaticResource AccentBtn}"
-                                                Margin="0" c:Elevation.Required="True" Click="DriversRemove_Click" Visibility="Collapsed"/>
-                                        <TextBlock x:Name="DriversInfo" Style="{StaticResource Hint}" VerticalAlignment="Center"
-                                                   Text="Taramak için 'Tara'ya bas (yarım dakika kadar sürer)."/>
-                                    </DockPanel>
-                                </StackPanel>
-                            </Border>
                         </StackPanel>
                     </ScrollViewer>
                 </TabItem>
@@ -1834,64 +1465,7 @@
                 <TabItem x:Name="FormatTab">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,8,0">
                         <StackPanel>
-                            <!-- Format sonrası buraya gelen hemen bulsun -->
-                            <Border Background="{DynamicResource AccentSoft}" CornerRadius="12" Padding="18,14" Margin="0,0,0,14">
-                                <DockPanel>
-                                    <Button DockPanel.Dock="Right" Content="Asistanı başlat" Style="{StaticResource AccentBtn}" Margin="8,0,0,0"
-                                            VerticalAlignment="Center" Click="RestoreFromBackup_Click"/>
-                                    <Button DockPanel.Dock="Right" Content="Yedeğe göz at" Style="{StaticResource Btn}" Margin="12,0,0,0"
-                                            VerticalAlignment="Center" Click="BrowseBackup_Click"
-                                            ToolTip="Yedekten tek bir dosyayı ya da klasörü geri al (asistan olmadan)"/>
-                                    <TextBlock Text="&#xE777;" FontFamily="{StaticResource Icons}" FontSize="22" Foreground="{DynamicResource AccentText}"
-                                               VerticalAlignment="Center" Margin="0,0,14,0"/>
-                                    <StackPanel VerticalAlignment="Center">
-                                        <TextBlock Text="Format attın mı?" FontWeight="SemiBold"/>
-                                        <TextBlock Foreground="{DynamicResource Muted}" FontSize="12" TextWrapping="Wrap" Margin="0,2,0,0"
-                                                   Text="Format sonrası asistanı yedeğini bulup her şeyi adım adım geri yükler. Yedek almak için aşağıdan devam et."/>
-                                    </StackPanel>
-                                </DockPanel>
-                            </Border>
 
-                            <!-- Yedeğe giremeyen ama formatta kaybolabilecekler: bu bilgisayara göre -->
-                            <Border x:Name="ChecklistCard" Style="{StaticResource ToolCard}" Visibility="Collapsed">
-                                <StackPanel>
-                                    <DockPanel Margin="0,0,0,4">
-                                        <TextBlock Style="{StaticResource CardIcon}" Text="&#xE73E;"/>
-                                        <TextBlock Text="Formattan önce kontrol et" Style="{StaticResource CardTitle}"/>
-                                    </DockPanel>
-                                    <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,10" TextWrapping="Wrap"
-                                               Text="Bunların bir kısmı yedeğe giremez; formattan önce bir bak, tamamladıkça işaretle."/>
-                                    <ItemsControl x:Name="ChecklistList">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Border Style="{StaticResource StaticRow}">
-                                                    <DockPanel>
-                                                        <CheckBox IsChecked="{Binding Done, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,14,0"/>
-                                                        <TextBlock Text="{Binding Icon}" FontFamily="{StaticResource Icons}" FontSize="16" Foreground="{DynamicResource AccentText}"
-                                                                   VerticalAlignment="Center" Margin="0,0,12,0"/>
-                                                        <StackPanel>
-                                                            <TextBlock Text="{Binding Title}" Style="{StaticResource RowTitle}"/>
-                                                            <TextBlock Text="{Binding Detail}" Style="{StaticResource RowSub}" TextWrapping="Wrap" TextTrimming="None"/>
-                                                            <ItemsControl ItemsSource="{Binding Actions}" Margin="0,8,0,0"
-                                                                          Visibility="{Binding HasActions, Converter={StaticResource BoolVis}}">
-                                                                <ItemsControl.ItemsPanel>
-                                                                    <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
-                                                                </ItemsControl.ItemsPanel>
-                                                                <ItemsControl.ItemTemplate>
-                                                                    <DataTemplate>
-                                                                        <Button Content="{Binding Label}" Style="{StaticResource SmallBtn}" Margin="0,0,6,4"
-                                                                                Click="CheckAction_Click"/>
-                                                                    </DataTemplate>
-                                                                </ItemsControl.ItemTemplate>
-                                                            </ItemsControl>
-                                                        </StackPanel>
-                                                    </DockPanel>
-                                                </Border>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </StackPanel>
-                            </Border>
 
                             <Border Style="{StaticResource ToolCard}">
                                 <StackPanel>
@@ -1905,51 +1479,6 @@
                                 </StackPanel>
                             </Border>
 
-                            <Border Style="{StaticResource ToolCard}">
-                                <StackPanel>
-                                    <DockPanel Margin="0,0,0,6">
-                                        <Button x:Name="AutoBackupNowBtn" DockPanel.Dock="Right" Content="Şimdi al" Style="{StaticResource SmallBtn}" Margin="0"
-                                                Click="AutoBackupNow_Click" ToolTip="Otomatik yedeği beklemeden şimdi alır (aşağıdaki ayarlarla)."/>
-                                        <TextBlock Style="{StaticResource CardIcon}" Text="&#xE823;"/>
-                                        <TextBlock Text="Otomatik yedek" Style="{StaticResource CardTitle}"/>
-                                    </DockPanel>
-                                    <TextBlock Style="{StaticResource Hint}" TextWrapping="Wrap" Margin="0,0,0,10"
-                                               Text="Seçtiğin kişisel klasörler, Wi-Fi ağları, program listesi ve Windows ayarları yukarıdaki konuma düzenli olarak yedeklenir. En yeni 3 otomatik yedek tutulur; elle aldıkların silinmez."/>
-                                    <Border Style="{StaticResource SegBar}" Background="{DynamicResource Row}" HorizontalAlignment="Left">
-                                        <StackPanel x:Name="AutoBackupModePanel" Orientation="Horizontal">
-                                            <Button Content="Kapalı" Style="{StaticResource Seg}" Tag="off" Click="AutoBackupMode_Click"/>
-                                            <Button Content="Her gün" Style="{StaticResource Seg}" Tag="daily" Click="AutoBackupMode_Click"/>
-                                            <Button Content="Her hafta" Style="{StaticResource Seg}" Tag="weekly" Click="AutoBackupMode_Click"/>
-                                            <Button Content="2 haftada bir" Style="{StaticResource Seg}" Tag="biweekly" Click="AutoBackupMode_Click"/>
-                                        </StackPanel>
-                                    </Border>
-                                    <StackPanel x:Name="AutoBackupWhenPanel" Margin="0,8,0,0">
-                                        <Border x:Name="AutoBackupDayBar" Style="{StaticResource SegBar}" Background="{DynamicResource Row}" HorizontalAlignment="Left" Margin="0,0,0,8">
-                                            <StackPanel x:Name="AutoBackupDayPanel" Orientation="Horizontal">
-                                                <Button Content="Pzt" Style="{StaticResource Seg}" Tag="Monday" Click="AutoBackupDay_Click"/>
-                                                <Button Content="Sal" Style="{StaticResource Seg}" Tag="Tuesday" Click="AutoBackupDay_Click"/>
-                                                <Button Content="Çar" Style="{StaticResource Seg}" Tag="Wednesday" Click="AutoBackupDay_Click"/>
-                                                <Button Content="Per" Style="{StaticResource Seg}" Tag="Thursday" Click="AutoBackupDay_Click"/>
-                                                <Button Content="Cum" Style="{StaticResource Seg}" Tag="Friday" Click="AutoBackupDay_Click"/>
-                                                <Button Content="Cmt" Style="{StaticResource Seg}" Tag="Saturday" Click="AutoBackupDay_Click"/>
-                                                <Button Content="Paz" Style="{StaticResource Seg}" Tag="Sunday" Click="AutoBackupDay_Click"/>
-                                            </StackPanel>
-                                        </Border>
-                                        <Border Style="{StaticResource SegBar}" Background="{DynamicResource Row}" HorizontalAlignment="Left">
-                                            <StackPanel x:Name="AutoBackupHourPanel" Orientation="Horizontal">
-                                                <Button Content="09:00" Style="{StaticResource Seg}" Tag="9" Click="AutoBackupHour_Click"/>
-                                                <Button Content="12:00" Style="{StaticResource Seg}" Tag="12" Click="AutoBackupHour_Click"/>
-                                                <Button Content="15:00" Style="{StaticResource Seg}" Tag="15" Click="AutoBackupHour_Click"/>
-                                                <Button Content="18:00" Style="{StaticResource Seg}" Tag="18" Click="AutoBackupHour_Click"/>
-                                                <Button Content="21:00" Style="{StaticResource Seg}" Tag="21" Click="AutoBackupHour_Click"/>
-                                            </StackPanel>
-                                        </Border>
-                                    </StackPanel>
-                                    <TextBlock Text="Yedeklenecek klasörler" Style="{StaticResource Label}" Margin="0,12,0,4"/>
-                                    <WrapPanel x:Name="AutoBackupFolderPanel"/>
-                                    <TextBlock x:Name="AutoBackupInfo" Style="{StaticResource Hint}" TextWrapping="Wrap" Margin="0,8,0,0"/>
-                                </StackPanel>
-                            </Border>
 
                             <Border Style="{StaticResource ToolCard}">
                                 <StackPanel>
@@ -2243,23 +1772,6 @@
                                 <TextBlock x:Name="BackupSummary" Style="{StaticResource Hint}" VerticalAlignment="Center" Margin="2,0,12,0"/>
                             </DockPanel>
 
-                            <!-- Yedekten sonraki adım: Windows'u kuracağın USB -->
-                            <Border Style="{StaticResource ToolCard}">
-                                <DockPanel>
-                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                                        <Button x:Name="FormatUsbBtn" Content="Medya Oluşturma Aracını aç" Style="{StaticResource SmallBtn}" Click="FormatUsbMct_Click"
-                                                ToolTip="Microsoft'un resmi aracı: Windows'u indirip USB'yi kendisi hazırlar."/>
-                                        <Button Content="Rufus" Style="{StaticResource SmallBtn}" Margin="0" Click="FormatUsbRufus_Click"
-                                                ToolTip="İleri seviye: elindeki bir ISO dosyasından USB hazırlar."/>
-                                    </StackPanel>
-                                    <TextBlock Style="{StaticResource CardIcon}" Text="&#xE88E;"/>
-                                    <StackPanel Margin="0,0,12,0">
-                                        <TextBlock Text="Format USB'si hazırla" Style="{StaticResource CardTitle}"/>
-                                        <TextBlock Style="{StaticResource Hint}" TextWrapping="Wrap" Margin="0,2,0,0"
-                                                   Text="Yedekten sonraki adım: Windows'u kuracağın USB. En az 8 GB olmalı ve içindekiler silinir; yedeğin olduğu USB'yi kullanma."/>
-                                    </StackPanel>
-                                </DockPanel>
-                            </Border>
                         </StackPanel>
                     </ScrollViewer>
                 </TabItem>
@@ -2420,6 +1932,544 @@
                         </StackPanel>
                     </ScrollViewer>
                 </TabItem>
+                <TabItem x:Name="WinUpdatesTab">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,8,0">
+                        <StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="14"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Style="{StaticResource ToolCard}" VerticalAlignment="Stretch">
+                                    <StackPanel>
+                                        <DockPanel Margin="0,0,0,8">
+                                            <Button DockPanel.Dock="Right" Content="&#xE72C;" Style="{StaticResource IconBtn}" Click="WuCheck_Click" ToolTip="Kontrol et"/>
+                                            <TextBlock Style="{StaticResource CardIcon}" Text="&#xE895;"/>
+                                            <TextBlock Text="Windows Update" Style="{StaticResource CardTitle}"/>
+                                        </DockPanel>
+                                        <TextBlock x:Name="WuText" Style="{StaticResource Hint}" FontSize="12.5" Text="Kontrol ediliyor…"/>
+                                        <ItemsControl x:Name="WuList" Margin="0,6,0,0">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding}" FontSize="12" TextWrapping="Wrap" Margin="0,2"/>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                            <Button x:Name="WuPauseBtn" Content="1 hafta ertele" Style="{StaticResource SmallBtn}" Click="WuPause_Click"
+                                                    c:Elevation.Required="True" ToolTip="Ayarlar'daki 'Güncellemeleri duraklat' ile aynı. Süre bitince güncellemeler kendiliğinden sürer."/>
+                                            <Button Content="Ayarlar'da aç" Style="{StaticResource SmallBtn}" Click="WuOpen_Click"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                                <Border Grid.Column="2" Style="{StaticResource ToolCard}">
+                                    <StackPanel>
+                                        <DockPanel Margin="0,0,0,10">
+                                            <Button DockPanel.Dock="Right" Content="&#xE72C;" Style="{StaticResource IconBtn}" Click="GpuCheck_Click" ToolTip="Kontrol et"/>
+                                            <TextBlock Style="{StaticResource CardIcon}" Text="&#xE7F4;"/>
+                                            <TextBlock Text="Ekran kartı sürücüsü" Style="{StaticResource CardTitle}"
+                                                       ToolTip="NVIDIA'da yeni sürücü çıkınca açılışta uyarı çıkar. AMD ve Intel otomatik sorgulanamıyor; kurulu sürüm ve tarihi gösterilir."/>
+                                        </DockPanel>
+                                        <ItemsControl x:Name="GpuList">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Style="{StaticResource StaticRow}">
+                                                        <DockPanel>
+                                                            <Button DockPanel.Dock="Right" Content="&#xE8A7;" Style="{StaticResource IconBtn}" VerticalAlignment="Center"
+                                                                    Click="GpuOpen_Click" ToolTip="{c:Tr 'Sürücü sayfası'}"/>
+                                                            <StackPanel>
+                                                                <TextBlock Text="{Binding Name}" Style="{StaticResource RowTitle}"/>
+                                                                <TextBlock Text="{Binding Details}" Style="{StaticResource RowSub}"/>
+                                                                <TextBlock x:Name="st" Text="{Binding Status}" Foreground="{DynamicResource Muted}" FontSize="11.5" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                                            </StackPanel>
+                                                        </DockPanel>
+                                                    </Border>
+                                                    <DataTemplate.Triggers>
+                                                        <DataTrigger Binding="{Binding UpdateAvailable}" Value="True">
+                                                            <Setter TargetName="st" Property="Foreground" Value="{DynamicResource Warn}"/>
+                                                            <Setter TargetName="st" Property="FontWeight" Value="SemiBold"/>
+                                                        </DataTrigger>
+                                                    </DataTemplate.Triggers>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        <TextBlock x:Name="GpuInfoText" Style="{StaticResource Hint}"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <TabItem x:Name="OldDriversTab">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,8,0">
+                        <StackPanel>
+                            <Border Style="{StaticResource ToolCard}">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,10">
+                                        <Button DockPanel.Dock="Right" Content="Tara" Style="{StaticResource SmallBtn}" Margin="0" c:Elevation.Required="True" Click="DriversScan_Click"/>
+                                        <TextBlock Style="{StaticResource CardIcon}" Text="&#xE7B8;"/>
+                                        <TextBlock Text="Eski sürücü paketleri" Style="{StaticResource CardTitle}"
+                                                   ToolTip="Her sürücü güncellemesinde (özellikle NVIDIA/AMD) eski sürüm DriverStore'da kalır. Burada aynı sürücünün daha yenisi kurulu olan eski paketler listelenir. Kullanımdaki bir paketi Windows zaten silmez."/>
+                                    </DockPanel>
+                                    <ItemsControl x:Name="DriverList">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Style="{StaticResource RowBorder}" MouseLeftButtonUp="Row_MouseLeftButtonUp">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                                        <StackPanel Grid.Column="1">
+                                                            <TextBlock Text="{Binding Title}" Style="{StaticResource RowTitle}"/>
+                                                            <TextBlock Text="{Binding Details}" Style="{StaticResource RowSub}"/>
+                                                        </StackPanel>
+                                                        <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="12,0,0,0">
+                                                            <TextBlock Text="{Binding SizeText}" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                                                            <TextBlock Text="{Binding Status}" Foreground="{DynamicResource Muted}" FontSize="11" HorizontalAlignment="Right"/>
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <DockPanel Margin="0,4,0,0">
+                                        <Button x:Name="DriversRemoveBtn" DockPanel.Dock="Right" Content="Seçilenleri kaldır" Style="{StaticResource AccentBtn}"
+                                                Margin="0" c:Elevation.Required="True" Click="DriversRemove_Click" Visibility="Collapsed"/>
+                                        <TextBlock x:Name="DriversInfo" Style="{StaticResource Hint}" VerticalAlignment="Center"
+                                                   Text="Taramak için 'Tara'ya bas (yarım dakika kadar sürer)."/>
+                                    </DockPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <TabItem x:Name="PowerTab">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,8,0">
+                        <StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="14"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Style="{StaticResource ToolCard}" VerticalAlignment="Stretch">
+                                    <StackPanel>
+                                        <DockPanel Margin="0,0,0,10">
+                                            <TextBlock Style="{StaticResource CardIcon}" Text="&#xE945;"/>
+                                            <TextBlock Text="Güç ve performans" Style="{StaticResource CardTitle}"/>
+                                        </DockPanel>
+                                        <TextBlock Text="Güç planı" Style="{StaticResource Label}" Margin="0,0,0,6"/>
+                                        <Border Style="{StaticResource SegBar}" Background="{DynamicResource Row}">
+                                            <WrapPanel x:Name="PowerPlanPanel"/>
+                                        </Border>
+                                        <Button x:Name="UltimateBtn" Content="'Nihai performans' planını ekle" Style="{StaticResource GhostBtn}" HorizontalAlignment="Left"
+                                                Margin="0,4,0,8" Click="UltimatePlan_Click" Visibility="Collapsed"
+                                                ToolTip="Windows'ta gizli gelen, en yüksek performans planı. Masaüstü bilgisayarlar için; dizüstünde pili hızlı tüketir."/>
+                                        <DockPanel Margin="0,8,0,0">
+                                            <CheckBox x:Name="GameModeSwitch" DockPanel.Dock="Right" Style="{StaticResource Switch}" Click="GameMode_Click"/>
+                                            <StackPanel>
+                                                <TextBlock Text="Oyun modu" Style="{StaticResource RowTitle}"/>
+                                                <TextBlock Text="Oyun açıkken arka plan işlerini kısar" Style="{StaticResource RowSub}"/>
+                                            </StackPanel>
+                                        </DockPanel>
+                                        <DockPanel Margin="0,10,0,0">
+                                            <CheckBox x:Name="TransparencySwitch" DockPanel.Dock="Right" Style="{StaticResource Switch}" Click="Transparency_Click"/>
+                                            <StackPanel>
+                                                <TextBlock Text="Saydamlık efektleri" Style="{StaticResource RowTitle}"/>
+                                                <TextBlock Text="Kapatmak eski bilgisayarlarda akıcılığı artırır" Style="{StaticResource RowSub}"/>
+                                            </StackPanel>
+                                        </DockPanel>
+                                        <DockPanel Margin="0,10,0,0">
+                                            <CheckBox x:Name="AnimationSwitch" DockPanel.Dock="Right" Style="{StaticResource Switch}" Click="Animation_Click"/>
+                                            <StackPanel>
+                                                <TextBlock Text="Animasyonlar" Style="{StaticResource RowTitle}"/>
+                                                <TextBlock Text="Pencere açılış/küçültme ve uygulama içi geçişler" Style="{StaticResource RowSub}"/>
+                                            </StackPanel>
+                                        </DockPanel>
+                                    </StackPanel>
+                                </Border>
+                                <Border Grid.Column="2" Style="{StaticResource ToolCard}">
+                                    <StackPanel>
+                                        <DockPanel Margin="0,0,0,6">
+                                            <TextBlock Style="{StaticResource CardIcon}" Text="&#xE708;"/>
+                                            <TextBlock Text="Hazırda bekletme" Style="{StaticResource CardTitle}"
+                                                       ToolTip="Kapatırsan hiberfil.sys silinir (genelde RAM'in %40-75'i kadar yer açılır) ama Hazırda Beklet ve Hızlı Başlangıç da kapanır. 'Azaltılmış' Hızlı Başlangıç'ı korur, dosyayı yaklaşık yarıya indirir."/>
+                                        </DockPanel>
+                                        <TextBlock x:Name="HiberText" Style="{StaticResource Hint}" FontSize="12.5" Margin="0,0,0,10"/>
+                                        <Border Style="{StaticResource SegBar}" Background="{DynamicResource Row}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Button x:Name="HiberOffBtn" Content="Kapalı" Style="{StaticResource Seg}" Tag="off" Click="Hibernate_Click"
+                                                        ToolTip="hiberfil.sys silinir; Hazırda Beklet ve Hızlı Başlangıç kapanır"/>
+                                                <Button x:Name="HiberReducedBtn" Content="Azaltılmış" Style="{StaticResource Seg}" Tag="reduced" Click="Hibernate_Click"
+                                                        ToolTip="Hızlı Başlangıç çalışır, dosya yaklaşık yarıya iner"/>
+                                                <Button x:Name="HiberFullBtn" Content="Tam" Style="{StaticResource Seg}" Tag="full" Click="Hibernate_Click"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <TabItem x:Name="RepairTab">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,8,0">
+                        <StackPanel>
+                            <Border Style="{StaticResource ToolCard}" Padding="18,16,10,8">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,12">
+                                        <TextBlock Style="{StaticResource CardIcon}" Text="&#xE90F;"/>
+                                        <TextBlock Text="Sistem onarımı" Style="{StaticResource CardTitle}"/>
+                                        <TextBlock Text="Sonuçlar işlem kaydında görünür" Style="{StaticResource Hint}" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                    </DockPanel>
+                                    <UniformGrid Columns="2">
+                                        <Border Style="{StaticResource ActionRow}">
+                                            <DockPanel>
+                                                <Button DockPanel.Dock="Right" Content="Çalıştır" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" Tag="sfc" c:Elevation.Required="True" Click="Repair_Click" VerticalAlignment="Center"/>
+                                                <StackPanel ToolTip="sfc /scannow — bozuk Windows dosyalarını bulup düzeltir.">
+                                                    <TextBlock Text="Sistem dosyalarını onar" Style="{StaticResource RowTitle}"/>
+                                                    <TextBlock Text="SFC · 5-15 dk" Style="{StaticResource RowSub}"/>
+                                                </StackPanel>
+                                            </DockPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource ActionRow}">
+                                            <DockPanel>
+                                                <Button DockPanel.Dock="Right" Content="Çalıştır" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" Tag="dism" c:Elevation.Required="True" Click="Repair_Click" VerticalAlignment="Center"/>
+                                                <StackPanel ToolTip="DISM /RestoreHealth — SFC'nin kullandığı kaynağı Windows Update'ten onarır. SFC düzeltemezse önce bunu çalıştır.">
+                                                    <TextBlock Text="Windows görüntüsünü onar" Style="{StaticResource RowTitle}"/>
+                                                    <TextBlock Text="DISM · 10-30 dk" Style="{StaticResource RowSub}"/>
+                                                </StackPanel>
+                                            </DockPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource ActionRow}">
+                                            <DockPanel>
+                                                <Button DockPanel.Dock="Right" Content="Çalıştır" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" Tag="chkdsk" c:Elevation.Required="True" Click="Repair_Click" VerticalAlignment="Center"/>
+                                                <StackPanel ToolTip="chkdsk /scan — dosya sistemi hatalarını çevrimiçi tarar, yeniden başlatma gerektirmez.">
+                                                    <TextBlock Text="Disk hatalarını tara" Style="{StaticResource RowTitle}"/>
+                                                    <TextBlock Text="CHKDSK · yeniden başlatma yok" Style="{StaticResource RowSub}"/>
+                                                </StackPanel>
+                                            </DockPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource ActionRow}">
+                                            <DockPanel>
+                                                <Button DockPanel.Dock="Right" Content="Çalıştır" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" Tag="optimize" c:Elevation.Required="True" Click="Repair_Click" VerticalAlignment="Center"/>
+                                                <StackPanel ToolTip="SSD'lere TRIM, HDD'lere birleştirme uygular (Windows hangisinin gerektiğini kendisi seçer). Fiziksel diskler için.">
+                                                    <TextBlock Text="Sürücüleri optimize et" Style="{StaticResource RowTitle}"/>
+                                                    <TextBlock Text="SSD'ye TRIM, HDD'ye birleştirme" Style="{StaticResource RowSub}"/>
+                                                </StackPanel>
+                                            </DockPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource ActionRow}">
+                                            <DockPanel>
+                                                <Button DockPanel.Dock="Right" Content="Çalıştır" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" Tag="wureset" c:Elevation.Required="True" Click="Repair_Click" VerticalAlignment="Center"/>
+                                                <StackPanel ToolTip="Güncellemeler takılıyor ya da hata veriyorsa: Update servislerini durdurur, önbelleğini (SoftwareDistribution, catroot2) sıfırlar ve yeniden başlatır. Kurulu güncellemeler etkilenmez; Ayarlar'daki güncelleme geçmişi listesi boşalır.">
+                                                    <TextBlock Text="Windows Update'i sıfırla" Style="{StaticResource RowTitle}"/>
+                                                    <TextBlock Text="Güncellemeler takılıyorsa" Style="{StaticResource RowSub}"/>
+                                                </StackPanel>
+                                            </DockPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource ActionRow}">
+                                            <DockPanel>
+                                                <Button DockPanel.Dock="Right" Content="Çalıştır" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" Tag="winsxs" c:Elevation.Required="True" Click="Repair_Click" VerticalAlignment="Center"/>
+                                                <StackPanel ToolTip="DISM /AnalyzeComponentStore — WinSxS klasörünün gerçek boyutunu, ne kadarının temizlenebileceğini ve temizliğin önerilip önerilmediğini yazar. Hiçbir şey silmez; temizlemek için Temizlik › Derin Temizlik.">
+                                                    <TextBlock Text="WinSxS boyutunu analiz et" Style="{StaticResource RowTitle}"/>
+                                                    <TextBlock Text="DISM · hiçbir şey silmez, sadece ölçer" Style="{StaticResource RowSub}"/>
+                                                </StackPanel>
+                                            </DockPanel>
+                                        </Border>
+                                    </UniformGrid>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource ToolCard}">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,10">
+                                        <Button DockPanel.Dock="Right" Content="Yeni nokta oluştur" Style="{StaticResource SmallBtn}" Margin="0"
+                                                Click="RestoreCreate_Click" c:Elevation.Required="True"/>
+                                        <Button DockPanel.Dock="Right" Content="Listele" Style="{StaticResource SmallBtn}" Click="RestoreList_Click" c:Elevation.Required="True"/>
+                                        <TextBlock Style="{StaticResource CardIcon}" Text="&#xE777;"/>
+                                        <TextBlock Text="Geri yükleme noktaları" Style="{StaticResource CardTitle}"
+                                                   ToolTip="Sistem Geri Yükleme'nin kayıtları. Eski noktalar diskte birkaç GB tutabilir; sınırı düşürmek ya da eskileri silmek yer açar. En yenisini saklamak iyi olur."/>
+                                    </DockPanel>
+                                    <ItemsControl x:Name="RestoreList">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Style="{StaticResource RowBorder}" MouseLeftButtonUp="Row_MouseLeftButtonUp">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                                        <StackPanel Grid.Column="1">
+                                                            <TextBlock Text="{Binding Description}" Style="{StaticResource RowTitle}"/>
+                                                            <TextBlock Text="{Binding Details}" Style="{StaticResource RowSub}"/>
+                                                        </StackPanel>
+                                                        <TextBlock Grid.Column="2" Text="{Binding Status}" Foreground="{DynamicResource Muted}" FontSize="11"
+                                                                   VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <DockPanel Margin="0,4,0,0">
+                                        <Button x:Name="RestoreDeleteBtn" DockPanel.Dock="Right" Content="Seçilenleri sil" Style="{StaticResource AccentBtn}"
+                                                Margin="0" Click="RestoreDelete_Click" Visibility="Collapsed"/>
+                                        <StackPanel x:Name="RestoreLimitPanel" DockPanel.Dock="Right" Orientation="Horizontal" Margin="0,0,12,0" Visibility="Collapsed">
+                                            <TextBlock Text="Alan sınırı" Style="{StaticResource Label}"
+                                                       ToolTip="Geri yükleme noktalarının en fazla kullanabileceği yer. Dolunca en eski nokta kendiliğinden silinir."/>
+                                            <Border Style="{StaticResource SegBar}" Background="{DynamicResource Row}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Button x:Name="RestoreLimit3" Style="{StaticResource Seg}" Tag="3" Click="RestoreLimit_Click"/>
+                                                    <Button x:Name="RestoreLimit5" Style="{StaticResource Seg}" Tag="5" Click="RestoreLimit_Click"/>
+                                                    <Button x:Name="RestoreLimit10" Style="{StaticResource Seg}" Tag="10" Click="RestoreLimit_Click"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </StackPanel>
+                                        <TextBlock x:Name="RestoreInfo" Style="{StaticResource Hint}" VerticalAlignment="Center"
+                                                   Text="Görmek için 'Listele'ye bas."/>
+                                    </DockPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource ToolCard}" Padding="18,16,10,8">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,12">
+                                        <TextBlock Style="{StaticResource CardIcon}" Text="&#xE968;"/>
+                                        <TextBlock Text="Ağ araçları" Style="{StaticResource CardTitle}"/>
+                                        <TextBlock Text="Siteler açılmıyorsa sırayla dene" Style="{StaticResource Hint}" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                    </DockPanel>
+                                    <UniformGrid Columns="3">
+                                        <Border Style="{StaticResource ActionRow}">
+                                            <DockPanel>
+                                                <Button DockPanel.Dock="Right" Content="Çalıştır" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" Tag="dns" Click="Network_Click" VerticalAlignment="Center"/>
+                                                <StackPanel ToolTip="ipconfig /flushdns — eski/bozuk alan adı kayıtlarını siler. Bağlantı kopmaz.">
+                                                    <TextBlock Text="DNS'i temizle" Style="{StaticResource RowTitle}"/>
+                                                    <TextBlock Text="Bağlantı kopmaz" Style="{StaticResource RowSub}"/>
+                                                </StackPanel>
+                                            </DockPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource ActionRow}">
+                                            <DockPanel>
+                                                <Button DockPanel.Dock="Right" Content="Çalıştır" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" Tag="renew" c:Elevation.Required="True" Click="Network_Click" VerticalAlignment="Center"/>
+                                                <StackPanel ToolTip="ipconfig /release + /renew — modemden yeni adres alır. İnternet birkaç saniye kopar.">
+                                                    <TextBlock Text="IP'yi yenile" Style="{StaticResource RowTitle}"/>
+                                                    <TextBlock Text="Birkaç saniye kopar" Style="{StaticResource RowSub}"/>
+                                                </StackPanel>
+                                            </DockPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource ActionRow}">
+                                            <DockPanel>
+                                                <Button DockPanel.Dock="Right" Content="Çalıştır" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" Tag="reset" c:Elevation.Required="True" Click="Network_Click" VerticalAlignment="Center"/>
+                                                <StackPanel ToolTip="netsh winsock reset + int ip reset — bozulmuş ağ yığınını varsayılana döndürür. Yeniden başlatma gerekir; elle girilmiş sabit IP ayarları silinir.">
+                                                    <TextBlock Text="Ağı sıfırla" Style="{StaticResource RowTitle}"/>
+                                                    <TextBlock Text="Yeniden başlatma ister" Style="{StaticResource RowSub}"/>
+                                                </StackPanel>
+                                            </DockPanel>
+                                        </Border>
+                                    </UniformGrid>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.ColumnSpan="2" Style="{StaticResource ActionRow}">
+                                            <StackPanel>
+                                                <DockPanel>
+                                                    <Button DockPanel.Dock="Right" Content="&#xE72C;" Style="{StaticResource IconBtn}" Click="NetworkRefresh_Click" ToolTip="Yenile"
+                                                            VerticalAlignment="Center"/>
+                                                    <StackPanel VerticalAlignment="Center"
+                                                                ToolTip="Site adlarını adrese çeviren sunucu. Değiştirmek bazı sitelerin daha hızlı açılmasını ya da reklamların engellenmesini sağlayabilir; sorun olursa Otomatik'e dön.">
+                                                        <TextBlock Text="DNS sunucusu" Style="{StaticResource RowTitle}"/>
+                                                        <TextBlock x:Name="DnsInfo" Style="{StaticResource RowSub}" TextTrimming="CharacterEllipsis"/>
+                                                    </StackPanel>
+                                                </DockPanel>
+                                                <Border Style="{StaticResource SegBar}" Background="{DynamicResource Card}" HorizontalAlignment="Left" Margin="0,8,0,0">
+                                                    <WrapPanel x:Name="DnsPanel"/>
+                                                </Border>
+                                                <Grid x:Name="CustomDnsPanel" Margin="0,10,0,0" Visibility="Collapsed">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="Birincil" Style="{StaticResource RowSub}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                    <TextBox x:Name="DnsPrimaryBox" Grid.Column="1" Style="{StaticResource SearchBox}" Background="{DynamicResource Card}" Padding="10,6"
+                                                             FontFamily="Cascadia Mono, Consolas" KeyDown="CustomDns_KeyDown"/>
+                                                    <TextBlock Grid.Column="2" Text="İkincil" Style="{StaticResource RowSub}" VerticalAlignment="Center" Margin="14,0,8,0"/>
+                                                    <TextBox x:Name="DnsSecondaryBox" Grid.Column="3" Style="{StaticResource SearchBox}" Background="{DynamicResource Card}" Padding="10,6"
+                                                             FontFamily="Cascadia Mono, Consolas" KeyDown="CustomDns_KeyDown"
+                                                             ToolTip="İsteğe bağlı. Birincil yanıt vermezse kullanılır."/>
+                                                    <Button Grid.Column="4" Content="Uygula" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" c:Elevation.Required="True"
+                                                            VerticalAlignment="Center" Click="CustomDnsApply_Click"/>
+                                                </Grid>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Grid.Column="2" Style="{StaticResource ActionRow}">
+                                            <DockPanel VerticalAlignment="Top">
+                                                <Button DockPanel.Dock="Right" Content="Düzenle…" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" c:Elevation.Required="True"
+                                                        VerticalAlignment="Center" Click="HostsEdit_Click"/>
+                                                <StackPanel ToolTip="Adları elle bir adrese yönlendiren dosya (C:\Windows\System32\drivers\etc\hosts). Siteleri engellemek için kullanılır; kötü amaçlı yazılımlar da değiştirebilir.">
+                                                    <TextBlock Text="hosts dosyası" Style="{StaticResource RowTitle}"/>
+                                                    <TextBlock x:Name="HostsInfo" Style="{StaticResource RowSub}"/>
+                                                </StackPanel>
+                                            </DockPanel>
+                                        </Border>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <TabItem x:Name="AutoBackupTab">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,8,0">
+                        <StackPanel>
+                            <Border Style="{StaticResource ToolCard}">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,6">
+                                        <Button x:Name="AutoBackupNowBtn" DockPanel.Dock="Right" Content="Şimdi al" Style="{StaticResource SmallBtn}" Margin="0"
+                                                Click="AutoBackupNow_Click" ToolTip="Otomatik yedeği beklemeden şimdi alır (aşağıdaki ayarlarla)."/>
+                                        <TextBlock Style="{StaticResource CardIcon}" Text="&#xE823;"/>
+                                        <TextBlock Text="Otomatik yedek" Style="{StaticResource CardTitle}"/>
+                                    </DockPanel>
+                                    <TextBlock Style="{StaticResource Hint}" TextWrapping="Wrap" Margin="0,0,0,10"
+                                               Text="Seçtiğin kişisel klasörler, Wi-Fi ağları, program listesi ve Windows ayarları yukarıdaki konuma düzenli olarak yedeklenir. En yeni 3 otomatik yedek tutulur; elle aldıkların silinmez."/>
+                                    <Border Style="{StaticResource SegBar}" Background="{DynamicResource Row}" HorizontalAlignment="Left">
+                                        <StackPanel x:Name="AutoBackupModePanel" Orientation="Horizontal">
+                                            <Button Content="Kapalı" Style="{StaticResource Seg}" Tag="off" Click="AutoBackupMode_Click"/>
+                                            <Button Content="Her gün" Style="{StaticResource Seg}" Tag="daily" Click="AutoBackupMode_Click"/>
+                                            <Button Content="Her hafta" Style="{StaticResource Seg}" Tag="weekly" Click="AutoBackupMode_Click"/>
+                                            <Button Content="2 haftada bir" Style="{StaticResource Seg}" Tag="biweekly" Click="AutoBackupMode_Click"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <StackPanel x:Name="AutoBackupWhenPanel" Margin="0,8,0,0">
+                                        <Border x:Name="AutoBackupDayBar" Style="{StaticResource SegBar}" Background="{DynamicResource Row}" HorizontalAlignment="Left" Margin="0,0,0,8">
+                                            <StackPanel x:Name="AutoBackupDayPanel" Orientation="Horizontal">
+                                                <Button Content="Pzt" Style="{StaticResource Seg}" Tag="Monday" Click="AutoBackupDay_Click"/>
+                                                <Button Content="Sal" Style="{StaticResource Seg}" Tag="Tuesday" Click="AutoBackupDay_Click"/>
+                                                <Button Content="Çar" Style="{StaticResource Seg}" Tag="Wednesday" Click="AutoBackupDay_Click"/>
+                                                <Button Content="Per" Style="{StaticResource Seg}" Tag="Thursday" Click="AutoBackupDay_Click"/>
+                                                <Button Content="Cum" Style="{StaticResource Seg}" Tag="Friday" Click="AutoBackupDay_Click"/>
+                                                <Button Content="Cmt" Style="{StaticResource Seg}" Tag="Saturday" Click="AutoBackupDay_Click"/>
+                                                <Button Content="Paz" Style="{StaticResource Seg}" Tag="Sunday" Click="AutoBackupDay_Click"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource SegBar}" Background="{DynamicResource Row}" HorizontalAlignment="Left">
+                                            <StackPanel x:Name="AutoBackupHourPanel" Orientation="Horizontal">
+                                                <Button Content="09:00" Style="{StaticResource Seg}" Tag="9" Click="AutoBackupHour_Click"/>
+                                                <Button Content="12:00" Style="{StaticResource Seg}" Tag="12" Click="AutoBackupHour_Click"/>
+                                                <Button Content="15:00" Style="{StaticResource Seg}" Tag="15" Click="AutoBackupHour_Click"/>
+                                                <Button Content="18:00" Style="{StaticResource Seg}" Tag="18" Click="AutoBackupHour_Click"/>
+                                                <Button Content="21:00" Style="{StaticResource Seg}" Tag="21" Click="AutoBackupHour_Click"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock Text="Yedeklenecek klasörler" Style="{StaticResource Label}" Margin="0,12,0,4"/>
+                                    <WrapPanel x:Name="AutoBackupFolderPanel"/>
+                                    <TextBlock x:Name="AutoBackupInfo" Style="{StaticResource Hint}" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <TabItem x:Name="RestorePageTab">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,8,0">
+                        <StackPanel>
+                            <Border Style="{StaticResource ToolCard}">
+                                <DockPanel>
+                                    <Button DockPanel.Dock="Right" Content="Asistanı başlat" Style="{StaticResource AccentBtn}" Margin="8,0,0,0"
+                                            VerticalAlignment="Center" Click="RestoreFromBackup_Click"/>
+                                    <Button DockPanel.Dock="Right" Content="Yedeğe göz at" Style="{StaticResource Btn}" Margin="12,0,0,0"
+                                            VerticalAlignment="Center" Click="BrowseBackup_Click"
+                                            ToolTip="Yedekten tek bir dosyayı ya da klasörü geri al (asistan olmadan)"/>
+                                    <TextBlock Text="&#xE777;" FontFamily="{StaticResource Icons}" FontSize="22" Foreground="{DynamicResource AccentText}"
+                                               VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="Format attın mı?" FontWeight="SemiBold"/>
+                                        <TextBlock Foreground="{DynamicResource Muted}" FontSize="12" TextWrapping="Wrap" Margin="0,2,0,0"
+                                                   Text="Format sonrası asistanı yedeğini bulup her şeyi adım adım geri yükler. Yedek almak için aşağıdan devam et."/>
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <TabItem x:Name="PreFormatTab">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,8,0">
+                        <StackPanel>
+                            <Border x:Name="ChecklistCard" Style="{StaticResource ToolCard}" Visibility="Collapsed">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,4">
+                                        <TextBlock Style="{StaticResource CardIcon}" Text="&#xE73E;"/>
+                                        <TextBlock Text="Formattan önce kontrol et" Style="{StaticResource CardTitle}"/>
+                                    </DockPanel>
+                                    <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,10" TextWrapping="Wrap"
+                                               Text="Bunların bir kısmı yedeğe giremez; formattan önce bir bak, tamamladıkça işaretle."/>
+                                    <ItemsControl x:Name="ChecklistList">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Style="{StaticResource StaticRow}">
+                                                    <DockPanel>
+                                                        <CheckBox IsChecked="{Binding Done, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                                        <TextBlock Text="{Binding Icon}" FontFamily="{StaticResource Icons}" FontSize="16" Foreground="{DynamicResource AccentText}"
+                                                                   VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                                        <StackPanel>
+                                                            <TextBlock Text="{Binding Title}" Style="{StaticResource RowTitle}"/>
+                                                            <TextBlock Text="{Binding Detail}" Style="{StaticResource RowSub}" TextWrapping="Wrap" TextTrimming="None"/>
+                                                            <ItemsControl ItemsSource="{Binding Actions}" Margin="0,8,0,0"
+                                                                          Visibility="{Binding HasActions, Converter={StaticResource BoolVis}}">
+                                                                <ItemsControl.ItemsPanel>
+                                                                    <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+                                                                </ItemsControl.ItemsPanel>
+                                                                <ItemsControl.ItemTemplate>
+                                                                    <DataTemplate>
+                                                                        <Button Content="{Binding Label}" Style="{StaticResource SmallBtn}" Margin="0,0,6,4"
+                                                                                Click="CheckAction_Click"/>
+                                                                    </DataTemplate>
+                                                                </ItemsControl.ItemTemplate>
+                                                            </ItemsControl>
+                                                        </StackPanel>
+                                                    </DockPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource ToolCard}">
+                                <DockPanel>
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Button x:Name="FormatUsbBtn" Content="Medya Oluşturma Aracını aç" Style="{StaticResource SmallBtn}" Click="FormatUsbMct_Click"
+                                                ToolTip="Microsoft'un resmi aracı: Windows'u indirip USB'yi kendisi hazırlar."/>
+                                        <Button Content="Rufus" Style="{StaticResource SmallBtn}" Margin="0" Click="FormatUsbRufus_Click"
+                                                ToolTip="İleri seviye: elindeki bir ISO dosyasından USB hazırlar."/>
+                                    </StackPanel>
+                                    <TextBlock Style="{StaticResource CardIcon}" Text="&#xE88E;"/>
+                                    <StackPanel Margin="0,0,12,0">
+                                        <TextBlock Text="Format USB'si hazırla" Style="{StaticResource CardTitle}"/>
+                                        <TextBlock Style="{StaticResource Hint}" TextWrapping="Wrap" Margin="0,2,0,0"
+                                                   Text="Yedekten sonraki adım: Windows'u kuracağın USB. En az 8 GB olmalı ve içindekiler silinir; yedeğin olduğu USB'yi kullanma."/>
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
             </TabControl>
 
             <!-- İşlem kaydı çekmecesi -->
