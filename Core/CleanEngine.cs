@@ -106,12 +106,15 @@ namespace Kahya.Core
                     freed += stats.Bytes;
                     total += freed;
 
-                    var msg = "   ✔ " + T("{0} boşaltıldı", Format.Bytes(freed));
+                    // Yer açmayan işler (DNS önbelleğini sıfırlamak gibi) için "0 B boşaltıldı" yanlış izlenim verir.
+                    bool onlyAction = item.Rules.Count == 0 && item.Measure == null && freed == 0;
+                    var outcome = onlyAction ? T("yapıldı") : T("{0} boşaltıldı", Format.Bytes(freed));
+                    var msg = "   ✔ " + outcome;
                     if (stats.Files > 0) msg += " " + T("({0} dosya)", stats.Files);
                     if (stats.Skipped > 0) msg += ", " + T("{0} dosya kullanımda olduğu için atlandı", stats.Skipped);
                     _log(msg);
 
-                    item.Status = "✔ " + T("{0} boşaltıldı", Format.Bytes(freed));
+                    item.Status = "✔ " + outcome;
                     if (item.Rules.Count > 0 || item.Measure != null)
                     {
                         try { item.Size = MeasureItem(item, ct); } catch (OperationCanceledException) { throw; } catch { }

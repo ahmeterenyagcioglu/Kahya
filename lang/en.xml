@@ -1834,4 +1834,7 @@
   <t tr="{0} dosya yedeğe girmedi.">{0} files didn't make it into the backup.</t>
   <t tr="{0} dosya yedeğe girmedi (açık bir programda kullanımda olabilir):\n\n{1}\n\nProgramı kapatıp yedeği tekrar al ya da bu dosyaları elle kopyala.">{0} files didn't make it into the backup (they may be in use by an open program):\n\n{1}\n\nClose the program and take the backup again, or copy these files by hand.</t>
   <t tr="Diskler sağlık bilgisi vermiyor. Sanal makinede, USB kutusunda ya da RAID denetleyicisinin arkasındaki disklerde bu normaldir.">The disks don't report health information. This is normal in a virtual machine, in a USB enclosure or behind a RAID controller.</t>
+  <t tr="Evet">Yes</t>
+  <t tr="Hayır">No</t>
+  <t tr="Temizlik bitti ({0:0} sn)">Cleanup finished ({0:0} s)</t>
 </language>

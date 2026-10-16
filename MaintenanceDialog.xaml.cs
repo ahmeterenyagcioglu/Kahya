@@ -138,7 +138,7 @@ namespace Kahya
             bool clean = CleanBox.IsChecked == true && _choices.Any(c => c.IsChecked);
             if (!clean && UpdatesBox.IsChecked != true && DriversBox.IsChecked != true && OptimizeBox.IsChecked != true)
             {
-                MessageBox.Show(this, T("En az bir adım seç."), "Kahya", MessageBoxButton.OK, MessageBoxImage.Information);
+                KahyaDialog.Show(this, T("En az bir adım seç."), "Kahya", MessageBoxButton.OK, MessageBoxImage.Information);
                 return false;
             }
             Settings.MaintenanceClean = CleanBox.IsChecked == true;

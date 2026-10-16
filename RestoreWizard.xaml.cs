@@ -738,7 +738,7 @@ namespace Kahya
             }
             catch (Exception ex)
             {
-                MessageBox.Show(this, T("Liste kaydedilemedi: {0}", ex.Message), "Kahya", MessageBoxButton.OK, MessageBoxImage.Warning);
+                KahyaDialog.Show(this, T("Liste kaydedilemedi: {0}", ex.Message), "Kahya", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 
@@ -930,7 +930,7 @@ namespace Kahya
 
         void Reboot_Click(object sender, RoutedEventArgs e)
         {
-            if (MessageBox.Show(this, T("Bilgisayar şimdi yeniden başlatılsın mı?"), "Kahya", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            if (KahyaDialog.Show(this, T("Bilgisayar şimdi yeniden başlatılsın mı?"), "Kahya", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                 try { Process.Start(new ProcessStartInfo("shutdown.exe", "/r /t 5") { CreateNoWindow = true, UseShellExecute = false }); } catch { }
         }
 
@@ -964,7 +964,7 @@ namespace Kahya
                     var o = Options();
                     if (o.DriverFolders.Count == 0 && o.FontFiles.Count == 0 && o.FolderKeys.Count == 0 && o.Programs.Count == 0 && o.SettingsIds.Count == 0 && o.GameIds.Count == 0 && o.WinSettingsIds.Count == 0)
                     {
-                        MessageBox.Show(this, T("Önce geri yüklenecek en az bir şey seç."), "Kahya", MessageBoxButton.OK, MessageBoxImage.Information);
+                        KahyaDialog.Show(this, T("Önce geri yüklenecek en az bir şey seç."), "Kahya", MessageBoxButton.OK, MessageBoxImage.Information);
                         return;
                     }
                     ShowPage(PGpu);
@@ -997,7 +997,7 @@ namespace Kahya
         {
             SaveState();
             if (!_running) return;
-            if (MessageBox.Show(this, T("Geri yükleme sürüyor. Durdurup kapatılsın mı? Sonra kaldığı yerden devam edebilirsin."), "Kahya", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+            if (KahyaDialog.Show(this, T("Geri yükleme sürüyor. Durdurup kapatılsın mı? Sonra kaldığı yerden devam edebilirsin."), "Kahya", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
             {
                 e.Cancel = true;
                 return;

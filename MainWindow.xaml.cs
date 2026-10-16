@@ -33,6 +33,7 @@ namespace Kahya
             Lang.TranslateTree(this);
             SourceInitialized += (s, e) => TitleBar.Apply(this);
             FitToWorkArea();
+            NameNavItems();
 
             _engine = new CleanEngine(Log);
             _items = Catalog.Build().Where(i => i.IsAvailable()).ToList();
@@ -116,6 +117,20 @@ namespace Kahya
             WindowStartupLocation = WindowStartupLocation.Manual;
             Left = work.Left + (work.Width - Width) / 2;
             Top = work.Top + (work.Height - Height) / 2;
+        }
+
+        /// <summary>
+        /// Sol menünün öğeleri ikon + yazıdan oluşan birer StackPanel; ekran okuyucu onları
+        /// "System.Windows.Controls.ListBoxItem" diye okuyordu. Her öğeye kendi (çevrilmiş) yazısı ad olarak verilir.
+        /// </summary>
+        void NameNavItems()
+        {
+            foreach (var item in Nav.Items.OfType<ListBoxItem>())
+            {
+                var text = (item.Content as Panel)?.Children.OfType<TextBlock>().LastOrDefault()?.Text;
+                if (!string.IsNullOrEmpty(text))
+                    System.Windows.Automation.AutomationProperties.SetName(item, text);
+            }
         }
 
         // ───────────── ortak: kayıt, durum çubuğu, meşgul durumu ─────────────
@@ -368,10 +383,10 @@ namespace Kahya
         }
 
         bool Confirm(string message, MessageBoxImage icon = MessageBoxImage.Question) =>
-            MessageBox.Show(this, message, "Kahya", MessageBoxButton.YesNo, icon) == MessageBoxResult.Yes;
+            KahyaDialog.Show(this, message, "Kahya", MessageBoxButton.YesNo, icon) == MessageBoxResult.Yes;
 
         void Info(string message) =>
-            MessageBox.Show(this, message, "Kahya", MessageBoxButton.OK, MessageBoxImage.Information);
+            KahyaDialog.Show(this, message, "Kahya", MessageBoxButton.OK, MessageBoxImage.Information);
 
         void RefreshHistory()
         {
@@ -582,6 +597,15 @@ namespace Kahya
             {
                 History.Add(new HistoryEntry { Date = DateTime.Now, Kind = "manual", Freed = freed });
                 RefreshHistory();
+            }
+            // Yalnızca yer açmayan işler seçildiyse (DNS önbelleği gibi) "0 B boşaltıldı" yazmak yanıltıcı.
+            bool onlyActions = freed == 0 && selected.All(i => i.Rules.Count == 0 && i.Measure == null);
+            if (onlyActions && !cancelled)
+            {
+                Log(T("Temizlik bitti ({0:0} sn)", sw.Elapsed.TotalSeconds));
+                TotalText.Text = "✔";
+                TotalCaption.Text = T("yapıldı");
+                return;
             }
             Log(T("Temizlik bitti: {0} boşaltıldı ({1:0} sn)", Format.Bytes(freed), sw.Elapsed.TotalSeconds));
             TotalText.Text = Format.Bytes(freed);
@@ -889,7 +913,7 @@ namespace Kahya
             }
             Log("   ! " + T("Oluşturulamadı: {0}", error));
 
-            var answer = MessageBox.Show(this,
+            var answer = KahyaDialog.Show(this,
                 T("Geri yükleme noktası oluşturulamadı:\n{0}\n\nBu genelde sistem sürücüsünde Sistem Koruması kapalı olduğunda olur.\n\nEvet — Sistem Korumasını sistem sürücüsü için aç ve tekrar dene\nHayır — geri yükleme noktası olmadan devam et\nİptal — işlemi iptal et", error),
                 "Kahya", MessageBoxButton.YesNoCancel, MessageBoxImage.Warning);
             if (answer == MessageBoxResult.Cancel) return false;

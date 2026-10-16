@@ -1,0 +1,31 @@
+<Window x:Class="Kahya.KahyaDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Kahya" SizeToContent="WidthAndHeight" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="{DynamicResource Card}" Foreground="{DynamicResource Text}"
+        FontFamily="Segoe UI" FontSize="13" UseLayoutRounding="True" TextOptions.TextFormattingMode="Display">
+
+    <Grid MinWidth="380" MaxWidth="560">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <DockPanel Margin="24,22,24,20">
+            <TextBlock x:Name="IconText" DockPanel.Dock="Left" FontFamily="{StaticResource Icons}" FontSize="26"
+                       VerticalAlignment="Top" Margin="0,1,16,0"/>
+            <ScrollViewer x:Name="Scroller" VerticalScrollBarVisibility="Auto" MaxHeight="520">
+                <TextBlock x:Name="MessageText" TextWrapping="Wrap" LineHeight="20"/>
+            </ScrollViewer>
+        </DockPanel>
+
+        <Border Grid.Row="1" Background="{DynamicResource Bg}" Padding="24,14">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="CancelBtn" Content="İptal" Style="{StaticResource Btn}" MinWidth="88" Visibility="Collapsed" Click="Cancel_Click"/>
+                <Button x:Name="NoBtn" Content="Hayır" Style="{StaticResource Btn}" MinWidth="88" IsCancel="True" Click="No_Click"/>
+                <Button x:Name="YesBtn" Content="Evet" Style="{StaticResource AccentBtn}" MinWidth="88" Margin="0" IsDefault="True" Click="Yes_Click"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

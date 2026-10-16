@@ -34,6 +34,7 @@ namespace Kahya
         {
             if (!Confirm(T("Gizlilik sekmesinde yaptığın bütün değişiklikler, Kahya'dan önceki hallerine döndürülecek. Devam edilsin mi?")))
                 return;
+            bool explorer = _privacy.Any(t => t.IsApplied && t.RestartsExplorer);
             try
             {
                 int n = Privacy.RestoreAll();
@@ -46,6 +47,9 @@ namespace Kahya
             }
             LoadPrivacy();
             UpdateHeader();
+            if (explorer &&
+                Confirm(T("Bazı değişikliklerin hemen görünmesi için Gezgin'in yeniden başlatılması gerekiyor (açık Gezgin pencereleri kapanır). Şimdi yeniden başlatılsın mı?")))
+                RestartExplorer_Click(null, null);
         }
 
         void Privacy_PropertyChanged(object sender, PropertyChangedEventArgs e)

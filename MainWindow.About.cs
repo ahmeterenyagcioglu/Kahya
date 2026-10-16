@@ -241,7 +241,7 @@ namespace Kahya
             var question = lang == "tr"
                 ? "Dil Türkçe olarak değiştirildi. Uygulamak için Kahya şimdi yeniden başlatılsın mı?"
                 : "Language changed. Restart Kahya now to apply it?";
-            if (MessageBox.Show(this, question, "Kahya", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            if (KahyaDialog.Show(this, question, "Kahya", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
                 return;
 
             try
