@@ -18,7 +18,10 @@ namespace Kahya
             BoostInfo.Text = active
                 ? T("Hazırlık açık. Oyun bitince 'Bitir'e bas: güç planı, bildirimler ve kapatılan uygulamalar geri gelir.")
                 : T("Seçtiklerini kapatır, en hızlı güç planına geçer, bildirimleri susturur. Bitince hepsi geri gelir.");
-            if (!active) BoostList.ItemsSource = await Task.Run(() => GameBoost.RunningApps());
+            if (active) return;
+            var apps = await Task.Run(() => GameBoost.RunningApps());
+            BoostList.ItemsSource = apps;
+            if (apps.Count == 0) BoostInfo.Text += " " + T("Şu an kapatılacak açık uygulama yok; güç planı ve bildirimler yine ayarlanır.");
         }
 
         async void BoostRefresh_Click(object sender, RoutedEventArgs e) => await LoadBoostAsync();

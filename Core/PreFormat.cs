@@ -239,7 +239,8 @@ namespace Kahya.Core
                     return (T("Windows etkin"), channel, true);
                 }
             }
-            catch (Exception ex) { return (T("Etkinleştirme okunamadı"), ex.Message, false); }
+            // Lisans servisi kapalıysa (sanal makine, bozuk kurulum) WMI anlamsız "genel hata" verir.
+            catch { return (T("Etkinleştirme okunamadı"), T("Ayarlar › Sistem › Etkinleştirme sayfasından bakabilirsin."), false); }
         }
 
         static bool Exists(string path)

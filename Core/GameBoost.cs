@@ -63,7 +63,7 @@ namespace Kahya.Core
             {
                 try
                 {
-                    if (p.Id == own || p.SessionId == 0 || skip.Contains(p.ProcessName)) continue;
+                    if (p.Id == own || p.SessionId == 0 || skip.Contains(p.ProcessName) || p.ProcessName.StartsWith("Kahya", StringComparison.OrdinalIgnoreCase)) continue;
                     bool windowed = p.MainWindowHandle != IntPtr.Zero && p.MainWindowTitle.Length > 0;
                     if (!windowed && !Suggested.Contains(p.ProcessName)) continue;
                     if (!result.TryGetValue(p.ProcessName, out var app))
@@ -106,20 +106,46 @@ namespace Kahya.Core
 
             foreach (var app in close)
             {
-                int closed = 0;
                 foreach (var p in Process.GetProcessesByName(app.ProcessName))
                 {
-                    try { if (p.CloseMainWindow()) closed++; }
+                    try { p.CloseMainWindow(); }
                     catch { }
                     finally { p.Dispose(); }
                 }
                 if (app.Path != null) state.Add("reopen=" + app.Path);
-                log.Add(closed > 0 ? T("Kapatıldı: {0}", app.Name) : T("{0} pencereden kapatılamadı (arka planda çalışıyor olabilir)", app.Name));
+                log.Add(CloseRest(app.ProcessName) ? T("Kapatıldı: {0}", app.Name)
+                                                   : T("{0} kapanmadı; kaydedilmemiş bir şey soruyor olabilir", app.Name));
             }
 
             Directory.CreateDirectory(Settings.Folder);
             File.WriteAllLines(StateFile, state);
             return log;
+        }
+
+        /// <summary>
+        /// Pencereler kapandıktan sonra (birkaç saniye beklenir) penceresiz kalan arka plan süreçlerini de kapatır:
+        /// tarayıcılar ve sohbet uygulamaları pencere kapanınca arka planda bellek tutmaya devam eder. Hâlâ penceresi
+        /// olan süreç varsa (ör. "kaydedilsin mi?" sorusu) hiçbirine dokunulmaz.
+        /// </summary>
+        static bool CloseRest(string name)
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                var procs = Process.GetProcessesByName(name);
+                try
+                {
+                    if (procs.Length == 0) return true;
+                    bool windowed = procs.Any(p => { try { return p.MainWindowHandle != IntPtr.Zero; } catch { return false; } });
+                    if (!windowed)
+                    {
+                        foreach (var p in procs) try { p.Kill(); } catch { }
+                        return true;
+                    }
+                }
+                finally { foreach (var p in procs) p.Dispose(); }
+                System.Threading.Thread.Sleep(500);
+            }
+            return false;
         }
 
         /// <summary>Planı ve bildirimleri geri alır; kapatılanları yeniden açar.</summary>
