@@ -88,6 +88,23 @@ namespace Kahya.Core
 
         const uint EndOfCentralDirectory = 0x06054b50;
 
+        /// <summary>
+        /// Açıklamaya yazılan kısa özet. ZIP açıklamalarında kodlama belirtilemiyor: 7-Zip / WinRAR Türkçe karakterleri
+        /// bozuk gösteriyordu ("yedeÄŸi"). Bu yüzden açıklama sadece ASCII; asıl bilgiler içerideki UTF-8 dosyada.
+        /// </summary>
+        public static string Summary(BackupManifest m) =>
+            Ascii($"Kahya format yedegi | {m.Computer} | {m.Date:yyyy-MM-dd HH:mm} | Kahya {m.Version}\r\n" +
+                  "Format sonrasi: yanindaki Kahya.exe'yi ac > Format sonrasi asistani. Ici ZIP; 7-Zip/WinRAR acar.");
+
+        static string Ascii(string s)
+        {
+            var map = new Dictionary<char, string> { ['ç'] = "c", ['Ç'] = "C", ['ğ'] = "g", ['Ğ'] = "G", ['ı'] = "i", ['İ'] = "I", ['ö'] = "o", ['Ö'] = "O", ['ş'] = "s", ['Ş'] = "S", ['ü'] = "u", ['Ü'] = "U" };
+            var sb = new StringBuilder();
+            foreach (var c in s ?? "")
+                sb.Append(map.TryGetValue(c, out var r) ? r : c < 128 ? c.ToString() : "?");
+            return sb.ToString();
+        }
+
         /// <summary>Kapalı bir ZIP'e açıklama yazar (.NET Framework'te bunun hazır yolu yok; kayıt elle güncellenir).</summary>
         public static void WriteComment(string zipPath, string comment)
         {

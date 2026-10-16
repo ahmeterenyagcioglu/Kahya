@@ -57,11 +57,38 @@ namespace Kahya.Core
     /// </summary>
     public static class AppCatalog
     {
+        /// <summary>
+        /// Format sonrası çoğu oyunun ve programın istediği çalışma ortamları ("AIO paketi" yerine, hepsi resmi kaynağından).
+        /// IsChecked: format sonrası asistanında varsayılan seçili olanlar.
+        /// </summary>
+        public static List<CatalogApp> Essentials()
+        {
+            var list = new List<CatalogApp>();
+            void Add(string id, string name, string description, bool on = true) =>
+                list.Add(new CatalogApp { Category = T("Gerekli bileşenler"), Id = id, Name = name, Description = T(description), IsChecked = on });
+
+            foreach (var year in new[] { "2005", "2008", "2010", "2012", "2013", "2015+" })
+            {
+                var y = year == "2015+" ? "2015–2022" : year;
+                Add($"Microsoft.VCRedist.{year}.x64", $"Visual C++ {y} (64 bit)", "Programların ve oyunların çoğu ister");
+                Add($"Microsoft.VCRedist.{year}.x86", $"Visual C++ {y} (32 bit)", "Programların ve oyunların çoğu ister");
+            }
+            Add("Microsoft.DirectX", "DirectX (eski oyunlar için)", "DirectX 9/10/11 bileşenleri; eski oyunlar ister");
+            Add("Microsoft.DotNet.DesktopRuntime.8", ".NET 8 Masaüstü Çalışma Ortamı", ".NET ile yazılmış programlar ister");
+            Add("Microsoft.DotNet.DesktopRuntime.10", ".NET 10 Masaüstü Çalışma Ortamı", ".NET ile yazılmış yeni programlar ister");
+            Add("Microsoft.XNARedist", "XNA Framework 4.0", "Bazı eski oyunlar ister (Terraria, Stardew Valley eski sürümleri…)", false);
+            Add("Oracle.JavaRuntimeEnvironment", "Java 8 (JRE)", "Java ile yazılmış eski programlar ister", false);
+            return list;
+        }
+
         public static List<CatalogApp> Build()
         {
             var list = new List<CatalogApp>();
             void Add(string category, string id, string name, string description) =>
                 list.Add(new CatalogApp { Category = T(category), Id = id, Name = name, Description = T(description) });
+
+            // Program kur'da da en üstte; orada hiçbiri kendiliğinden seçili gelmez.
+            foreach (var e in Essentials()) { e.IsChecked = false; list.Add(e); }
 
             const string Web = "Tarayıcılar";
             Add(Web, "Google.Chrome", "Google Chrome", "Google'ın tarayıcısı");

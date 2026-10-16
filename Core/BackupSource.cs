@@ -33,9 +33,10 @@ namespace Kahya.Core
                 var text = BackupArchive.ReadComment(path);
                 src._zip = path;
                 src._entries = BackupArchive.List(path);
-                if (text == null)
+                // 1.4.0 sonrası açıklama sadece kısa bir ASCII özet; asıl bilgiler içerideki dosyada.
+                // (Önceki paketlerde açıklamanın kendisi tam bilgiydi: "[Kahya]" içerir.)
+                if (text == null || !text.Contains("[Kahya]"))
                 {
-                    // Açıklama kaybolmuşsa (arşiv başka bir programla yeniden paketlenmiş olabilir) içerideki kopyası okunur.
                     if (!src._entries.Any(e => e.name.Equals(BackupArchive.ManifestEntry, StringComparison.OrdinalIgnoreCase)))
                         throw new InvalidDataException(T("Bu ZIP bir Kahya yedeği değil."));
                     Directory.CreateDirectory(src._temp);

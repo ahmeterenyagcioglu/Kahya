@@ -454,7 +454,7 @@ namespace Kahya
                 await Task.Run(() =>
                 {
                     BackupArchive.Create(folder, zip, ctx);
-                    BackupArchive.WriteComment(zip, text);
+                    BackupArchive.WriteComment(zip, BackupArchive.Summary(manifest));
                 });
                 Log("   ✔ " + T("Arşivlendi: {0} → {1}", Format.Bytes(before), Format.Bytes(new FileInfo(zip).Length)));
                 Log(T("Yedek tamamlandı: {0}", zip));
