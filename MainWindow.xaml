@@ -1884,6 +1884,52 @@
 
                             <Border Style="{StaticResource ToolCard}">
                                 <StackPanel>
+                                    <DockPanel Margin="0,0,0,6">
+                                        <Button x:Name="AutoBackupNowBtn" DockPanel.Dock="Right" Content="Şimdi al" Style="{StaticResource SmallBtn}" Margin="0"
+                                                Click="AutoBackupNow_Click" ToolTip="Otomatik yedeği beklemeden şimdi alır (aşağıdaki ayarlarla)."/>
+                                        <TextBlock Style="{StaticResource CardIcon}" Text="&#xE823;"/>
+                                        <TextBlock Text="Otomatik yedek" Style="{StaticResource CardTitle}"/>
+                                    </DockPanel>
+                                    <TextBlock Style="{StaticResource Hint}" TextWrapping="Wrap" Margin="0,0,0,10"
+                                               Text="Seçtiğin kişisel klasörler, Wi-Fi ağları, program listesi ve Windows ayarları yukarıdaki konuma düzenli olarak yedeklenir. En yeni 3 otomatik yedek tutulur; elle aldıkların silinmez."/>
+                                    <Border Style="{StaticResource SegBar}" Background="{DynamicResource Row}" HorizontalAlignment="Left">
+                                        <StackPanel x:Name="AutoBackupModePanel" Orientation="Horizontal">
+                                            <Button Content="Kapalı" Style="{StaticResource Seg}" Tag="off" Click="AutoBackupMode_Click"/>
+                                            <Button Content="Her gün" Style="{StaticResource Seg}" Tag="daily" Click="AutoBackupMode_Click"/>
+                                            <Button Content="Her hafta" Style="{StaticResource Seg}" Tag="weekly" Click="AutoBackupMode_Click"/>
+                                            <Button Content="2 haftada bir" Style="{StaticResource Seg}" Tag="biweekly" Click="AutoBackupMode_Click"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <StackPanel x:Name="AutoBackupWhenPanel" Margin="0,8,0,0">
+                                        <Border x:Name="AutoBackupDayBar" Style="{StaticResource SegBar}" Background="{DynamicResource Row}" HorizontalAlignment="Left" Margin="0,0,0,8">
+                                            <StackPanel x:Name="AutoBackupDayPanel" Orientation="Horizontal">
+                                                <Button Content="Pzt" Style="{StaticResource Seg}" Tag="Monday" Click="AutoBackupDay_Click"/>
+                                                <Button Content="Sal" Style="{StaticResource Seg}" Tag="Tuesday" Click="AutoBackupDay_Click"/>
+                                                <Button Content="Çar" Style="{StaticResource Seg}" Tag="Wednesday" Click="AutoBackupDay_Click"/>
+                                                <Button Content="Per" Style="{StaticResource Seg}" Tag="Thursday" Click="AutoBackupDay_Click"/>
+                                                <Button Content="Cum" Style="{StaticResource Seg}" Tag="Friday" Click="AutoBackupDay_Click"/>
+                                                <Button Content="Cmt" Style="{StaticResource Seg}" Tag="Saturday" Click="AutoBackupDay_Click"/>
+                                                <Button Content="Paz" Style="{StaticResource Seg}" Tag="Sunday" Click="AutoBackupDay_Click"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource SegBar}" Background="{DynamicResource Row}" HorizontalAlignment="Left">
+                                            <StackPanel x:Name="AutoBackupHourPanel" Orientation="Horizontal">
+                                                <Button Content="09:00" Style="{StaticResource Seg}" Tag="9" Click="AutoBackupHour_Click"/>
+                                                <Button Content="12:00" Style="{StaticResource Seg}" Tag="12" Click="AutoBackupHour_Click"/>
+                                                <Button Content="15:00" Style="{StaticResource Seg}" Tag="15" Click="AutoBackupHour_Click"/>
+                                                <Button Content="18:00" Style="{StaticResource Seg}" Tag="18" Click="AutoBackupHour_Click"/>
+                                                <Button Content="21:00" Style="{StaticResource Seg}" Tag="21" Click="AutoBackupHour_Click"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock Text="Yedeklenecek klasörler" Style="{StaticResource Label}" Margin="0,12,0,4"/>
+                                    <WrapPanel x:Name="AutoBackupFolderPanel"/>
+                                    <TextBlock x:Name="AutoBackupInfo" Style="{StaticResource Hint}" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource ToolCard}">
+                                <StackPanel>
                                     <DockPanel Margin="0,0,0,10">
                                         <TextBlock Style="{StaticResource CardIcon}" Text="&#xE73A;"/>
                                         <TextBlock Text="Ne yedeklensin?" Style="{StaticResource CardTitle}"/>

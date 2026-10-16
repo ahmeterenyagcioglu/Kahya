@@ -1887,4 +1887,27 @@
   <t tr="Windows varsayılanı">Windows default</t>
   <t tr="Kurulumla gelen boş hosts dosyası (yalnızca açıklamalar). Kaydedince uygulanır.">The empty hosts file Windows ships with (comments only). Applied when you save.</t>
   <t tr="hosts kaydedilemedi: {0}\n\nVirüs koruması değişikliği engellemiş olabilir; Windows Güvenliği bildirimlerine bak.">Couldn't save hosts: {0}\n\nVirus protection may have blocked the change; check Windows Security notifications.</t>
+  <t tr="Şimdi al">Back up now</t>
+  <t tr="Otomatik yedeği beklemeden şimdi alır (aşağıdaki ayarlarla).">Takes the automatic backup now instead of waiting (with the settings below).</t>
+  <t tr="Otomatik yedek">Automatic backup</t>
+  <t tr="Seçtiğin kişisel klasörler, Wi-Fi ağları, program listesi ve Windows ayarları yukarıdaki konuma düzenli olarak yedeklenir. En yeni 3 otomatik yedek tutulur; elle aldıkların silinmez.">The personal folders you pick, Wi-Fi networks, the program list and Windows settings are backed up to the location above on a schedule. The newest 3 automatic backups are kept; ones you took by hand aren't deleted.</t>
+  <t tr="Yedeklenecek klasörler">Folders to back up</t>
+  <t tr="bilgisayar kapalıysa ilk açılışta alınır">if the PC is off, it runs at the next startup</t>
+  <t tr="Henüz otomatik yedek yok">No automatic backup yet</t>
+  <t tr="Son otomatik yedek: {0:dd.MM.yyyy HH:mm}">Last automatic backup: {0:dd.MM.yyyy HH:mm}</t>
+  <t tr="Yedek C: diskinde; disk bozulursa yedek de gider. Mümkünse USB ya da ikinci bir disk seç.">The backup is on drive C:; if the disk fails, the backup goes too. Pick a USB drive or a second disk if you can.</t>
+  <t tr="Otomatik yedek kapalı.">Automatic backup is off.</t>
+  <t tr="Otomatik yedek: {0} → {1}">Automatic backup: {0} → {1}</t>
+  <t tr="Otomatik yedek alındı: {0} ({1})">Automatic backup taken: {0} ({1})</t>
+  <t tr="Otomatik yedek alınamadı: {0}">Automatic backup failed: {0}</t>
+  <t tr="Otomatik yedek alındı">Automatic backup taken</t>
+  <t tr="Otomatik yedek alınamadı">Automatic backup failed</t>
+  <t tr="Kahya otomatik yedek — {0:dd.MM.yyyy HH:mm}">Kahya automatic backup — {0:dd.MM.yyyy HH:mm}</t>
+  <t tr="{0} · {1}">{0} · {1}</t>
+  <t tr="Yedek konumu bulunamadı: {0}. USB bellek ya da disk takılı mı?">Backup location not found: {0}. Is the USB drive or disk plugged in?</t>
+  <t tr="Otomatik yedek: {0}">Automatic backup: {0}</t>
+  <t tr="Eski otomatik yedek silindi: {0}">Old automatic backup deleted: {0}</t>
+  <t tr="Kahya otomatik yedeği — {0} · {1:dd.MM.yyyy HH:mm}">Kahya automatic backup — {0} · {1:dd.MM.yyyy HH:mm}</t>
+  <t tr="Tek bir dosyayı geri almak için: Kahya › Format yardımcısı › Yedeğe göz at. Format sonrası hepsini geri yüklemek için yanındaki Kahya.exe'yi aç.">To restore a single file: Kahya › Reinstall helper › Browse backup. To restore everything after a reinstall, open the Kahya.exe next to it.</t>
+  <t tr="Kahya olmadan: uzantıyı .zip yapıp açabilirsin; kişisel dosyalar 'klasorler' içinde.">Without Kahya: rename the extension to .zip and open it; personal files are in 'klasorler'.</t>
 </language>

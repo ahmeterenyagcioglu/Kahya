@@ -36,6 +36,7 @@ namespace Kahya
         {
             _backupTarget = Settings.BackupTarget ?? DefaultBackupTarget();
             UpdateBackupTarget();
+            InitAutoBackup();
             RegisterKahyaFiles();
         }
 
@@ -316,6 +317,7 @@ namespace Kahya
             Settings.BackupTarget = _backupTarget;
             SaveSettings();
             UpdateBackupTarget();
+            RefreshAutoBackup();
         }
 
 

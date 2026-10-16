@@ -8,11 +8,13 @@ namespace Kahya.Core
     public static class Scheduler
     {
         public const string TaskName = "Kahya Bakim";
+        /// <summary>Otomatik yedek görevi ("/backup" ile çalışır).</summary>
+        public const string BackupTaskName = "Kahya Yedek";
 
         /// <summary>Program WinCleaner adındayken oluşturulan görev: eski exe'yi çalıştırır, yeni ada taşınmalı.</summary>
         public const string LegacyTaskName = "WinCleaner Haftalik";
 
-        public static bool Exists() => Run("schtasks.exe", $"/Query /TN \"{TaskName}\"") == 0;
+        public static bool Exists(string task = TaskName) => Run("schtasks.exe", $"/Query /TN \"{task}\"") == 0;
 
         public static bool LegacyExists() => Run("schtasks.exe", $"/Query /TN \"{LegacyTaskName}\"") == 0;
 
@@ -24,7 +26,7 @@ namespace Kahya.Core
         }
 
         /// <param name="mode">daily, weekly veya biweekly.</param>
-        public static bool Create(string exePath, string mode, DayOfWeek day, int hour)
+        public static bool Create(string exePath, string mode, DayOfWeek day, int hour, string task = TaskName, string argument = "/auto")
         {
             var exe = exePath.Replace("'", "''");
             var at = $"{hour:00}:00";
@@ -36,14 +38,14 @@ namespace Kahya.Core
                 default: trigger = $"New-ScheduledTaskTrigger -Weekly -DaysOfWeek {day} -At {at}"; break;
             }
             var script =
-                $"$a = New-ScheduledTaskAction -Execute '{exe}' -Argument '/auto'; " +
+                $"$a = New-ScheduledTaskAction -Execute '{exe}' -Argument '{argument}'; " +
                 $"$t = {trigger}; " +
                 "$s = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries; " +
-                $"Register-ScheduledTask -TaskName '{TaskName}' -Action $a -Trigger $t -Settings $s -RunLevel Highest -Force | Out-Null";
+                $"Register-ScheduledTask -TaskName '{task}' -Action $a -Trigger $t -Settings $s -RunLevel Highest -Force | Out-Null";
             return Run("powershell.exe", $"-NoProfile -ExecutionPolicy Bypass -Command \"{script}\"") == 0;
         }
 
-        public static bool Delete() => Run("schtasks.exe", $"/Delete /TN \"{TaskName}\" /F") == 0;
+        public static bool Delete(string task = TaskName) => Run("schtasks.exe", $"/Delete /TN \"{task}\" /F") == 0;
 
         /// <summary>"Her pazar 12:00" gibi kısa açıklama.</summary>
         public static string Describe(string mode, DayOfWeek day, int hour)

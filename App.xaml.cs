@@ -71,6 +71,12 @@ namespace Kahya
                 Shutdown();
                 return;
             }
+            if (e.Args.Any(a => a.Equals("/backup", StringComparison.OrdinalIgnoreCase)))
+            {
+                RunAutoBackup();
+                Shutdown();
+                return;
+            }
 
             // Format sonrası yedeğin yanındaki Kahya (USB'den) açıldıysa: kendini bilgisayara kopyalar, oradan asistanla açılır.
             if (!StartWizard && !e.Args.Contains("--tray") && !IsAlreadyRunning())
@@ -315,6 +321,36 @@ namespace Kahya
             if (result != null && result.UpdateFailed > 0)
                 text += Environment.NewLine + T("Güncellenemeyenler: {0}", string.Join(", ", result.Failures.Select(f => f.Split(':')[0])));
             Notify(T("Otomatik bakım tamamlandı"), text);
+        }
+
+        /// <summary>Görev Zamanlayıcı'dan gelen otomatik yedek: sonucu last-backup.log'a yazar ve bildirim gösterir.</summary>
+        static void RunAutoBackup()
+        {
+            var log = new StringBuilder();
+            Action<string> write = line => log.AppendLine(line);
+            write(T("Kahya otomatik yedek — {0:dd.MM.yyyy HH:mm}", DateTime.Now));
+            string title, text;
+            try
+            {
+                var zip = AutoBackup.Run(Settings.BackupTarget, new CleanContext(write, CancellationToken.None));
+                long size = new FileInfo(zip).Length;
+                title = T("Otomatik yedek alındı");
+                text = T("{0} · {1}", Path.GetFileName(Path.GetDirectoryName(zip)), Format.Bytes(size));
+                write("✔ " + text);
+            }
+            catch (Exception ex)
+            {
+                title = T("Otomatik yedek alınamadı");
+                text = ex.Message;
+                write("! " + ex);
+            }
+            try
+            {
+                Directory.CreateDirectory(Settings.Folder);
+                File.WriteAllText(Path.Combine(Settings.Folder, "last-backup.log"), log.ToString(), Encoding.UTF8);
+            }
+            catch { }
+            Notify(title, text);
         }
 
         /// <summary>Sistem tepsisinde birkaç saniyelik bildirim (Windows 10/11'de bildirim olarak görünür).</summary>

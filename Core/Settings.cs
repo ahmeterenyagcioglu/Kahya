@@ -105,6 +105,13 @@ namespace Kahya.Core
         public static DayOfWeek ScheduleDay { get; set; } = DayOfWeek.Sunday;
         public static int ScheduleHour { get; set; } = 12;
 
+        /// <summary>Otomatik yedek sıklığı (off, daily, weekly, biweekly), günü ve saati. Hedef: <see cref="BackupTarget"/>.</summary>
+        public static string AutoBackupMode { get; set; } = "off";
+        public static DayOfWeek AutoBackupDay { get; set; } = DayOfWeek.Sunday;
+        public static int AutoBackupHour { get; set; } = 21;
+        /// <summary>Otomatik yedeğe giren kişisel klasörler (Desktop, Documents…). null: Masaüstü, Belgeler, Resimler.</summary>
+        public static HashSet<string> AutoBackupFolders { get; set; }
+
         /// <summary>Kullanıcının uyarısını kapattığı ekran kartı sürücüsü sürümü (aynı sürüm için tekrar uyarılmaz).</summary>
         public static string GpuDismissed { get; set; }
 
@@ -125,6 +132,7 @@ namespace Kahya.Core
             _selected = null;
             MaintenanceItems = null;
             ExpandedGroups = null;
+            AutoBackupFolders = null;
             IgnoredUpdates = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             try
             {
@@ -158,6 +166,10 @@ namespace Kahya.Core
                         case "expandedGroups": ExpandedGroups = new HashSet<string>(value.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries)); break;
                         case "hideEmpty": HideEmptyItems = value != "0"; break;
                         case "cacheAlertGb": if (int.TryParse(value, out var gb) && gb >= 0) CacheAlertGb = gb; break;
+                        case "autoBackup": AutoBackupMode = value == "daily" || value == "weekly" || value == "biweekly" ? value : "off"; break;
+                        case "autoBackupDay": if (Enum.TryParse(value, out DayOfWeek bday)) AutoBackupDay = bday; break;
+                        case "autoBackupHour": if (int.TryParse(value, out var bhour) && bhour >= 0 && bhour < 24) AutoBackupHour = bhour; break;
+                        case "autoBackupFolders": AutoBackupFolders = new HashSet<string>(Split(value), StringComparer.OrdinalIgnoreCase); break;
                         case "scheduleHour": if (int.TryParse(value, out var hour) && hour >= 0 && hour < 24) ScheduleHour = hour; break;
                     }
                 }
@@ -206,7 +218,12 @@ namespace Kahya.Core
                     "alwaysAdmin=" + (AlwaysAdmin ? "1" : "0"),
                     "hideEmpty=" + (HideEmptyItems ? "1" : "0"),
                     "cacheAlertGb=" + CacheAlertGb,
+                    "autoBackup=" + AutoBackupMode,
+                    "autoBackupDay=" + AutoBackupDay,
+                    "autoBackupHour=" + AutoBackupHour,
                 };
+                if (AutoBackupFolders != null)
+                    lines.Add("autoBackupFolders=" + string.Join(",", AutoBackupFolders));
                 // Grup adlarında virgül olabileceği için ayraç '|'.
                 if (ExpandedGroups != null)
                     lines.Add("expandedGroups=" + string.Join("|", ExpandedGroups));
