@@ -1985,4 +1985,17 @@
   <t tr="{0} öğe Geri Dönüşüm Kutusu'na taşınsın mı ({1})?">Move {0} items to the Recycle Bin ({1})?</t>
   <t tr="taşınıyor…">moving…</t>
   <t tr="{0} taşınamadı: {1}">Couldn't move {0}: {1}</t>
+  <t tr="bellek">memory</t>
+  <t tr="Hazırla">Prepare</t>
+  <t tr="Bitir">Finish</t>
+  <t tr="Oyun öncesi hazırlık">Game prep</t>
+  <t tr="Seçtiklerini kapatır, en hızlı güç planına geçer, bildirimleri susturur. Bitince hepsi geri gelir.">Closes what you pick, switches to the fastest power plan, silences notifications. Everything comes back when you finish.</t>
+  <t tr="Hazırlık açık. Oyun bitince 'Bitir'e bas: güç planı, bildirimler ve kapatılan uygulamalar geri gelir.">Prep is on. Press 'Finish' after playing: power plan, notifications and closed apps come back.</t>
+  <t tr="Oyun öncesi hazırlık açık.">Game prep is on.</t>
+  <t tr="Bildirimler susturuldu">Notifications silenced</t>
+  <t tr="Kapatıldı: {0}">Closed: {0}</t>
+  <t tr="{0} pencereden kapatılamadı (arka planda çalışıyor olabilir)">Couldn't close {0} from its window (it may be running in the background)</t>
+  <t tr="Güç planı eski haline döndü">Power plan restored</t>
+  <t tr="Bildirimler açıldı">Notifications turned on</t>
+  <t tr="Yeniden açıldı: {0}">Reopened: {0}</t>
 </language>

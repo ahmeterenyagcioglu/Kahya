@@ -306,6 +306,8 @@ namespace Kahya
             // Araçlar'ın kartları birkaç sayfaya dağıldı; hepsi aynı yükleyiciyi kullanır.
             if ((tab == ToolsTab || tab == RepairTab || tab == PowerTab || tab == WinUpdatesTab || tab == OldDriversTab || tab == NetTab) && !_toolsLoaded)
                 LoadTools();
+            if (tab == PowerTab)
+                _ = LoadBoostAsync();
             if (tab == DownloadsTab && !_downloadsLoaded)
                 _ = LoadDownloadsAsync();
             if (tab == NetTab && !_wifiLoaded)
@@ -353,6 +355,7 @@ namespace Kahya
                 case EmptyFolder empty: empty.IsChecked = !empty.IsChecked; break;
                 case RenderFolder render: render.IsChecked = !render.IsChecked; break;
                 case OldDownload dl: dl.IsChecked = !dl.IsChecked; break;
+                case BoostApp ba: ba.IsChecked = !ba.IsChecked; break;
             }
         }
 

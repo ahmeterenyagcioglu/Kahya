@@ -2147,6 +2147,37 @@
                                     </StackPanel>
                                 </Border>
                             </Grid>
+
+                            <Border Style="{StaticResource ToolCard}">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,6">
+                                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                            <Button Content="&#xE72C;" Style="{StaticResource IconBtn}" Click="BoostRefresh_Click" ToolTip="Yenile"/>
+                                            <Button x:Name="BoostBtn" Content="Hazırla" Style="{StaticResource AccentBtn}" Margin="8,0,0,0" Click="Boost_Click"/>
+                                        </StackPanel>
+                                        <TextBlock Style="{StaticResource CardIcon}" Text="&#xE7FC;"/>
+                                        <TextBlock Text="Oyun öncesi hazırlık" Style="{StaticResource CardTitle}"/>
+                                    </DockPanel>
+                                    <TextBlock x:Name="BoostInfo" Style="{StaticResource Hint}" TextWrapping="Wrap" Margin="0,0,0,10"
+                                               Text="Seçtiklerini kapatır, en hızlı güç planına geçer, bildirimleri susturur. Bitince hepsi geri gelir."/>
+                                    <ItemsControl x:Name="BoostList">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate><UniformGrid Columns="2"/></ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Style="{StaticResource ActionRow}" MouseLeftButtonUp="Row_MouseLeftButtonUp">
+                                                    <DockPanel>
+                                                        <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                                        <TextBlock DockPanel.Dock="Right" Text="{Binding Details}" Style="{StaticResource RowSub}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                                        <TextBlock Text="{Binding Name}" Style="{StaticResource RowTitle}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                                    </DockPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
                     </ScrollViewer>
                 </TabItem>
