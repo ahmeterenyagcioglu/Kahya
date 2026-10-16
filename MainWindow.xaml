@@ -1751,21 +1751,28 @@
                                                 <Border Style="{StaticResource SegBar}" Background="{DynamicResource Card}" HorizontalAlignment="Left" Margin="0,8,0,0">
                                                     <WrapPanel x:Name="DnsPanel"/>
                                                 </Border>
-                                                <DockPanel x:Name="CustomDnsPanel" Margin="0,10,0,0" Visibility="Collapsed">
-                                                    <Button DockPanel.Dock="Right" Content="Uygula" Style="{StaticResource SmallBtn}" Margin="8,0,0,0" c:Elevation.Required="True"
-                                                            VerticalAlignment="Center" Click="CustomDnsApply_Click"/>
+                                                <Grid x:Name="CustomDnsPanel" Margin="0,10,0,0" Visibility="Collapsed">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
                                                     <TextBlock Text="Birincil" Style="{StaticResource RowSub}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                                    <TextBox x:Name="DnsPrimaryBox" Style="{StaticResource SearchBox}" Background="{DynamicResource Card}" Padding="10,6"
-                                                             Width="170" FontFamily="Cascadia Mono, Consolas" KeyDown="CustomDns_KeyDown"/>
-                                                    <TextBlock Text="İkincil" Style="{StaticResource RowSub}" VerticalAlignment="Center" Margin="14,0,8,0"/>
-                                                    <TextBox x:Name="DnsSecondaryBox" Style="{StaticResource SearchBox}" Background="{DynamicResource Card}" Padding="10,6"
-                                                             Width="170" FontFamily="Cascadia Mono, Consolas" HorizontalAlignment="Left" KeyDown="CustomDns_KeyDown"
+                                                    <TextBox x:Name="DnsPrimaryBox" Grid.Column="1" Style="{StaticResource SearchBox}" Background="{DynamicResource Card}" Padding="10,6"
+                                                             FontFamily="Cascadia Mono, Consolas" KeyDown="CustomDns_KeyDown"/>
+                                                    <TextBlock Grid.Column="2" Text="İkincil" Style="{StaticResource RowSub}" VerticalAlignment="Center" Margin="14,0,8,0"/>
+                                                    <TextBox x:Name="DnsSecondaryBox" Grid.Column="3" Style="{StaticResource SearchBox}" Background="{DynamicResource Card}" Padding="10,6"
+                                                             FontFamily="Cascadia Mono, Consolas" KeyDown="CustomDns_KeyDown"
                                                              ToolTip="İsteğe bağlı. Birincil yanıt vermezse kullanılır."/>
-                                                </DockPanel>
+                                                    <Button Grid.Column="4" Content="Uygula" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" c:Elevation.Required="True"
+                                                            VerticalAlignment="Center" Click="CustomDnsApply_Click"/>
+                                                </Grid>
                                             </StackPanel>
                                         </Border>
-                                        <Border Grid.Column="2" Style="{StaticResource ActionRow}" VerticalAlignment="Top">
-                                            <DockPanel>
+                                        <Border Grid.Column="2" Style="{StaticResource ActionRow}">
+                                            <DockPanel VerticalAlignment="Top">
                                                 <Button DockPanel.Dock="Right" Content="Düzenle…" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" c:Elevation.Required="True"
                                                         VerticalAlignment="Center" Click="HostsEdit_Click"/>
                                                 <StackPanel ToolTip="Adları elle bir adrese yönlendiren dosya (C:\Windows\System32\drivers\etc\hosts). Siteleri engellemek için kullanılır; kötü amaçlı yazılımlar da değiştirebilir.">
