@@ -116,27 +116,37 @@ namespace Kahya.Core
             }
         }
 
+        /// <summary>
+        /// Önce gömülü dosya, üstüne Data\Lang'daki: dışarıdaki dosya sadece içindeki satırları değiştirir.
+        /// Eski bir sürümden kalan dosyada olmayan yeni metinler gömülüden gelir, Türkçe kalmaz.
+        /// </summary>
         static Dictionary<string, string> Load(LanguageInfo lang)
         {
+            var map = new Dictionary<string, string>();
             try
             {
-                var asm = typeof(Lang).Assembly;
-                using (var s = lang.File != null ? (System.IO.Stream)System.IO.File.OpenRead(lang.File)
-                                                 : asm.GetManifestResourceStream(ResourcePrefix + lang.Code + ".xml"))
-                {
-                    if (s == null) return null;
-                    var map = new Dictionary<string, string>();
-                    using (var r = System.Xml.XmlReader.Create(s, new System.Xml.XmlReaderSettings { IgnoreComments = true, DtdProcessing = System.Xml.DtdProcessing.Prohibit }))
-                        while (r.ReadToFollowing("t"))
-                        {
-                            var key = r.GetAttribute("tr");
-                            var value = r.ReadElementContentAsString();
-                            if (key != null) map[Unescape(key)] = Unescape(value);
-                        }
-                    return map;
-                }
+                using (var s = typeof(Lang).Assembly.GetManifestResourceStream(ResourcePrefix + lang.Code + ".xml"))
+                    if (s != null) Read(s, map);
             }
-            catch { return null; }
+            catch { }
+            try
+            {
+                if (lang.File != null)
+                    using (var s = System.IO.File.OpenRead(lang.File)) Read(s, map);
+            }
+            catch { }
+            return map.Count > 0 ? map : null;
+        }
+
+        static void Read(System.IO.Stream s, Dictionary<string, string> map)
+        {
+            using (var r = System.Xml.XmlReader.Create(s, new System.Xml.XmlReaderSettings { IgnoreComments = true, DtdProcessing = System.Xml.DtdProcessing.Prohibit }))
+                while (r.ReadToFollowing("t"))
+                {
+                    var key = r.GetAttribute("tr");
+                    var value = r.ReadElementContentAsString();
+                    if (key != null && value.Length > 0) map[Unescape(key)] = Unescape(value);
+                }
         }
 
         /// <summary>Dosyada yeni satır "\n", sekme "\t", ters bölü "\\" olarak yazılır.</summary>
@@ -159,17 +169,37 @@ namespace Kahya.Core
         }
 
         /// <summary>
-        /// Çeviri için şablon: gömülü en.xml'i Data\Lang'a yazar (varsa dokunmaz) ve klasörün yolunu döndürür.
-        /// Kopyalayıp code/name'i değiştiren kendi dilini ekler.
+        /// Çeviri için şablon: gömülü en.xml'i Data\Lang'a yazar ve klasörün yolunu döndürür. Her açılışta çağrılır:
+        /// dosya yoksa ya da daha eski bir Kahya sürümünün yazdığı şablonsa (kahya="1.5.0") yenilenir, böylece yeni
+        /// metinler de şablonda olur. Kopyalayıp code/name'i değiştiren kendi dilini ekler.
         /// </summary>
         public static string ExportTemplate()
         {
             System.IO.Directory.CreateDirectory(Folder);
             var dest = System.IO.Path.Combine(Folder, "en.xml");
-            if (!System.IO.File.Exists(dest))
-                using (var s = typeof(Lang).Assembly.GetManifestResourceStream(ResourcePrefix + "en.xml"))
-                using (var f = System.IO.File.Create(dest))
-                    s?.CopyTo(f);
+            var version = AppInfo.Version;
+            if (System.IO.File.Exists(dest))
+            {
+                string written = null;
+                try
+                {
+                    using (var r = System.Xml.XmlReader.Create(dest, new System.Xml.XmlReaderSettings { IgnoreComments = true, DtdProcessing = System.Xml.DtdProcessing.Prohibit }))
+                        if (r.ReadToFollowing("language")) written = r.GetAttribute("kahya");
+                }
+                catch { }
+                // Elle düzenlenmiş (kahya="…" yok) ya da bu sürümün yazdığı dosyaya dokunulmaz.
+                if (written == null || !Version.TryParse(written, out var w) || !Version.TryParse(version, out var v) || w >= v)
+                    return Folder;
+            }
+            string text;
+            using (var s = typeof(Lang).Assembly.GetManifestResourceStream(ResourcePrefix + "en.xml"))
+            {
+                if (s == null) return Folder;
+                using (var sr = new System.IO.StreamReader(s, System.Text.Encoding.UTF8)) text = sr.ReadToEnd();
+            }
+            // Hangi sürümün yazdığı: sonraki sürüm şablonu yenileyebilsin diye.
+            text = text.Replace("<language code=\"en\"", $"<language kahya=\"{version}\" code=\"en\"");
+            System.IO.File.WriteAllText(dest, text, new System.Text.UTF8Encoding(false));
             return Folder;
         }
 

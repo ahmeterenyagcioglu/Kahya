@@ -49,6 +49,8 @@ namespace Kahya
             }
 
             Settings.Read();
+            // Data\Lang\en.xml: kendi dilini eklemek isteyen için şablon (yeni sürümde yenilenir).
+            try { Lang.ExportTemplate(); } catch { }
             Lang.Init(Settings.Language);
 
             DispatcherUnhandledException += (s, ex) =>
