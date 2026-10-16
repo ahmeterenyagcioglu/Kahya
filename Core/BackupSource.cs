@@ -27,7 +27,8 @@ namespace Kahya.Core
         public static BackupSource Open(string path)
         {
             var src = new BackupSource { Path = path };
-            if (path.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+            // Yeni biçim: .kahya ya da .zip, içi ZIP. Eski biçim: metin halindeki .kahya (klasör yedeğinin içindekiler).
+            if (BackupArchive.IsZip(path))
             {
                 var text = BackupArchive.ReadComment(path);
                 src._zip = path;

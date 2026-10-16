@@ -257,26 +257,38 @@ namespace Kahya.Core
 
             // Format sonrası Kahya.exe yedeğin yanından açılır: o klasördeki yedek her zaman en başta.
             var exeDir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\');
-            List<string> own = new List<string>();
-            try { own.AddRange(Directory.GetFiles(exeDir, "Kahya-Yedek-*.zip").Concat(Directory.GetFiles(exeDir, "*" + BackupManifest.Extension))); } catch { }
+            var own = Packages(exeDir);
+            if (own.Count == 0) try { own.AddRange(Directory.GetFiles(exeDir, "*" + BackupManifest.Extension)); } catch { }
 
             var found = new List<string>();
             foreach (var dir in dirs.Distinct(StringComparer.OrdinalIgnoreCase))
             {
-                try { found.AddRange(Directory.GetFiles(dir, "Kahya-Yedek-*.zip")); } catch { }
-                // Kahya-Yedek-*\ klasörleri: içinde ZIP (yeni biçim) ya da .kahya (eski klasör yedeği).
+                found.AddRange(Packages(dir));
+                // Kahya-Yedek-*\ klasörleri: içinde paket (yeni biçim) ya da metin .kahya (eski klasör yedeği).
                 try
                 {
                     foreach (var sub in Directory.GetDirectories(dir, "Kahya-Yedek-*"))
                     {
-                        var zips = Directory.GetFiles(sub, "Kahya-Yedek-*.zip");
-                        found.AddRange(zips.Length > 0 ? zips : Directory.GetFiles(sub, "*" + BackupManifest.Extension));
+                        var packages = Packages(sub);
+                        found.AddRange(packages.Count > 0 ? packages : Directory.GetFiles(sub, "*" + BackupManifest.Extension).ToList());
                     }
                 }
                 catch { }
             }
             var newest = found.OrderByDescending(f => { try { return File.GetLastWriteTime(f); } catch { return DateTime.MinValue; } });
             return own.Concat(newest).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        }
+
+        /// <summary>Klasördeki yedek paketleri: Kahya-Yedek-*.kahya (yeni) ve Kahya-Yedek-*.zip (1.4.0 öncesi denemeler).</summary>
+        static List<string> Packages(string dir)
+        {
+            try
+            {
+                return Directory.GetFiles(dir, "Kahya-Yedek-*" + BackupArchive.PackageExtension)
+                    .Concat(Directory.GetFiles(dir, "Kahya-Yedek-*.zip"))
+                    .Where(BackupArchive.IsZip).ToList();
+            }
+            catch { return new List<string>(); }
         }
     }
 }

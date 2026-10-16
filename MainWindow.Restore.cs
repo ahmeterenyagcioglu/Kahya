@@ -46,7 +46,7 @@ namespace Kahya
         }
 
         /// <summary>
-        /// Eski sürümlerin klasör yedeklerindeki .kahya dosyalarını bu Kahya'ya bağlar (sadece bu kullanıcı için, HKCU):
+        /// .kahya yedek paketlerini (ve eski sürümlerin klasör yedeklerindeki .kahya dosyalarını) bu Kahya'ya bağlar (sadece bu kullanıcı için, HKCU):
         /// çift tıklayınca asistan açılır. Exe taşındıysa yol güncellenir.
         /// </summary>
         static void RegisterKahyaFiles()

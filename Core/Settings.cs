@@ -73,6 +73,12 @@ namespace Kahya.Core
         /// <summary>Pencere kapatılınca bildirim alanında çalışmaya devam et.</summary>
         public static bool TrayEnabled { get; set; }
 
+        /// <summary>
+        /// Çift tıklanınca kendini yönetici olarak yeniden başlatır (Windows bir kez izin sorar). Bildirim alanında
+        /// başlarken ve otomatik bakımda yapılmaz: her oturum açılışında izin penceresi çıkmasın.
+        /// </summary>
+        public static bool AlwaysAdmin { get; set; } = true;
+
         /// <summary>Format yedeğinin kaydedileceği klasör.</summary>
         public static string BackupTarget { get; set; }
 
@@ -134,6 +140,7 @@ namespace Kahya.Core
                         case "lang": Language = value == "tr" || value == "en" ? value : null; break;
                         case "theme": Theme = value == "dark" || value == "light" ? value : "system"; break;
                         case "tray": TrayEnabled = value == "1"; break;
+                        case "alwaysAdmin": AlwaysAdmin = value == "1"; break;
                         case "backupTarget": BackupTarget = value.Length > 0 ? value : null; break;
                         case "maintUpdates": MaintenanceUpdates = value == "1"; break;
                         case "maintDrivers": MaintenanceDrivers = value == "1"; break;
@@ -192,6 +199,7 @@ namespace Kahya.Core
                     "scheduleHour=" + ScheduleHour,
                     "theme=" + Theme,
                     "tray=" + (TrayEnabled ? "1" : "0"),
+                    "alwaysAdmin=" + (AlwaysAdmin ? "1" : "0"),
                     "hideEmpty=" + (HideEmptyItems ? "1" : "0"),
                     "cacheAlertGb=" + CacheAlertGb,
                 };

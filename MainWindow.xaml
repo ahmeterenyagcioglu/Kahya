@@ -2129,6 +2129,13 @@
                                         </StackPanel>
                                     </DockPanel>
                                     <DockPanel Margin="0,0,0,12">
+                                        <TextBlock Text="Yönetici izni" Style="{StaticResource Label}" Width="150"/>
+                                        <CheckBox x:Name="AlwaysAdminBox" Click="AlwaysAdmin_Click"
+                                                  ToolTip="Kahya'ya çift tıklayınca Windows bir kez izin sorar ve bütün özellikler (Windows Temp, sürücüler, onarım…) açık gelir. Windows açılışında bildirim alanında başlarken sorulmaz.">
+                                            <TextBlock Text="Her zaman yönetici olarak aç" FontSize="12.5"/>
+                                        </CheckBox>
+                                    </DockPanel>
+                                    <DockPanel Margin="0,0,0,12">
                                         <TextBlock Text="Önbellek uyarısı" Style="{StaticResource Label}" Width="150"
                                                    ToolTip="Bildirim alanında çalışırken bir uygulamanın (CapCut, Premiere, tarayıcılar…) önbelleği bu boyutu geçince haber verir. Kendiliğinden silmez; bildirime tıklayınca Temizlik açılır."/>
                                         <Border Style="{StaticResource SegBar}" Background="{DynamicResource Row}">

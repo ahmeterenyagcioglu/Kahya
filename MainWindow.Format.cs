@@ -62,7 +62,7 @@ namespace Kahya
             bool onSystem = _backupTarget.StartsWith(sys, StringComparison.OrdinalIgnoreCase);
             BackupTargetHint.Text = onSystem
                 ? "⚠ " + T("Bu klasör C: diskinde: format atınca yedek de silinir! USB belleğe ya da başka bir diske kaydet, ya da yedeği sonra oraya kopyala.")
-                : T("Yedek tek bir dosya olarak kaydedilir: Kahya-Yedek-{0}-tarih.zip (Kahya da içinde)", Environment.MachineName);
+                : T("Yedek bir klasöre kaydedilir: Kahya-Yedek-{0}-tarih.kahya paketi ve yanında Kahya.exe", Environment.MachineName);
             BackupTargetHint.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, onSystem ? "Warn" : "Muted");
         }
 
@@ -330,7 +330,7 @@ namespace Kahya
             // Her şey önce o klasörde gizli bir geçici klasöre kopyalanır, sonra ZIP olur ve geçici klasör silinir.
             var name = FormatBackup.Safe($"Kahya-Yedek-{Environment.MachineName}-{DateTime.Now:yyyy-MM-dd_HHmm}");
             var output = Path.Combine(_backupTarget, name);
-            var zip = Path.Combine(output, name + ".zip");
+            var zip = Path.Combine(output, name + BackupArchive.PackageExtension); // içi ZIP
             var folder = Path.Combine(output, ".gecici");
             var token = SetBusy(T("yedekleniyor…"));
             ShowLog(true);

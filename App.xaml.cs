@@ -67,6 +67,16 @@ namespace Kahya
                 return;
             }
 
+            // "Her zaman yönetici olarak aç": çift tıklanınca kendini yönetici olarak yeniden başlatır.
+            // Oturum açılışında (--tray) yapılmaz, yoksa her açılışta izin penceresi çıkar. Kahya zaten açıksa da yapılmaz;
+            // o zaman açık olan öne gelir. İzin verilmezse normal kullanıcı olarak devam eder.
+            if (Settings.AlwaysAdmin && !Elevation.IsAdmin && !e.Args.Contains("--tray") && !IsAlreadyRunning()
+                && Elevation.RestartElevated(string.Join(" ", e.Args.Select(QuoteArg))))
+            {
+                Shutdown();
+                return;
+            }
+
             // Tek kopya: zaten açıksa (ör. bildirim alanında) onu öne getir ve çık.
             // Yeniden başlatmalarda (--restart) eski kopyanın kapanmasını bekle.
             if (!AcquireSingleInstance(e.Args.Contains("--restart")))
@@ -153,6 +163,18 @@ namespace Kahya
             }
             finally { _errorDialogOpen = false; }
         }
+
+        static bool IsAlreadyRunning()
+        {
+            try
+            {
+                using (Mutex.OpenExisting(@"Local\Kahya.SingleInstance")) return true;
+            }
+            catch { return false; }
+        }
+
+        /// <summary>Argümanı yeniden başlatma komut satırına koyar (boşluklu yollar tırnakla).</summary>
+        static string QuoteArg(string a) => a.Contains(" ") || a.Contains("\"") ? "\"" + a.Replace("\"", "\\\"") + "\"" : a;
 
         static Mutex _instance;
         static EventWaitHandle _showSignal;

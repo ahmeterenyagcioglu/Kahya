@@ -17,6 +17,23 @@ namespace Kahya.Core
     {
         public const string ManifestEntry = "kahya-yedek.txt";
 
+        /// <summary>
+        /// Yedek paketinin uzantısı. İçi düz ZIP'tir (.docx gibi): 7-Zip / WinRAR açar, Gezgin için uzantıyı .zip yapmak yeter.
+        /// Eski sürümlerin metin halindeki .kahya'sıyla aynı uzantı; hangisi olduğu içeriğinden anlaşılır (<see cref="IsZip"/>).
+        /// </summary>
+        public const string PackageExtension = ".kahya";
+
+        /// <summary>Dosya ZIP mi (uzantıya değil ilk baytlara bakar: "PK").</summary>
+        public static bool IsZip(string path)
+        {
+            try
+            {
+                using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    return fs.ReadByte() == 'P' && fs.ReadByte() == 'K';
+            }
+            catch { return false; }
+        }
+
         // Zaten sıkıştırılmış dosyalar yeniden sıkıştırılmaz: zaman kaybı, boyut kazancı yok.
         static readonly HashSet<string> Stored = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {

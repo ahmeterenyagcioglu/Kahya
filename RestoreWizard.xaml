@@ -115,7 +115,7 @@
                     <StackPanel DockPanel.Dock="Top">
                         <TextBlock Text="Yedeği seç" Style="{StaticResource PageTitle}"/>
                         <TextBlock Style="{StaticResource PageSub}"
-                                   Text="Format öncesi Kahya ile aldığın yedek (Kahya-Yedek-….zip). USB bellek ya da ikinci disk takılıysa Kahya kendisi bulur."/>
+                                   Text="Format öncesi Kahya ile aldığın yedek (Kahya-Yedek-….kahya). USB bellek ya da ikinci disk takılıysa Kahya kendisi bulur."/>
                         <Border x:Name="ResumeBanner" Background="{DynamicResource AccentSoft}" CornerRadius="10" Padding="14,10" Margin="0,0,0,10" Visibility="Collapsed">
                             <DockPanel>
                                 <Button DockPanel.Dock="Right" Content="Kaldığın yerden devam et" Style="{StaticResource AccentBtn}" Margin="10,0,0,0"

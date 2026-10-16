@@ -28,6 +28,7 @@ namespace Kahya
             Theme.Changed += UpdateThemeButtons;
             UpdateThemeButtons();
             TrayBox.IsChecked = Settings.TrayEnabled;
+            AlwaysAdminBox.IsChecked = Settings.AlwaysAdmin;
             AutostartBox.IsChecked = Tray.Autostart;
             UpdateCacheAlertButtons();
             AppUpdateText.Text = UpdateChecker.Configured ? "" : T("Güncelleme kontrolü için GitHub deposu henüz ayarlanmadı.");
@@ -230,6 +231,15 @@ namespace Kahya
         // ───────────── yeni sürüm kontrolü ─────────────
 
         async void CheckAppUpdate_Click(object sender, RoutedEventArgs e) => await CheckAppUpdateAsync(silent: false);
+
+        void AlwaysAdmin_Click(object sender, RoutedEventArgs e)
+        {
+            Settings.AlwaysAdmin = AlwaysAdminBox.IsChecked == true;
+            SaveSettings();
+            // Hemen geçerli olsun: şu an yönetici değilse teklif et.
+            if (Settings.AlwaysAdmin && !Elevation.IsAdmin)
+                RequireAdmin();
+        }
 
         void ReportIssue_Click(object sender, RoutedEventArgs e)
         {

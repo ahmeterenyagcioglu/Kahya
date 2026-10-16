@@ -35,9 +35,10 @@ Gerektiğinde Kahya kendisi kurar (önce sorar):
 
 Ayrıca:
 
-- **Yönetici izni:** Kahya normal kullanıcı olarak açılır. Yönetici isteyen özellikler (Windows Temp, Prefetch,
-  SFC/DISM, sürücüler, geri yükleme noktaları…) kalkan simgesiyle işaretlidir; tıklayınca Kahya yönetici olarak
-  yeniden başlar ve aynı sayfaya döner.
+- **Yönetici izni:** Kahya açılırken Windows bir kez izin sorar; böylece bütün özellikler (Windows Temp, Prefetch,
+  SFC/DISM, sürücüler, geri yükleme noktaları…) açık gelir. İstemezsen **Hakkında › Ayarlar › Her zaman yönetici olarak aç**
+  kapatılır: o zaman normal kullanıcı olarak açılır, yönetici isteyen özellikler kalkan simgesiyle işaretli gelir ve
+  tıklayınca Kahya yönetici olarak yeniden başlar. Windows açılışında bildirim alanında başlarken izin sorulmaz.
 
 ## Neler yapar?
 
@@ -69,9 +70,10 @@ Format atmadan önce tek ekrandan yedek:
   My Games ve Unity oyunları. Oyunun kendisi yedeklenmez, sadece senin kayıtların. Bilinen yerlere bakılır; kaydını
   bambaşka bir yerde tutan oyunlar kaçabilir (Steam Cloud'u olanlar zaten güvende).
 
-Hiçbir şey sorulmaz. Sonuç bir klasördür: içinde yedeğin tamamı tek bir ZIP (`Kahya-Yedek-BILGISAYARADI-tarih.zip`) ve
-yanında `Kahya.exe`. ZIP'i Windows ek program olmadan açar; yedeğin ne içerdiği arşivin açıklamasına yazılır, Kahya yedeği
-açmadan tanır. Wi-Fi ve Ethernet kartının sürücüleri sorulmadan her zaman yedeklenir: format sonrası internetsiz
+Hiçbir şey sorulmaz. Sonuç bir klasördür: içinde yedeğin tamamı tek bir paket (`Kahya-Yedek-BILGISAYARADI-tarih.kahya`)
+ve yanında `Kahya.exe`. Paketin kendi simgesi vardır, çift tıklayınca asistan açılır. İçi düz bir ZIP'tir (`.docx` gibi):
+7-Zip ve WinRAR doğrudan açar, Gezgin'de açmak için uzantıyı `.zip` yapmak yeter. Yedeğin ne içerdiği arşivin
+açıklamasına yazılır, Kahya yedeği açmadan tanır. Wi-Fi ve Ethernet kartının sürücüleri sorulmadan her zaman yedeklenir: format sonrası internetsiz
 kalırsan ilk onlar lazım. Belgeler gibi seçili bir klasörün içinde kalan oyun ve ayar klasörleri iki kez kopyalanmaz.
 
 ### 🧭 Format sonrası asistanı

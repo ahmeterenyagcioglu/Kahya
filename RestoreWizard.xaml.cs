@@ -250,7 +250,8 @@ namespace Kahya
 
         static FoundVm MakeFound(string path)
         {
-            bool legacy = path.EndsWith(BackupManifest.Extension, StringComparison.OrdinalIgnoreCase);
+            // Eski klasör yedeğinin .kahya'sı metindir; yeni .kahya paketinin içi ZIP'tir.
+            bool legacy = !BackupArchive.IsZip(path);
             long size = 0;
             try { size = !legacy && File.Exists(path) ? new FileInfo(path).Length : 0; } catch { }
             var name = legacy
@@ -269,7 +270,7 @@ namespace Kahya
             var dialog = new Microsoft.Win32.OpenFileDialog
             {
                 Title = T("Kahya yedeğini seç"),
-                Filter = T("Kahya yedeği") + " (*.zip;*.kahya)|*.zip;*.kahya",
+                Filter = T("Kahya yedeği") + " (*.kahya;*.zip)|*.kahya;*.zip",
             };
             if (dialog.ShowDialog(this) != true) return;
             await SelectAsync(FindOrAdd(dialog.FileName));
