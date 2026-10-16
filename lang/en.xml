@@ -1950,4 +1950,5 @@
   <t tr="Görev çubuğundaki hava durumu ve haber paneli kapanır.">The weather and news panel on the taskbar is turned off.</t>
   <t tr="Donan programı görev çubuğundan sağ tıkla kapat.">Close a frozen app by right-clicking it on the taskbar.</t>
   <t tr="Neyin yer kapladığını görmek için bir diske tıkla.">Click a disk to see what takes up space.</t>
+  <t tr="• Birden fazla ağ kartı olan bilgisayarlarda alınan yedekler geri yüklenemiyordu; düzeldi\n• Sade menü: 8 bölüm, alt sekmeler (Temizlik, Güncellemeler, Uygulamalar, Windows ayarları, Sistem, Yedekleme)\n• Kısa ve anlaşılır metinler\n• Program kur: Brave, Zoom gibi kurulu programlar artık tanınıyor\n• Sistem › Durum'da disk alanı; DNS satırındaki boşluk giderildi">• Backups taken on PCs with more than one network adapter couldn't be restored; fixed\n• Simpler menu: 8 sections with sub-tabs (Cleanup, Updates, Apps, Windows settings, System, Backup)\n• Shorter, clearer texts\n• Install apps: installed programs like Brave and Zoom are now recognized\n• Disk space in System › Status; the gap in the DNS row is gone</t>
 </language>

@@ -38,6 +38,11 @@ namespace Kahya.Core
         {
             new ReleaseNote
             {
+                Version = "1.8.5", Date = T("16 Ekim 2026"),
+                Notes = T("• Birden fazla ağ kartı olan bilgisayarlarda alınan yedekler geri yüklenemiyordu; düzeldi\n• Sade menü: 8 bölüm, alt sekmeler (Temizlik, Güncellemeler, Uygulamalar, Windows ayarları, Sistem, Yedekleme)\n• Kısa ve anlaşılır metinler\n• Program kur: Brave, Zoom gibi kurulu programlar artık tanınıyor\n• Sistem › Durum'da disk alanı; DNS satırındaki boşluk giderildi"),
+            },
+            new ReleaseNote
+            {
                 Version = "1.8.1", Date = T("16 Ekim 2026"),
                 Notes = T("• Araçlar › Ağ araçları › DNS sunucusu: Özel seçeneğiyle kendi DNS sunucunu (birincil ve ikincil) elle girebilirsin\n• Araçlar sayfasında sütunlar dengeli, büyük boşluk kalmıyor; DNS satırı daha derli toplu"),
             },
