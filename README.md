@@ -83,13 +83,17 @@ adım adım ilerler:
 1. **Yedek:** yanındaki ya da USB bellek / ikinci diskteki yedeği kendisi bulur; bulamazsa **Manuel olarak seç**.
 2. **İnternet ve Wi-Fi:** kayıtlı Wi-Fi ağlarını şifreleriyle ekler (istediklerini seçersin); internet yoksa yedekteki ağ
    kartı sürücüsünü kurmayı teklif eder.
-3. **Programlar:** kurulacakları seçersin (arama, Tümü/Hiçbiri). Zaten kurulu olanlar kendiliğinden atlanır; Visual C++,
-   .NET gibi bileşenler listelenmez. winget'te olmayanların listesi tek tıkla masaüstüne kaydedilir.
+3. **Programlar:** önce **gerekli bileşenler** (Visual C++ 2005–2022, DirectX, .NET 8/10; tek tıkla, programlardan önce
+   kurulur), sonra kurulacak programlar (arama, Tümü/Hiçbiri). Zaten kurulu olanlar kendiliğinden atlanır. winget'te
+   olmayanların listesi tek tıkla masaüstüne kaydedilir.
 4. **Dosyalar ve kayıtlar:** sürücü paketleri, fontlar, kişisel klasörler, program ayarları ve oyun kayıtları; her kategoriyi
    açıp içindekileri tek tek seçersin (uzun listelerde arama var).
 5. **Ekran kartı:** Windows'un genel sürücüsü mü kullanılıyor, yeni sürücü var mı bakar; üreticinin sayfasını açar.
 6. **Kurulum:** önce programlar, sonra sürücüler, fontlar, kişisel klasörler, program ayarları; oyun kayıtları en sonda.
    Var olan daha yeni dosyaların üzerine yazılmaz.
+
+Aynı yedek sonra tekrar açılırsa (ör. ilk seferde oyunları geri yüklemediysen) önceden geri yüklenenler
+"✓ tarih geri yüklendi" notuyla işaretsiz gelir; istersen yine seçebilirsin.
 
 **Kaldığı yerden devam eder:** asistanı kapatırsan, Kahya'yı yeniden başlatırsan ya da bilgisayar kapanırsa hangi adımda
 kaldığın, neleri seçtiğin ve neyin bittiği kaydedilir; bir sonraki açılışta asistan kendisi açılır ve kalanlarla sürer.

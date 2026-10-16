@@ -77,7 +77,7 @@ namespace Kahya.Core
                     if (percent != lastPercent)
                     {
                         lastPercent = percent;
-                        ctx.Progress?.Invoke(T("Arşivleniyor… %{0}", percent));
+                        ctx.Progress?.Invoke(T("Yedek paketleniyor… %{0}", percent));
                     }
                 }
             }

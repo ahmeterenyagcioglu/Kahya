@@ -144,8 +144,13 @@ namespace Kahya
         readonly CategoryVm _wifiCategory = new CategoryVm { Kind = "wifi" };
         /// <summary>Programlar kendi adımında (3) listelenir; diğer kategoriler 4. adımda.</summary>
         CategoryVm _programCat;
+        /// <summary>Gerekli bileşenler (Visual C++, DirectX, .NET): programlar adımında, programlardan önce kurulur.</summary>
+        CategoryVm _essentialsCat;
         List<ProgramEntry> _manualList = new List<ProgramEntry>();
-        IEnumerable<CategoryVm> AllCategories => _programCat != null ? _categories.Concat(new[] { _programCat }) : _categories;
+        IEnumerable<CategoryVm> AllCategories => _categories.Concat(new[] { _essentialsCat, _programCat }.Where(c => c != null));
+
+        /// <summary>Bu yedekten daha önce geri yüklenenler (öğe anahtarı → zaman).</summary>
+        Dictionary<string, DateTime> _history = new Dictionary<string, DateTime>();
 
         // Sayfa sıraları
         const int PBackup = 0, PNet = 1, PPrograms = 2, PFiles = 3, PGpu = 4, PRun = 5;
@@ -293,6 +298,7 @@ namespace Kahya
             _built = false;
             _categories.Clear();
             _wifi.Clear();
+            _history = new Dictionary<string, DateTime>();
             NextBtn.IsEnabled = false;
             BackupInfo.Text = T("Okunuyor…");
             try
@@ -310,6 +316,9 @@ namespace Kahya
                 BackupInfo.Text = T("{0} bilgisayarından · {1:dd.MM.yyyy HH:mm}", m.Computer ?? "?", m.Date) +
                                   (m.Version != null ? " · Kahya " + m.Version : "") + "\n" + T("İçinde: {0}", string.Join(", ", parts));
                 _steps[0].Detail = m.Computer ?? "";
+                _history = RestoreHistory.Load(RestoreHistory.Key(m));
+                if (_history.Count > 0)
+                    BackupInfo.Text += "\n" + T("Bu yedekten {0:dd.MM.yyyy} tarihinde geri yükleme yapılmış; o zaman yüklenenler işaretsiz gelir.", _history.Values.Max());
                 NextBtn.IsEnabled = _page == 0;
             }
             catch (Exception ex)
@@ -367,13 +376,25 @@ namespace Kahya
             {
                 foreach (var i in c.Items)
                 {
-                    bool done = c.Kind == "program" ? _state.Done.Contains(RestoreRunner.Unit.Program(i.Key))
+                    bool done = c.Kind == "program" || c.Kind == "essential" ? _state.Done.Contains(RestoreRunner.Unit.Program(i.Key))
                               : c.Kind == "folder" ? _state.Done.Contains(RestoreRunner.Unit.Folder(i.Key))
                               : _state.Done.Contains(CategoryUnit(c.Kind));
                     if (done) i.MarkDone();
                 }
                 c.Refresh();
             }
+        }
+
+        /// <summary>Bu yedekten önceki bir geri yüklemede yüklenenler işaretsiz gelir (istersen yine seçebilirsin).</summary>
+        void ApplyHistory()
+        {
+            if (_history.Count == 0) return;
+            foreach (var i in AllCategories.SelectMany(c => c.Items))
+                if (_history.TryGetValue(i.StateKey, out var when))
+                {
+                    i.IsChecked = false;
+                    i.Detail = "✓ " + T("{0:dd.MM.yyyy} geri yüklendi", when);
+                }
         }
 
         static string CategoryUnit(string kind) =>
@@ -570,6 +591,15 @@ namespace Kahya
                   T("Bunlar elle kurulmalı; listeyi masaüstüne kaydedip sonra tek tek indirebilirsin.");
             ManualSaveBtn.IsEnabled = _manualPrograms > 0;
 
+            _essentialsCat = new CategoryVm { Kind = "essential", Icon = "\uE74C", Title = T("Gerekli bileşenler"),
+                                              Note = T("Visual C++, DirectX, .NET · programlardan önce kurulur") };
+            foreach (var e in AppCatalog.Essentials())
+            {
+                Item(_essentialsCat, e.Id, e.Name, -1, e.IsChecked, new ProgramEntry { Id = e.Id, Name = e.Name, Source = "winget" });
+                _essentialsCat.Items.Last().Detail = e.Description;
+            }
+            EssentialsList.ItemsSource = new[] { _essentialsCat };
+
             var settings = RestoreRunner.SettingsItems(_src, m.Settings, ctx);
             if (settings.Count > 0)
             {
@@ -585,9 +615,10 @@ namespace Kahya
             }
 
             CategoryList.Items.Refresh();
+            ApplyHistory();
             ApplyDone();
             UpdateChoiceInfo();
-            if (programs.Count > 0 && _online) _ = MarkInstalledAsync();
+            if (_online) _ = MarkInstalledAsync();
         }
 
         string ProgramNote() =>
@@ -600,6 +631,7 @@ namespace Kahya
         {
             var cat = _programCat;
             if (cat == null) return;
+            var cats = new[] { _programCat, _essentialsCat }.Where(c => c != null).ToList();
             cat.Note = T("hangilerinin zaten kurulu olduğuna bakılıyor…");
             UpdateChoiceInfo();
             var ids = await Task.Run(() =>
@@ -608,7 +640,7 @@ namespace Kahya
                 catch { return null; }
             });
             if (ids != null)
-                foreach (var i in cat.Items.Where(i => i.IsEnabled && ids.Contains(i.Key)))
+                foreach (var i in cats.SelectMany(c => c.Items).Where(i => i.IsEnabled && ids.Contains(i.Key)))
                 {
                     i.IsChecked = false;
                     i.Detail = T("zaten kurulu");
@@ -621,11 +653,11 @@ namespace Kahya
         void UpdateChoiceInfo()
         {
             foreach (var c in AllCategories) c.Refresh();
-            int programs = _programCat?.Items.Count(i => i.IsChecked) ?? 0;
+            int programs = (_programCat?.Items.Count(i => i.IsChecked) ?? 0) + (_essentialsCat?.Items.Count(i => i.IsChecked) ?? 0);
             _steps[PPrograms].Detail = T("{0} seçili", programs);
             _steps[PFiles].Detail = T("{0} seçili", _categories.Sum(c => c.Items.Count(i => i.IsChecked)));
             if (_programCat != null)
-                ProgramsInfo.Text = T("{0} / {1} seçili", programs, _programCat.Items.Count) + " · " + (_programCat.Note ?? ProgramNote());
+                ProgramsInfo.Text = T("{0} / {1} seçili", _programCat.Items.Count(i => i.IsChecked), _programCat.Items.Count) + " · " + (_programCat.Note ?? ProgramNote());
         }
 
         void Category_Click(object sender, RoutedEventArgs e)
@@ -698,7 +730,9 @@ namespace Kahya
             DriverFolders = Picked("drivers"),
             FontFiles = Picked("fonts"),
             FolderKeys = Picked("folder"),
-            Programs = _programCat?.Items.Where(i => i.IsChecked && i.IsEnabled).Select(i => i.Program).ToList() ?? new List<ProgramEntry>(),
+            // Önce gerekli bileşenler, sonra programlar.
+            Programs = new[] { _essentialsCat, _programCat }.Where(c => c != null).SelectMany(c => c.Items)
+                          .Where(i => i.IsChecked && i.IsEnabled).Select(i => i.Program).ToList(),
             SettingsIds = Picked("settings"),
             GameIds = Picked("games"),
             Done = _state != null ? new HashSet<string>(_state.Done, StringComparer.OrdinalIgnoreCase) : new HashSet<string>(StringComparer.OrdinalIgnoreCase),
@@ -776,9 +810,27 @@ namespace Kahya
             if (options.Done.Count > 0) Append(T("Kaldığı yerden devam ediliyor ({0} adım önceden bitmişti).", options.Done.Count));
 
             // Biten her birim hemen kaydedilir: kapatılırsa kalan yerden sürer.
+            // Biten birimin öğeleri geçmişe de yazılır: aynı yedek tekrar açılınca "geri yüklendi" diye işaretsiz gelsinler.
+            var historyKey = RestoreHistory.Key(_src.Manifest);
+            var essentialIds = new HashSet<string>(_essentialsCat?.Items.Select(i => i.Key) ?? Enumerable.Empty<string>(), StringComparer.OrdinalIgnoreCase);
+            IEnumerable<string> ItemKeys(string unit)
+            {
+                if (unit.StartsWith("program:")) { var id = unit.Substring(8); return new[] { (essentialIds.Contains(id) ? "essential|" : "program|") + id }; }
+                if (unit.StartsWith("folder:")) return new[] { "folder|" + unit.Substring(7) };
+                switch (unit)
+                {
+                    case RestoreRunner.Unit.Drivers: return options.DriverFolders.Select(k => "drivers|" + k);
+                    case RestoreRunner.Unit.Fonts: return options.FontFiles.Select(k => "fonts|" + k);
+                    case RestoreRunner.Unit.Settings: return options.SettingsIds.Select(k => "settings|" + k);
+                    case RestoreRunner.Unit.Games: return options.GameIds.Select(k => "games|" + k);
+                    default: return Enumerable.Empty<string>();
+                }
+            }
+
             void Done(string unit)
             {
                 lock (_state) { _state.Done.Add(unit); _state.Page = PRun; _state.Save(); }
+                foreach (var k in ItemKeys(unit)) RestoreHistory.Add(historyKey, k);
             }
 
             bool cancelled = false;
@@ -869,7 +921,7 @@ namespace Kahya
                 case PNet:
                     BuildChoices();
                     // Programı olmayan (eski) yedekte program adımı atlanır.
-                    ShowPage(_programCat?.Items.Count > 0 ? PPrograms : PFiles);
+                    ShowPage(PPrograms);
                     break;
                 case PPrograms:
                     ShowPage(PFiles);
@@ -898,7 +950,6 @@ namespace Kahya
         {
             if (_page <= PBackup || _running) return;
             int page = _page - 1;
-            if (page == PPrograms && !(_programCat?.Items.Count > 0)) page = PNet;
             ShowPage(page);
         }
 

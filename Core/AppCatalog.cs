@@ -65,7 +65,7 @@ namespace Kahya.Core
         {
             var list = new List<CatalogApp>();
             void Add(string id, string name, string description, bool on = true) =>
-                list.Add(new CatalogApp { Category = T("Gerekli bileşenler"), Id = id, Name = name, Description = T(description), IsChecked = on });
+                list.Add(new CatalogApp { Category = T("Gerekli bileşenler"), Id = id, Name = T(name), Description = T(description), IsChecked = on });
 
             foreach (var year in new[] { "2005", "2008", "2010", "2012", "2013", "2015+" })
             {

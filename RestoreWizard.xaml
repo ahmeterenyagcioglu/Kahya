@@ -60,6 +60,44 @@
                 </CheckBox>
             </DockPanel>
         </DataTemplate>
+
+        <!-- Bir kategori kartı: anahtar, "Seç" ile açılan sınırlı yükseklikli liste, uzunsa arama -->
+        <DataTemplate x:Key="CategoryCard">
+            <Border Style="{StaticResource WizRow}">
+                <StackPanel>
+                    <DockPanel>
+                        <CheckBox DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding IsChecked, Mode=OneWay}"
+                                  IsEnabled="{Binding IsEnabled}" VerticalAlignment="Center" Click="Category_Click"/>
+                        <Button DockPanel.Dock="Right" Content="{Binding ExpandText}" Style="{StaticResource GhostBtn}"
+                                Margin="0,0,10,0" VerticalAlignment="Center" Click="Expand_Click"/>
+                        <TextBlock Style="{StaticResource RowIcon}" Text="{Binding Icon}"/>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,12,0">
+                            <TextBlock Text="{Binding Title}" Style="{StaticResource RowTitle}"/>
+                            <TextBlock Text="{Binding Detail}" Style="{StaticResource RowSub}"/>
+                        </StackPanel>
+                    </DockPanel>
+                    <!-- Uzun listeler sayfayı kaplamasın: sınırlı yükseklik, kendi içinde kaydırma; 10'dan uzunsa arama -->
+                    <StackPanel Margin="34,10,0,0" Visibility="{Binding Expanded, Converter={StaticResource BoolVis}}">
+                        <DockPanel Margin="0,0,0,6" Visibility="{Binding HasTools, Converter={StaticResource BoolVis}}">
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button Content="Tümü" Style="{StaticResource SmallBtn}" Click="CategoryAll_Click"/>
+                                <Button Content="Hiçbiri" Style="{StaticResource SmallBtn}" Margin="0" Click="CategoryNone_Click"/>
+                            </StackPanel>
+                            <Grid Width="220" HorizontalAlignment="Left">
+                                <TextBox Style="{StaticResource SearchBox}" Height="32" Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}"/>
+                                <TextBlock Text="&#xE721;" FontFamily="{StaticResource Icons}" FontSize="12" Foreground="{DynamicResource Muted}"
+                                           IsHitTestVisible="False" VerticalAlignment="Center" Margin="11,0,0,0"/>
+                                <TextBlock Text="Ara…" Foreground="{DynamicResource Faint}" IsHitTestVisible="False" VerticalAlignment="Center"
+                                           Margin="33,0,0,0" Visibility="{Binding SearchEmpty, Converter={StaticResource BoolVis}}"/>
+                            </Grid>
+                        </DockPanel>
+                        <ScrollViewer MaxHeight="230" VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding View}" ItemTemplate="{StaticResource ItemRow}"/>
+                        </ScrollViewer>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </DataTemplate>
     </Window.Resources>
 
     <Grid>
@@ -219,37 +257,44 @@
                         <TextBlock Text="Programlar" Style="{StaticResource PageTitle}"/>
                         <TextBlock Style="{StaticResource PageSub}"
                                    Text="Kurulacak programları seç; hepsinin en yeni sürümü winget ile kurulur. Kurulum ilk sırada yapılır, ayarlar ve oyun kayıtları onlardan sonra gelir."/>
-                        <DockPanel Margin="0,0,0,10">
-                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                                <Button Content="Tümü" Style="{StaticResource SmallBtn}" Click="ProgramsAll_Click"/>
-                                <Button Content="Hiçbiri" Style="{StaticResource SmallBtn}" Margin="0" Click="ProgramsNone_Click"/>
-                            </StackPanel>
-                            <Grid Width="260" HorizontalAlignment="Left">
-                                <TextBox x:Name="ProgramSearch" Style="{StaticResource SearchBox}" Height="34" TextChanged="ProgramSearch_TextChanged"/>
-                                <TextBlock Text="&#xE721;" FontFamily="{StaticResource Icons}" FontSize="12" Foreground="{DynamicResource Muted}"
-                                           IsHitTestVisible="False" VerticalAlignment="Center" Margin="11,0,0,0"/>
-                                <TextBlock x:Name="ProgramSearchHint" Text="Ara…" Foreground="{DynamicResource Faint}" IsHitTestVisible="False"
-                                           VerticalAlignment="Center" Margin="33,0,0,0"/>
-                            </Grid>
-                        </DockPanel>
                     </StackPanel>
-                    <Border x:Name="ManualCard" DockPanel.Dock="Bottom" Style="{StaticResource WizRow}" Margin="0,8,0,0">
-                        <DockPanel>
-                            <Button x:Name="ManualSaveBtn" DockPanel.Dock="Right" Content="Listeyi masaüstüne kaydet" Style="{StaticResource SmallBtn}" Margin="10,0,0,0"
-                                    VerticalAlignment="Center" Click="ManualSave_Click"/>
-                            <TextBlock Style="{StaticResource RowIcon}" Text="&#xE7C3;"/>
-                            <StackPanel VerticalAlignment="Center">
-                                <TextBlock x:Name="ManualTitle" Style="{StaticResource RowTitle}"/>
-                                <TextBlock x:Name="ManualSub" Style="{StaticResource RowSub}"/>
-                            </StackPanel>
-                        </DockPanel>
-                    </Border>
-                    <TextBlock x:Name="ProgramsInfo" DockPanel.Dock="Bottom" Style="{StaticResource RowSub}" Margin="2,6,0,0"/>
-                    <Border Style="{StaticResource WizRow}" Margin="0" Padding="16,10">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto">
-                            <ItemsControl x:Name="ProgramList" ItemTemplate="{StaticResource ItemRow}"/>
-                        </ScrollViewer>
-                    </Border>
+                    <!-- Sayfa kendi içinde kayar: bileşen listesi açılınca program listesi sıkışıp kaybolmasın -->
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,6,0">
+                        <StackPanel>
+                            <!-- Visual C++, DirectX, .NET: programlardan önce kurulur -->
+                            <ItemsControl x:Name="EssentialsList" ItemTemplate="{StaticResource CategoryCard}" Margin="0,0,0,6"/>
+                            <DockPanel Margin="0,4,0,10">
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Button Content="Tümü" Style="{StaticResource SmallBtn}" Click="ProgramsAll_Click"/>
+                                    <Button Content="Hiçbiri" Style="{StaticResource SmallBtn}" Margin="0" Click="ProgramsNone_Click"/>
+                                </StackPanel>
+                                <Grid Width="260" HorizontalAlignment="Left">
+                                    <TextBox x:Name="ProgramSearch" Style="{StaticResource SearchBox}" Height="34" TextChanged="ProgramSearch_TextChanged"/>
+                                    <TextBlock Text="&#xE721;" FontFamily="{StaticResource Icons}" FontSize="12" Foreground="{DynamicResource Muted}"
+                                               IsHitTestVisible="False" VerticalAlignment="Center" Margin="11,0,0,0"/>
+                                    <TextBlock x:Name="ProgramSearchHint" Text="Ara…" Foreground="{DynamicResource Faint}" IsHitTestVisible="False"
+                                               VerticalAlignment="Center" Margin="33,0,0,0"/>
+                                </Grid>
+                            </DockPanel>
+                            <Border Style="{StaticResource WizRow}" Margin="0" Padding="16,10">
+                                <ScrollViewer MaxHeight="300" VerticalScrollBarVisibility="Auto">
+                                    <ItemsControl x:Name="ProgramList" ItemTemplate="{StaticResource ItemRow}"/>
+                                </ScrollViewer>
+                            </Border>
+                            <TextBlock x:Name="ProgramsInfo" Style="{StaticResource RowSub}" Margin="2,6,0,0"/>
+                            <Border x:Name="ManualCard" Style="{StaticResource WizRow}" Margin="0,8,0,0">
+                                <DockPanel>
+                                    <Button x:Name="ManualSaveBtn" DockPanel.Dock="Right" Content="Listeyi masaüstüne kaydet" Style="{StaticResource SmallBtn}" Margin="10,0,0,0"
+                                            VerticalAlignment="Center" Click="ManualSave_Click"/>
+                                    <TextBlock Style="{StaticResource RowIcon}" Text="&#xE7C3;"/>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock x:Name="ManualTitle" Style="{StaticResource RowTitle}"/>
+                                        <TextBlock x:Name="ManualSub" Style="{StaticResource RowSub}"/>
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
                 </DockPanel>
 
                 <!-- ═════ 4. Dosyalar ve kayıtlar ═════ -->
@@ -260,46 +305,7 @@
                                    Text="Her kategoriyi açıp içindekileri tek tek seçebilirsin. Programlardan sonra yüklenir; oyun kayıtları en sonda. Var olan dosyaların daha yenisi varsa üzerine yazılmaz."/>
                     </StackPanel>
                     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,6,0">
-                        <ItemsControl x:Name="CategoryList">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Style="{StaticResource WizRow}">
-                                        <StackPanel>
-                                            <DockPanel>
-                                                <CheckBox DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding IsChecked, Mode=OneWay}"
-                                                          IsEnabled="{Binding IsEnabled}" VerticalAlignment="Center" Click="Category_Click"/>
-                                                <Button DockPanel.Dock="Right" Content="{Binding ExpandText}" Style="{StaticResource GhostBtn}"
-                                                        Margin="0,0,10,0" VerticalAlignment="Center" Click="Expand_Click"/>
-                                                <TextBlock Style="{StaticResource RowIcon}" Text="{Binding Icon}"/>
-                                                <StackPanel VerticalAlignment="Center" Margin="0,0,12,0">
-                                                    <TextBlock Text="{Binding Title}" Style="{StaticResource RowTitle}"/>
-                                                    <TextBlock Text="{Binding Detail}" Style="{StaticResource RowSub}"/>
-                                                </StackPanel>
-                                            </DockPanel>
-                                            <!-- Uzun listeler sayfayı kaplamasın: sınırlı yükseklik, kendi içinde kaydırma; 10'dan uzunsa arama -->
-                                            <StackPanel Margin="34,10,0,0" Visibility="{Binding Expanded, Converter={StaticResource BoolVis}}">
-                                                <DockPanel Margin="0,0,0,6" Visibility="{Binding HasTools, Converter={StaticResource BoolVis}}">
-                                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                                                        <Button Content="Tümü" Style="{StaticResource SmallBtn}" Click="CategoryAll_Click"/>
-                                                        <Button Content="Hiçbiri" Style="{StaticResource SmallBtn}" Margin="0" Click="CategoryNone_Click"/>
-                                                    </StackPanel>
-                                                    <Grid Width="220" HorizontalAlignment="Left">
-                                                        <TextBox Style="{StaticResource SearchBox}" Height="32" Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}"/>
-                                                        <TextBlock Text="&#xE721;" FontFamily="{StaticResource Icons}" FontSize="12" Foreground="{DynamicResource Muted}"
-                                                                   IsHitTestVisible="False" VerticalAlignment="Center" Margin="11,0,0,0"/>
-                                                        <TextBlock Text="Ara…" Foreground="{DynamicResource Faint}" IsHitTestVisible="False" VerticalAlignment="Center"
-                                                                   Margin="33,0,0,0" Visibility="{Binding SearchEmpty, Converter={StaticResource BoolVis}}"/>
-                                                    </Grid>
-                                                </DockPanel>
-                                                <ScrollViewer MaxHeight="230" VerticalScrollBarVisibility="Auto">
-                                                    <ItemsControl ItemsSource="{Binding View}" ItemTemplate="{StaticResource ItemRow}"/>
-                                                </ScrollViewer>
-                                            </StackPanel>
-                                        </StackPanel>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                        <ItemsControl x:Name="CategoryList" ItemTemplate="{StaticResource CategoryCard}"/>
                     </ScrollViewer>
                 </DockPanel>
 

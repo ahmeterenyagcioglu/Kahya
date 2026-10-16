@@ -83,7 +83,8 @@ namespace Kahya
             {
                 _backupDrivers = await Task.Run(() => FormatBackup.Drivers());
                 foreach (var d in _backupDrivers) d.PropertyChanged += (s, e) => { if (e.PropertyName == nameof(BackupChoice.IsChecked)) UpdateBackupSummary(); };
-                BackupDriverList.ItemsSource = _backupDrivers;
+                // Ağ kartı sürücüleri listelenmez: sorulmadan her zaman yedeklenirler (altta not olarak yazar).
+                BackupDriverList.ItemsSource = _backupDrivers.Where(d => !IsNetworkDriver(d)).ToList();
             }
             catch (Exception ex)
             {
@@ -252,13 +253,15 @@ namespace Kahya
         {
             var drivers = _backupDrivers.Where(d => d.IsChecked || IsNetworkDriver(d)).ToList();
             int nets = _backupDrivers.Count(IsNetworkDriver);
-            BackupDriverInfo.Text = _backupDrivers.Count == 0 ? T("Üçüncü parti sürücü bulunamadı.")
-                : T("{0} sürücü paketi · {1} seçili ({2})", _backupDrivers.Count, drivers.Count, Format.Bytes(drivers.Sum(d => d.Size))) +
-                  (nets > 0 ? " · " + T("ağ kartı sürücüleri ({0}) her zaman yedeklenir", nets) : "");
+            var listed = _backupDrivers.Where(d => !IsNetworkDriver(d)).ToList();
+            BackupDriverInfo.Text = (_backupDrivers.Count == 0 ? T("Üçüncü parti sürücü bulunamadı.")
+                : T("{0} sürücü paketi · {1} seçili", listed.Count, listed.Count(d => d.IsChecked))) +
+                  (nets > 0 ? " · " + T("ağ kartı sürücüleri ({0}) ayrıca her zaman yedeklenir", nets) : "") +
+                  (drivers.Count > 0 ? " · " + T("toplam {0}", Format.Bytes(drivers.Sum(d => d.Size))) : "");
             var folders = _backupFolders.Where(f => f.IsChecked).ToList();
             long total = drivers.Sum(d => d.Size) + folders.Where(f => f.Size > 0).Sum(f => f.Size) + ExtrasSize();
             int risky = _backupFolders.Count(f => f.NeedsAttention && !f.IsChecked);
-            BackupSummary.Text = T("Yaklaşık {0} yer gerekecek", Format.Bytes(total)) +
+            BackupSummary.Text = T("Yaklaşık {0} veri yedeklenecek; paket sıkıştırılınca genelde daha küçük olur", Format.Bytes(total)) +
                                  (risky > 0 ? " · " + T("{0} kişisel klasör C: diskinde ve seçili değil", risky) : "");
         }
 
@@ -448,8 +451,8 @@ namespace Kahya
                 var text = manifest.ToText(ReadMe(done));
                 File.WriteAllText(Path.Combine(folder, BackupArchive.ManifestEntry), text, new UTF8Encoding(true));
 
-                SetStatus(T("Arşivleniyor…"));
-                Log("   " + T("Tek bir ZIP dosyasına arşivleniyor; büyük yedeklerde birkaç dakika sürebilir…"));
+                SetStatus(T("Yedek paketleniyor…"));
+                Log("   " + T("Yedek paketleniyor; büyük yedeklerde birkaç dakika sürebilir…"));
                 long before = FormatBackup.FolderSize(folder);
                 await Task.Run(() =>
                 {
