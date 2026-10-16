@@ -23,6 +23,9 @@ namespace Kahya.Core
         /// <summary>Yedek klasörüne göre yollar. Boşsa o parça yedekte yok.</summary>
         public string Programs, Wifi, ProductKey, Drivers, Fonts, Settings, Games, Bookmarks;
 
+        /// <summary>Windows ayarları klasörü (duvar kâğıdı, tema, görev çubuğu…).</summary>
+        public string WindowsSettings;
+
         /// <summary>Yedeğin sıkıştırılmış kısmı (yedek.7z / yedek.zip); sürücüler ve Wi-Fi bunun dışında durur.</summary>
         public string Archive;
 
@@ -48,7 +51,7 @@ namespace Kahya.Core
             return path;
         }
 
-        public bool IsEmpty => new[] { Programs, Wifi, ProductKey, Drivers, Fonts, Settings, Games, Bookmarks }.All(string.IsNullOrEmpty) && Folders.Count == 0;
+        public bool IsEmpty => new[] { Programs, Wifi, ProductKey, Drivers, Fonts, Settings, Games, Bookmarks, WindowsSettings }.All(string.IsNullOrEmpty) && Folders.Count == 0;
 
         public static string FileName(string computer) => FormatBackup.Safe(computer) + Extension;
 
@@ -77,6 +80,7 @@ namespace Kahya.Core
             W("Settings", Settings);
             W("Games", Games);
             W("Bookmarks", Bookmarks);
+            W("WindowsSettings", WindowsSettings);
             W("Archive", Archive);
             if (NetworkDrivers.Count > 0) W("NetworkDrivers", string.Join("|", NetworkDrivers));
             if (Folders.Count > 0)
@@ -126,6 +130,7 @@ namespace Kahya.Core
                         case "Settings": m.Settings = value; break;
                         case "Games": m.Games = value; break;
                         case "Bookmarks": m.Bookmarks = value; break;
+                        case "WindowsSettings": m.WindowsSettings = value; break;
                         case "Archive": m.Archive = value; break;
                         case "NetworkDrivers": m.NetworkDrivers.AddRange(value.Split('|').Where(x => x.Length > 0)); break;
                     }

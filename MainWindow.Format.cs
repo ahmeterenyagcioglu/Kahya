@@ -26,6 +26,7 @@ namespace Kahya
         string _productKey;
         bool _keyRevealed;
         string _backupTarget;
+        List<BitLockerVolume> _bitlocker = new List<BitLockerVolume>();
 
         // Format sonrası Windows'un kendisinin bulamayabileceği sürücüler (ekran kartı hariç: büyük, üreticiden yenisi indirilmeli).
         static readonly HashSet<string> ImportantDriverClasses = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
@@ -78,6 +79,7 @@ namespace Kahya
             _productKey = key.key;
             KeyNote.Text = key.note;
             ShowKey();
+            await LoadPreFormatAsync();
 
             try
             {
@@ -115,6 +117,28 @@ namespace Kahya
             UpdateBackupSummary();
             await apps;
         }
+
+        /// <summary>BitLocker durumu ve "formattan önce kontrol et" listesi (bu bilgisayarda kurulu olanlara göre).</summary>
+        async Task LoadPreFormatAsync()
+        {
+            try
+            {
+                _bitlocker = await Task.Run(() => PreFormat.BitLocker(new CleanContext(_ => { }, default)));
+                ChecklistList.ItemsSource = PreFormat.Checklist(_bitlocker);
+                ChecklistCard.Visibility = Visibility.Visible;
+                BitLockerRow.Visibility = _bitlocker.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+                bool keys = _bitlocker.All(v => v.Keys.Count > 0);
+                BitLockerInfo.Text = T("Şifreli: {0}", string.Join(", ", _bitlocker.Select(v => v.Drive))) + " · " +
+                    (keys ? T("Format sonrası bu diskler açılmazsa sorulan 48 haneli anahtar. Ayrıca telefonuna ya da kâğıda not al.")
+                          : T("Anahtarı okumak için Kahya'yı yönetici olarak aç."));
+            }
+            catch (Exception ex) { Log("! " + T("Format öncesi kontrol yapılamadı: {0}", ex.Message)); }
+        }
+
+        void FormatUsbMct_Click(object sender, RoutedEventArgs e) =>
+            OpenUrl(PreFormat.MediaCreationToolUrl(PreFormat.IsWindows11()));
+
+        void FormatUsbRufus_Click(object sender, RoutedEventArgs e) => OpenUrl("https://rufus.ie");
 
         /// <summary>Yer imleri, fontlar ve program ayarları (hızlı; sadece dosya ve kayıt okur).</summary>
         async Task LoadBackupExtrasAsync()
@@ -305,6 +329,8 @@ namespace Kahya
             var games = SkipCovered(_backupGames.Where(s => s.IsChecked), folders);
             bool apps = programs.Count > 0 || !_backupAppsLoaded, wifi = BackupWifiBox.IsChecked == true, key = BackupKeyBox.IsChecked == true;
             bool bookmarks = BackupBookmarksBox.IsChecked == true && BackupBookmarksBox.IsEnabled;
+            bool winSettings = BackupWinSettingsBox.IsChecked == true;
+            bool bitlocker = BackupBitLockerBox.IsChecked == true && _bitlocker.Count > 0;
             if (!apps && !wifi && !key && !bookmarks && drivers.Count == 0 && folders.Count == 0 && fonts.Count == 0 && settings.Count == 0 && games.Count == 0)
             {
                 Info(T("Önce yedeklenecek en az bir şey seç."));
@@ -375,6 +401,24 @@ namespace Kahya
                         (k ?? T("bulunamadı")) + Environment.NewLine + Environment.NewLine + note + Environment.NewLine, new UTF8Encoding(true));
                     manifest.ProductKey = T("urun-anahtari.txt");
                     done.Add(T("Ürün anahtarı"));
+                    Log("   ✔ " + done.Last());
+                }
+
+                if (bitlocker)
+                {
+                    // Anahtarlar yönetici olunca okunabilir; yedekleme anında tekrar okunur (sayfa açıkken yönetici olunmuş olabilir).
+                    var volumes = await Task.Run(() => PreFormat.BitLocker(ctx));
+                    PreFormat.SaveBitLocker(volumes, Path.Combine(folder, T("bitlocker-kurtarma-anahtari.txt")));
+                    done.Add(T("BitLocker kurtarma anahtarları ({0})", string.Join(", ", volumes.Select(v => v.Drive))));
+                    Log((volumes.All(v => v.Keys.Count > 0) ? "   ✔ " : "   ! ") + done.Last() +
+                        (volumes.All(v => v.Keys.Count > 0) ? "" : " · " + T("bazı anahtarlar okunamadı (yönetici gerekir)")));
+                }
+
+                if (winSettings)
+                {
+                    int n = await Task.Run(() => WindowsSettings.Save(Path.Combine(folder, T("windows-ayarlari"))));
+                    if (n > 0) manifest.WindowsSettings = T("windows-ayarlari");
+                    done.Add(T("Windows ayarları ({0} grup)", n));
                     Log("   ✔ " + done.Last());
                 }
 
@@ -462,6 +506,22 @@ namespace Kahya
                     BackupArchive.WriteComment(zip, BackupArchive.Summary(manifest));
                 });
                 Log("   ✔ " + T("Arşivlendi: {0} → {1}", Format.Bytes(before), Format.Bytes(new FileInfo(zip).Length)));
+
+                // Paket baştan sona bir kez okunur: bozuk USB ya da yarım yazma formattan önce fark edilsin.
+                SetStatus(T("Yedek doğrulanıyor…"));
+                Log("   " + T("Yedek doğrulanıyor (paket baştan sona okunuyor)…"));
+                var problems = await Task.Run(() => BackupArchive.Verify(zip, folder, ctx));
+                if (problems.Count == 0)
+                {
+                    Log("   ✔ " + T("Yedek doğrulandı: bütün dosyalar sağlam okunuyor."));
+                    done.Add(T("Doğrulandı ✔"));
+                }
+                else
+                {
+                    foreach (var pr in problems.Take(10)) Log("   ✖ " + pr);
+                    Log("! " + T("Doğrulamada {0} sorun bulundu.", problems.Count));
+                    Info(T("Yedek doğrulanırken {0} dosyada sorun bulundu (ayrıntılar işlem kaydında). Diskte ya da USB'de sorun olabilir; yedeği başka bir yere almayı dene.", problems.Count));
+                }
                 Log(T("Yedek tamamlandı: {0}", zip));
             }
             catch (OperationCanceledException)
@@ -484,7 +544,7 @@ namespace Kahya
                 ApplyBusy(false);
             }
 
-            if (Confirm(T("Yedek hazır:\n{0}\n\n{1}\n\nFormat sonrası: bu klasördeki Kahya.exe'yi aç; Format sonrası asistanı yedeği bulup her şeyi adım adım geri yükler.\n\nKlasör açılsın mı?",
+            if (Confirm(T("Yedek hazır:\n{0}\n\n{1}\n\nFormat sonrası: bu klasördeki Kahya.exe'yi aç; Format sonrası asistanı yedeği bulup her şeyi adım adım geri yükler.\nSıradaki adım: aşağıdaki 'Format USB'si hazırla' (yedeğin olduğu USB'yi kullanma).\n\nKlasör açılsın mı?",
                     output, string.Join("\n", done.Select(d => "• " + d)))))
                 try { Process.Start(new ProcessStartInfo(output) { UseShellExecute = true }); } catch { }
         }

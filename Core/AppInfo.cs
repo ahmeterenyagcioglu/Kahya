@@ -38,6 +38,11 @@ namespace Kahya.Core
         {
             new ReleaseNote
             {
+                Version = "1.5.0", Date = T("16 Ekim 2026"),
+                Notes = T("• Formattan önce kontrol listesi: tarayıcı şifreleri, OneDrive, iki adımlı doğrulama, Office/Adobe lisansları, oyun hesapları (bu bilgisayarda olanlara göre)\n• BitLocker ile şifreli disklerin kurtarma anahtarları yedeğe eklenir\n• Windows ayarları yedeklenir ve geri yüklenir: duvar kâğıdı, koyu/açık tema ve renkler, görev çubuğu, Gezgin, fare, klavye düzenleri\n• Yedek bitince doğrulanır: paket baştan sona okunur, bozuk USB ya da yarım kopya formattan önce fark edilir\n• Yeni kurulmuş bir Windows'ta yedek bulunursa format sonrası asistanı kendiliğinden önerilir\n• Format USB'si hazırlama: Microsoft'un Medya Oluşturma Aracı ya da Rufus tek tıkla"),
+            },
+            new ReleaseNote
+            {
                 Version = "1.4.0", Date = T("16 Ekim 2026"),
                 Notes = T("• Format sonrası asistanı, adım adım: yedeği kendisi bulur (bulamazsa manuel seçilir) → Wi-Fi ağlarını ekler, internet yoksa ağ sürücüsünü kurar → kurulacak programlar → dosyalar ve kayıtlar (her kategoride tek tek seçim) → ekran kartı → kurulum. Önce programlar kurulur, oyun kayıtları en sonda\n• winget'te olmayan programların listesi masaüstüne kaydedilebilir\n• Gerekli bileşenler tek tıkla: Visual C++ 2005–2022, DirectX, .NET 8/10 (asistanda ve Uygulamalar › Program kur'da)\n• Aynı yedek tekrar açılınca önceden geri yüklenenler \"geri yüklendi\" notuyla işaretsiz gelir\n• Asistan kapanırsa ya da Kahya yeniden başlarsa kaldığı yerden devam eder\n• Format yedeği artık bir .kahya paketi ve yanında Kahya.exe: soru yok; paketin kendi simgesi var, çift tıklayınca asistan açılır. İçi ZIP'tir, 7-Zip ve WinRAR açar\n• Her zaman yönetici olarak açılır (Windows bir kez izin sorar); Hakkında › Ayarlar'dan kapatılabilir\n• Gerçek ağ kartı (Wi-Fi/Ethernet) sürücüleri her zaman yedeklenir; Tailscale, VPN ve sanal makine kartları buna girmez (programları kurulunca gelirler)\n• Belgeler gibi klasörlerin boyutu yanlış hesaplanıyordu; düzeldi. Klasörlerin içinde kalan oyun/ayar klasörleri artık iki kez yedeklenmiyor\n• Visual C++, .NET gibi bileşenler program listesine girmiyor; zaten kurulu programlar asistanda kendiliğinden atlanır"),
             },
@@ -135,7 +140,7 @@ namespace Kahya.Core
         }
 
         /// <summary>Şu anki Windows'un kurulum tarihi ve (varsa) yükseltmelerden önceki ilk kurulum tarihi.</summary>
-        static (DateTime? current, DateTime? first) InstallDates()
+        public static (DateTime? current, DateTime? first) InstallDates()
         {
             DateTime? FromUnix(object v) =>
                 v is int i && i > 0 ? DateTimeOffset.FromUnixTimeSeconds((uint)i).LocalDateTime : (DateTime?)null;

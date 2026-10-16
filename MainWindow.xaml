@@ -1772,6 +1772,35 @@
                                 </DockPanel>
                             </Border>
 
+                            <!-- Yedeğe giremeyen ama formatta kaybolabilecekler: bu bilgisayara göre -->
+                            <Border x:Name="ChecklistCard" Style="{StaticResource ToolCard}" Visibility="Collapsed">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,4">
+                                        <TextBlock Style="{StaticResource CardIcon}" Text="&#xE73E;"/>
+                                        <TextBlock Text="Formattan önce kontrol et" Style="{StaticResource CardTitle}"/>
+                                    </DockPanel>
+                                    <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,10" TextWrapping="Wrap"
+                                               Text="Bunların bir kısmı yedeğe giremez; formattan önce bir bak, tamamladıkça işaretle."/>
+                                    <ItemsControl x:Name="ChecklistList">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Style="{StaticResource StaticRow}">
+                                                    <DockPanel>
+                                                        <CheckBox IsChecked="{Binding Done, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                                        <TextBlock Text="{Binding Icon}" FontFamily="{StaticResource Icons}" FontSize="16" Foreground="{DynamicResource AccentText}"
+                                                                   VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                                        <StackPanel>
+                                                            <TextBlock Text="{Binding Title}" Style="{StaticResource RowTitle}"/>
+                                                            <TextBlock Text="{Binding Detail}" Style="{StaticResource RowSub}" TextWrapping="Wrap" TextTrimming="None"/>
+                                                        </StackPanel>
+                                                    </DockPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+
                             <Border Style="{StaticResource ToolCard}">
                                 <StackPanel>
                                     <DockPanel Margin="0,0,0,8">
@@ -1817,6 +1846,25 @@
                                             <StackPanel>
                                                 <TextBlock Text="Tarayıcı yer imleri" Style="{StaticResource RowTitle}"/>
                                                 <TextBlock x:Name="BookmarkInfoText" Style="{StaticResource RowSub}" Text="okunuyor…"/>
+                                            </StackPanel>
+                                        </DockPanel>
+                                    </Border>
+                                    <Border Style="{StaticResource StaticRow}">
+                                        <DockPanel>
+                                            <CheckBox x:Name="BackupWinSettingsBox" IsChecked="True" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                            <StackPanel>
+                                                <TextBlock Text="Windows ayarları" Style="{StaticResource RowTitle}"/>
+                                                <TextBlock Style="{StaticResource RowSub}" TextWrapping="Wrap"
+                                                           Text="Duvar kâğıdı, koyu/açık tema ve renkler, görev çubuğu, Gezgin, fare hızı, klavye düzenleri"/>
+                                            </StackPanel>
+                                        </DockPanel>
+                                    </Border>
+                                    <Border x:Name="BitLockerRow" Style="{StaticResource StaticRow}" Visibility="Collapsed">
+                                        <DockPanel>
+                                            <CheckBox x:Name="BackupBitLockerBox" IsChecked="True" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                            <StackPanel>
+                                                <TextBlock Text="BitLocker kurtarma anahtarları" Style="{StaticResource RowTitle}"/>
+                                                <TextBlock x:Name="BitLockerInfo" Style="{StaticResource RowSub}" TextWrapping="Wrap"/>
                                             </StackPanel>
                                         </DockPanel>
                                     </Border>
@@ -2056,6 +2104,24 @@
                                         Click="BackupStart_Click"/>
                                 <TextBlock x:Name="BackupSummary" Style="{StaticResource Hint}" VerticalAlignment="Center" Margin="2,0,12,0"/>
                             </DockPanel>
+
+                            <!-- Yedekten sonraki adım: Windows'u kuracağın USB -->
+                            <Border Style="{StaticResource ToolCard}">
+                                <DockPanel>
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Button x:Name="FormatUsbBtn" Content="Medya Oluşturma Aracını aç" Style="{StaticResource SmallBtn}" Click="FormatUsbMct_Click"
+                                                ToolTip="Microsoft'un resmi aracı: Windows'u indirip USB'yi kendisi hazırlar."/>
+                                        <Button Content="Rufus" Style="{StaticResource SmallBtn}" Margin="0" Click="FormatUsbRufus_Click"
+                                                ToolTip="İleri seviye: elindeki bir ISO dosyasından USB hazırlar."/>
+                                    </StackPanel>
+                                    <TextBlock Style="{StaticResource CardIcon}" Text="&#xE88E;"/>
+                                    <StackPanel Margin="0,0,12,0">
+                                        <TextBlock Text="Format USB'si hazırla" Style="{StaticResource CardTitle}"/>
+                                        <TextBlock Style="{StaticResource Hint}" TextWrapping="Wrap" Margin="0,2,0,0"
+                                                   Text="Yedekten sonraki adım: Windows'u kuracağın USB. En az 8 GB olmalı ve içindekiler silinir; yedeğin olduğu USB'yi kullanma."/>
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
                         </StackPanel>
                     </ScrollViewer>
                 </TabItem>

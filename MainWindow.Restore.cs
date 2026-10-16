@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
 using Kahya.Core;
 using Microsoft.Win32;
@@ -29,6 +30,29 @@ namespace Kahya
             _wizard = new RestoreWizard(path, RestartAsAdmin) { Owner = IsVisible ? this : null };
             _wizard.Closed += (s, e) => { _wizard = null; _programsLoaded = false; };
             _wizard.Show();
+        }
+
+        /// <summary>
+        /// Yeni kurulmuş bir Windows'ta (3 günden yeni) açıldıysa ve takılı bir diskte yedek varsa asistanı önerir.
+        /// Her Windows kurulumu için bir kez sorar.
+        /// </summary>
+        async Task OfferRestoreOnNewWindowsAsync()
+        {
+            try
+            {
+                var (installed, _) = AppInfo.InstallDates();
+                if (installed == null || DateTime.Now - installed.Value > TimeSpan.FromDays(3)) return;
+                var stamp = installed.Value.ToString("s");
+                if (Settings.FreshOffered == stamp) return;
+                var found = await System.Threading.Tasks.Task.Run(() => RestoreRunner.FindBackups());
+                if (found.Count == 0) return;
+                Settings.FreshOffered = stamp;
+                SaveSettings();
+                var name = Path.GetFileNameWithoutExtension(found[0]);
+                if (Confirm(T("Yeni kurulmuş bir Windows'a hoş geldin! Bir Kahya yedeği bulundu:\n{0}\n\nFormat sonrası asistanı açılsın mı? Programlarını, dosyalarını ve ayarlarını adım adım geri yükler.", name)))
+                    OpenRestoreWizard(found[0]);
+            }
+            catch { }
         }
 
         /// <summary>Başka bir kopyadan (çift tıklanan .kahya) gelen istek varsa asistanı açar.</summary>

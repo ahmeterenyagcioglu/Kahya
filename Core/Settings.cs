@@ -79,6 +79,9 @@ namespace Kahya.Core
         /// </summary>
         public static bool AlwaysAdmin { get; set; } = true;
 
+        /// <summary>Yeni Windows'ta asistan önerildi (o kurulumun tarihi): aynı kurulumda bir daha sorulmaz.</summary>
+        public static string FreshOffered { get; set; }
+
         /// <summary>Format yedeğinin kaydedileceği klasör.</summary>
         public static string BackupTarget { get; set; }
 
@@ -141,6 +144,7 @@ namespace Kahya.Core
                         case "theme": Theme = value == "dark" || value == "light" ? value : "system"; break;
                         case "tray": TrayEnabled = value == "1"; break;
                         case "alwaysAdmin": AlwaysAdmin = value == "1"; break;
+                        case "freshOffered": FreshOffered = value.Length > 0 ? value : null; break;
                         case "backupTarget": BackupTarget = value.Length > 0 ? value : null; break;
                         case "maintUpdates": MaintenanceUpdates = value == "1"; break;
                         case "maintDrivers": MaintenanceDrivers = value == "1"; break;
@@ -214,6 +218,8 @@ namespace Kahya.Core
                     lines.Add("gpuDismissed=" + GpuDismissed);
                 if (BackupTarget != null)
                     lines.Add("backupTarget=" + BackupTarget);
+                if (FreshOffered != null)
+                    lines.Add("freshOffered=" + FreshOffered);
                 File.WriteAllLines(FilePath, lines);
             }
             catch { }

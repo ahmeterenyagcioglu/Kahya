@@ -160,6 +160,41 @@ namespace Kahya.Core
             return null;
         }
 
+        /// <summary>
+        /// Paketi baştan sona okur: her girdi açılıp sonuna kadar okunur (bozuk sıkıştırma hata verir) ve boyutu
+        /// yedeklenen dosyanınkiyle karşılaştırılır. Sorunları döndürür; boşsa paket sağlam.
+        /// </summary>
+        public static List<string> Verify(string zipPath, string sourceFolder, CleanContext ctx)
+        {
+            var problems = new List<string>();
+            var buffer = new byte[1 << 16];
+            using (var zip = ZipFile.Open(zipPath, ZipArchiveMode.Read, new UTF8Encoding(false)))
+            {
+                var entries = zip.Entries.Where(e => !e.FullName.EndsWith("/")).ToList();
+                long total = Math.Max(1, entries.Sum(e => e.Length)), done = 0;
+                int lastPercent = -1;
+                foreach (var e in entries)
+                {
+                    ctx.Token.ThrowIfCancellationRequested();
+                    try
+                    {
+                        long read = 0;
+                        using (var s = e.Open())
+                            for (int n; (n = s.Read(buffer, 0, buffer.Length)) > 0;) read += n;
+                        if (read != e.Length) problems.Add(T("{0}: eksik okundu", e.FullName));
+                        var source = Path.Combine(sourceFolder, e.FullName.Replace('/', '\\'));
+                        if (File.Exists(source) && new FileInfo(source).Length != e.Length)
+                            problems.Add(T("{0}: boyutu asıl dosyayla uyuşmuyor", e.FullName));
+                    }
+                    catch (Exception ex) { problems.Add(e.FullName + ": " + ex.Message); }
+                    done += e.Length;
+                    int percent = (int)(done * 100 / total);
+                    if (percent != lastPercent) { lastPercent = percent; ctx.Progress?.Invoke(T("Yedek doğrulanıyor… %{0}", percent)); }
+                }
+            }
+            return problems;
+        }
+
         // ───────────── okuma ─────────────
 
         /// <summary>Yedekteki göreli yol, ZIP girdisi biçiminde (ileri eğik çizgi, sonda '/').</summary>

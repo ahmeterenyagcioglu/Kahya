@@ -399,7 +399,8 @@ namespace Kahya
 
         static string CategoryUnit(string kind) =>
             kind == "drivers" ? RestoreRunner.Unit.Drivers : kind == "fonts" ? RestoreRunner.Unit.Fonts :
-            kind == "settings" ? RestoreRunner.Unit.Settings : kind == "games" ? RestoreRunner.Unit.Games : kind;
+            kind == "settings" ? RestoreRunner.Unit.Settings : kind == "games" ? RestoreRunner.Unit.Games :
+            kind == "winsettings" ? RestoreRunner.Unit.WinSettings : kind;
 
         // ───────────── 2. internet ve Wi-Fi ─────────────
 
@@ -574,6 +575,18 @@ namespace Kahya
                 foreach (var f in folders) Item(c, f.Key, T(RestoreRunner.FolderTitle(f.Key)), _src.Size(f.Value));
             }
 
+            if (_src.Has(m.WindowsSettings))
+            {
+                var lines = _src.ReadLines(m.WindowsSettings + "\\" + WindowsSettings.File, ctx);
+                bool wallpaper = _src.Files(m.WindowsSettings, ctx).Any(f => f.name.StartsWith("duvar-kagidi", StringComparison.OrdinalIgnoreCase));
+                var groups = WindowsSettings.GroupsIn(lines, wallpaper);
+                if (groups.Count > 0)
+                {
+                    var c = Cat("winsettings", "\uE771", T("Windows ayarları"), T("görev çubuğu ve klavye oturumu kapatıp açınca tam uygulanır"));
+                    foreach (var g in groups) Item(c, g, WindowsSettings.GroupName(g), -1);
+                }
+            }
+
             // Programlar: başka programların getirdiği bileşenler (Visual C++, .NET…) listelenmez; winget'te olmayanlar sayılır.
             List<ProgramEntry> all = null;
             if (m.Programs != null)
@@ -742,6 +755,7 @@ namespace Kahya
                           .GroupBy(p => p.Id, StringComparer.OrdinalIgnoreCase).Select(g => g.First()).ToList(),
             SettingsIds = Picked("settings"),
             GameIds = Picked("games"),
+            WinSettingsIds = Picked("winsettings"),
             Done = _state != null ? new HashSet<string>(_state.Done, StringComparer.OrdinalIgnoreCase) : new HashSet<string>(StringComparer.OrdinalIgnoreCase),
         };
 
@@ -830,6 +844,7 @@ namespace Kahya
                     case RestoreRunner.Unit.Fonts: return options.FontFiles.Select(k => "fonts|" + k);
                     case RestoreRunner.Unit.Settings: return options.SettingsIds.Select(k => "settings|" + k);
                     case RestoreRunner.Unit.Games: return options.GameIds.Select(k => "games|" + k);
+                    case RestoreRunner.Unit.WinSettings: return options.WinSettingsIds.Select(k => "winsettings|" + k);
                     default: return Enumerable.Empty<string>();
                 }
             }
@@ -935,7 +950,7 @@ namespace Kahya
                     break;
                 case PFiles:
                     var o = Options();
-                    if (o.DriverFolders.Count == 0 && o.FontFiles.Count == 0 && o.FolderKeys.Count == 0 && o.Programs.Count == 0 && o.SettingsIds.Count == 0 && o.GameIds.Count == 0)
+                    if (o.DriverFolders.Count == 0 && o.FontFiles.Count == 0 && o.FolderKeys.Count == 0 && o.Programs.Count == 0 && o.SettingsIds.Count == 0 && o.GameIds.Count == 0 && o.WinSettingsIds.Count == 0)
                     {
                         MessageBox.Show(this, T("Önce geri yüklenecek en az bir şey seç."), "Kahya", MessageBoxButton.OK, MessageBoxImage.Information);
                         return;

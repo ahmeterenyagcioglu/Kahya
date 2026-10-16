@@ -65,6 +65,8 @@ Format atmadan önce tek ekrandan yedek:
 - Masaüstü, Belgeler, İndirilenler gibi kişisel klasörler
 - Tarayıcı yer imleri, sonradan kurulan fontlar
 - Program ayarları (Premiere, Photoshop, Lightroom, CapCut, OBS…)
+- **Windows ayarları:** duvar kâğıdı, koyu/açık tema ve renkler, görev çubuğu, Gezgin, fare hızı, klavye düzenleri
+- **BitLocker kurtarma anahtarları** (şifreli disk varsa; okumak için yönetici gerekir)
 - 🎮 **Oyun kayıtları:** Minecraft dünyaları, modları, kaynak ve gölgelendirici paketleri (CurseForge, Prism,
   Modrinth ve Bedrock dahil), Steam kayıtları, Unreal Engine (Epic) oyunları, Ubisoft Connect, Rockstar, Kayıtlı Oyunlar,
   My Games ve Unity oyunları. Oyunun kendisi yedeklenmez, sadece senin kayıtların. Bilinen yerlere bakılır; kaydını
@@ -77,8 +79,17 @@ açıklamasına yazılır, Kahya yedeği açmadan tanır. Wi-Fi ve Ethernet kart
 kalırsan ilk onlar lazım. Tailscale, VPN ve sanal makine programlarının sanal ağ kartları buna girmez; onları programın
 kendisi kurar. Belgeler gibi seçili bir klasörün içinde kalan oyun ve ayar klasörleri iki kez kopyalanmaz.
 
+Yedek bitince **doğrulanır**: paket baştan sona bir kez okunur, bozuk bir USB ya da yarım kalmış bir kopya formattan önce
+fark edilir.
+
+Sayfanın üstündeki **Formattan önce kontrol et** listesi yedeğe giremeyen ama formatta kaybolabilecekleri hatırlatır:
+tarayıcı şifreleri, OneDrive'da yüklenmeyi bekleyen dosyalar, iki adımlı doğrulama, Office/Adobe lisansları, oyun ve sohbet
+hesapları. Liste bu bilgisayarda kurulu olanlara göre oluşur. Altta **Format USB'si hazırla** Microsoft'un Medya Oluşturma
+Aracını (ya da Rufus'u) açar.
+
 ### 🧭 Format sonrası asistanı
-Format sonrası yedek klasöründeki `Kahya.exe`'yi aç, **Format yardımcısı › Asistanı başlat** de. Kurulum sihirbazı gibi
+Format sonrası yedek klasöründeki `Kahya.exe`'yi aç: yeni kurulmuş bir Windows'ta yedeği görünce asistanı kendisi önerir
+(ya da **Format yardımcısı › Asistanı başlat**). Kurulum sihirbazı gibi
 adım adım ilerler:
 
 1. **Yedek:** yanındaki ya da USB bellek / ikinci diskteki yedeği kendisi bulur; bulamazsa **Manuel olarak seç**.
@@ -87,8 +98,8 @@ adım adım ilerler:
 3. **Programlar:** önce **gerekli bileşenler** (Visual C++ 2005–2022, DirectX, .NET 8/10; tek tıkla, programlardan önce
    kurulur), sonra kurulacak programlar (arama, Tümü/Hiçbiri). Zaten kurulu olanlar kendiliğinden atlanır. winget'te
    olmayanların listesi tek tıkla masaüstüne kaydedilir.
-4. **Dosyalar ve kayıtlar:** sürücü paketleri, fontlar, kişisel klasörler, program ayarları ve oyun kayıtları; her kategoriyi
-   açıp içindekileri tek tek seçersin (uzun listelerde arama var).
+4. **Dosyalar ve kayıtlar:** sürücü paketleri, fontlar, kişisel klasörler, Windows ayarları, program ayarları ve oyun
+   kayıtları; her kategoriyi açıp içindekileri tek tek seçersin (uzun listelerde arama var).
 5. **Ekran kartı:** Windows'un genel sürücüsü mü kullanılıyor, yeni sürücü var mı bakar; üreticinin sayfasını açar.
 6. **Kurulum:** önce programlar, sonra sürücüler, fontlar, kişisel klasörler, program ayarları; oyun kayıtları en sonda.
    Var olan daha yeni dosyaların üzerine yazılmaz.

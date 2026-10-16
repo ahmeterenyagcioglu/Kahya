@@ -72,6 +72,8 @@ namespace Kahya
                 // Yarıda kalmış bir geri yükleme varsa da açılır (asistan "kaldığın yerden devam et" der).
                 if (App.StartWizard || RestoreState.Load() != null)
                     OpenRestoreWizard(App.StartRestore);
+                else
+                    _ = OfferRestoreOnNewWindowsAsync();
                 _ = CheckAppUpdateAsync(silent: true);
                 _ = CheckGpuAsync(silent: true);
                 var analyze = AnalyzeAsync();

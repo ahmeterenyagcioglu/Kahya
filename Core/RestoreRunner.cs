@@ -20,6 +20,8 @@ namespace Kahya.Core
         public List<ProgramEntry> Programs = new List<ProgramEntry>();
         /// <summary>Geri yüklenecek program ayarlarının ve oyun kayıtlarının kimlikleri (ayarlar.txt'deki ilk sütun).</summary>
         public List<string> SettingsIds = new List<string>(), GameIds = new List<string>();
+        /// <summary>Geri yüklenecek Windows ayarı grupları (wallpaper, theme, taskbar…).</summary>
+        public List<string> WinSettingsIds = new List<string>();
         /// <summary>Daha önce bitmiş birimler (kaldığı yerden devam): atlanır.</summary>
         public HashSet<string> Done = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
     }
@@ -42,7 +44,7 @@ namespace Kahya.Core
         /// <summary>Kaldığı yerden devam için birim adları.</summary>
         public static class Unit
         {
-            public const string Drivers = "drivers", Fonts = "fonts", Settings = "settings", Games = "games";
+            public const string Drivers = "drivers", Fonts = "fonts", Settings = "settings", Games = "games", WinSettings = "winsettings";
             public static string Folder(string key) => "folder:" + key;
             public static string Program(string id) => "program:" + id;
         }
@@ -101,6 +103,9 @@ namespace Kahya.Core
                 if (dest == null || !m.Folders.TryGetValue(key, out var rel) || !src.Has(rel)) continue;
                 Step(Unit.Folder(key), T(FolderTitle(key)), () => FormatBackup.RestoreFolder(src.Local(rel, ctx), dest, ctx));
             }
+            if (o.WinSettingsIds.Count > 0 && src.Has(m.WindowsSettings))
+                Step(Unit.WinSettings, T("Windows ayarları ({0})", o.WinSettingsIds.Count),
+                    () => WindowsSettings.Restore(src.Local(m.WindowsSettings, ctx), o.WinSettingsIds, ctx) > 0);
             if (o.SettingsIds.Count > 0 && src.Has(m.Settings))
                 Step(Unit.Settings, T("Program ayarları ({0})", o.SettingsIds.Count),
                     () => FormatExtras.RestoreAppSettings(LocalSettings(src, m.Settings, o.SettingsIds, ctx), ctx, o.SettingsIds) > 0);
