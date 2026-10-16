@@ -36,7 +36,10 @@ namespace Kahya.Core
             if (need > free)
                 throw new IOException(T("Hedefte yeterli yer yok: {0} gerekiyor, {1} boş.", Format.Bytes(need), Format.Bytes(free)));
 
-            var name = FormatBackup.Safe($"Kahya-Yedek-{Environment.MachineName}-{DateTime.Now:yyyy-MM-dd_HHmm}") + Suffix;
+            var stem = FormatBackup.Safe($"Kahya-Yedek-{Environment.MachineName}-{DateTime.Now:yyyy-MM-dd_HHmm}");
+            var name = stem + Suffix;
+            // Aynı dakikada ikinci yedek (ör. "Şimdi al" iki kez): öncekinin üzerine yazılmasın, hata olursa o silinmesin.
+            for (int i = 2; Directory.Exists(Path.Combine(target, name)); i++) name = $"{stem}-{i}{Suffix}";
             var output = Path.Combine(target, name);
             var zip = Path.Combine(output, name + BackupArchive.PackageExtension);
             var folder = Path.Combine(output, ".gecici");

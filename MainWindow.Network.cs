@@ -36,7 +36,7 @@ namespace Kahya
             try
             {
                 int n = NetworkTools.ActiveEntries(NetworkTools.ReadHosts());
-                HostsInfo.Text = n == 0 ? T("Etkin satır yok (Windows varsayılanı)") : T("{0} etkin satır · siteleri engeller ya da yönlendirir", n);
+                HostsInfo.Text = n == 0 ? T("Etkin satır yok") : T("{0} etkin satır", n);
             }
             catch (Exception ex) { HostsInfo.Text = T("Okunamadı: {0}", ex.Message); }
         }

@@ -1910,4 +1910,5 @@
   <t tr="Kahya otomatik yedeği — {0} · {1:dd.MM.yyyy HH:mm}">Kahya automatic backup — {0} · {1:dd.MM.yyyy HH:mm}</t>
   <t tr="Tek bir dosyayı geri almak için: Kahya › Format yardımcısı › Yedeğe göz at. Format sonrası hepsini geri yüklemek için yanındaki Kahya.exe'yi aç.">To restore a single file: Kahya › Reinstall helper › Browse backup. To restore everything after a reinstall, open the Kahya.exe next to it.</t>
   <t tr="Kahya olmadan: uzantıyı .zip yapıp açabilirsin; kişisel dosyalar 'klasorler' içinde.">Without Kahya: rename the extension to .zip and open it; personal files are in 'klasorler'.</t>
+  <t tr="Şifre sayfasının adresi panoya kopyalandı:\n\n{0}\n\nTamam'a basınca tarayıcı açılır. Sayfa kendiliğinden açılmazsa adres çubuğuna yapıştırıp (Ctrl+V) Enter'a bas, sonra Dışa aktar'ı seç.">The password page address was copied to the clipboard:\n\n{0}\n\nThe browser opens when you press OK. If the page doesn't open by itself, paste it into the address bar (Ctrl+V), press Enter, then choose Export.</t>
 </language>

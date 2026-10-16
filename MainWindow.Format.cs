@@ -119,11 +119,23 @@ namespace Kahya
             await apps;
         }
 
-        /// <summary>Kontrol listesindeki düğme: ör. tarayıcının şifre sayfası (iç adresler yalnızca tarayıcıya argümanla verilince açılır).</summary>
+        /// <summary>
+        /// Kontrol listesindeki düğme: tarayıcının şifre sayfası. Chrome ve Edge iç adreslerini (edge://…) dışarıdan
+        /// açmaz, boş sekme açar; bu yüzden tarayıcı açılır, adres panoya kopyalanır ve yapıştırması söylenir.
+        /// </summary>
         void CheckAction_Click(object sender, RoutedEventArgs e)
         {
             if (!((sender as FrameworkElement)?.DataContext is CheckAction a)) return;
-            try { Process.Start(new ProcessStartInfo(a.Exe, a.Args) { UseShellExecute = false }); }
+            try
+            {
+                // Açıklama tarayıcıdan önce: tarayıcı açılınca öne geçer, sonra çıkan pencere arkasında kalırdı.
+                if (!string.IsNullOrEmpty(a.Args))
+                {
+                    try { Clipboard.SetText(a.Args); } catch { }
+                    Info(T("Şifre sayfasının adresi panoya kopyalandı:\n\n{0}\n\nTamam'a basınca tarayıcı açılır. Sayfa kendiliğinden açılmazsa adres çubuğuna yapıştırıp (Ctrl+V) Enter'a bas, sonra Dışa aktar'ı seç.", a.Args));
+                }
+                Process.Start(new ProcessStartInfo(a.Exe, a.Args) { UseShellExecute = false });
+            }
             catch (Exception ex) { Log("! " + T("{0} açılamadı: {1}", a.Label, ex.Message)); }
         }
 

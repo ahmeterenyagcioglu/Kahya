@@ -48,7 +48,9 @@ Get-NetAdapter -Physical -ErrorAction SilentlyContinue | Where-Object Status -eq
             {
                 var p = line.Split('\t');
                 if (p.Length < 2 || p[0].Length == 0) continue;
-                var servers = p[1].Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                // Değerin sonunda boşluk ya da NUL dolgusu olabiliyor; yalnızca adres karakterleri alınır.
+                var servers = System.Text.RegularExpressions.Regex.Matches(p[1], @"[0-9A-Fa-f:.]+").Cast<System.Text.RegularExpressions.Match>()
+                    .Select(m => m.Value).Where(v => v.Contains('.') || v.Contains(':')).ToList();
                 list.Add((p[0], servers));
             }
             return list;
