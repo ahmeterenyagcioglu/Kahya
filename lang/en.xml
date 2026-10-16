@@ -1955,4 +1955,15 @@
   <t tr="Pencere Öğeleri düğmesi">Widgets button</t>
   <t tr="Sohbet düğmesi">Chat button</t>
   <t tr="Görev çubuğu hizalaması">Taskbar alignment</t>
+  <t tr="Wi-Fi şifreleri, DNS ve ağ araçları">Wi-Fi passwords, DNS and network tools</t>
+  <t tr="Onarım araçları ve geri yükleme noktaları">Repair tools and restore points</t>
+  <t tr="QR">QR</t>
+  <t tr="Telefon kamerasıyla okutunca ağa bağlanır">Scanning it with a phone camera connects to the network</t>
+  <t tr="şifresiz ya da okunamadı">no password or couldn't read</t>
+  <t tr="Kayıtlı Wi-Fi ağı yok.">No saved Wi-Fi networks.</t>
+  <t tr="Bazı şifreleri görmek için Kahya'yı yönetici olarak aç.">Open Kahya as administrator to see some passwords.</t>
+  <t tr="Misafire şifreyi söylemek yerine QR'ı telefonuyla okutsun.">Instead of telling guests the password, let them scan the QR.</t>
+  <t tr="{0} şifresi kopyalandı.">{0} password copied.</t>
+  <t tr="Telefon kamerasıyla okut, dokununca bağlanır.">Scan it with a phone camera and tap to connect.</t>
+  <t tr="Wi-Fi paylaş">Share Wi-Fi</t>
 </language>

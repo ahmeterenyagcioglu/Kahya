@@ -172,3 +172,40 @@ namespace Kahya.Tests
         }
     }
 }
+
+namespace Kahya.Tests
+{
+    public class QrTests
+    {
+        [Fact] // Standart örnek: "HELLO WORLD", sürüm 1-M veri kod sözcükleri → bilinen 10 düzeltme sözcüğü.
+        public void Reed_solomon_matches_known_vector()
+        {
+            var data = new byte[] { 32, 91, 11, 120, 209, 114, 220, 77, 67, 64, 236, 17, 236, 17, 236, 17 };
+            var ecc = QrCode.RsRemainder(data, QrCode.RsDivisorFor(10));
+            Assert.Equal(new byte[] { 196, 35, 39, 119, 235, 215, 231, 226, 93, 23 }, ecc);
+        }
+
+        [Theory] // Standart tablo: M seviyesi, maske 0-7.
+        [InlineData(0, 0x5412)] [InlineData(1, 0x5125)] [InlineData(2, 0x5E7C)] [InlineData(3, 0x5B4B)]
+        [InlineData(4, 0x45F9)] [InlineData(5, 0x40CE)] [InlineData(6, 0x4F97)] [InlineData(7, 0x4AA0)]
+        public void Format_bits_match_table(int mask, int expected)
+        {
+            Assert.Equal(expected, QrCode.FormatBits(mask));
+        }
+
+        [Theory]
+        [InlineData("WIFI:T:WPA;S:Ev;P:12345678;;", 29)] // 28 bayt: sürüm 3-M (en fazla 42)
+        [InlineData(@"WIFI:T:WPA;S:TurkTelekom_TP9CA4_2.4GHz;P:çok\;uzun\;şifre-1234567890;;", 37)] // 72 bayt: sürüm 5-M (en fazla 84)
+        public void Picks_smallest_version(string text, int size)
+        {
+            Assert.Equal(size, QrCode.Encode(text).Size);
+        }
+
+        [Fact]
+        public void Wifi_text_escapes_special_characters()
+        {
+            Assert.Equal(@"WIFI:T:WPA;S:a\;b;P:p\:q;;", QrCode.WifiText("a;b", "p:q"));
+            Assert.Equal("WIFI:T:nopass;S:Misafir;;", QrCode.WifiText("Misafir", null));
+        }
+    }
+}

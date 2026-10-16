@@ -2272,95 +2272,6 @@
                                 </StackPanel>
                             </Border>
 
-                            <Border Style="{StaticResource ToolCard}" Padding="18,16,10,8">
-                                <StackPanel>
-                                    <DockPanel Margin="0,0,0,12">
-                                        <TextBlock Style="{StaticResource CardIcon}" Text="&#xE968;"/>
-                                        <TextBlock Text="Ağ araçları" Style="{StaticResource CardTitle}"/>
-                                        <TextBlock Text="Siteler açılmıyorsa sırayla dene" Style="{StaticResource Hint}" VerticalAlignment="Center" Margin="12,0,0,0"/>
-                                    </DockPanel>
-                                    <UniformGrid Columns="3">
-                                        <Border Style="{StaticResource ActionRow}">
-                                            <DockPanel>
-                                                <Button DockPanel.Dock="Right" Content="Çalıştır" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" Tag="dns" Click="Network_Click" VerticalAlignment="Center"/>
-                                                <StackPanel ToolTip="ipconfig /flushdns — eski/bozuk alan adı kayıtlarını siler. Bağlantı kopmaz.">
-                                                    <TextBlock Text="DNS'i temizle" Style="{StaticResource RowTitle}"/>
-                                                    <TextBlock Text="Bağlantı kopmaz" Style="{StaticResource RowSub}"/>
-                                                </StackPanel>
-                                            </DockPanel>
-                                        </Border>
-                                        <Border Style="{StaticResource ActionRow}">
-                                            <DockPanel>
-                                                <Button DockPanel.Dock="Right" Content="Çalıştır" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" Tag="renew" c:Elevation.Required="True" Click="Network_Click" VerticalAlignment="Center"/>
-                                                <StackPanel ToolTip="ipconfig /release + /renew — modemden yeni adres alır. İnternet birkaç saniye kopar.">
-                                                    <TextBlock Text="IP'yi yenile" Style="{StaticResource RowTitle}"/>
-                                                    <TextBlock Text="Birkaç saniye kopar" Style="{StaticResource RowSub}"/>
-                                                </StackPanel>
-                                            </DockPanel>
-                                        </Border>
-                                        <Border Style="{StaticResource ActionRow}">
-                                            <DockPanel>
-                                                <Button DockPanel.Dock="Right" Content="Çalıştır" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" Tag="reset" c:Elevation.Required="True" Click="Network_Click" VerticalAlignment="Center"/>
-                                                <StackPanel ToolTip="netsh winsock reset + int ip reset — bozulmuş ağ yığınını varsayılana döndürür. Yeniden başlatma gerekir; elle girilmiş sabit IP ayarları silinir.">
-                                                    <TextBlock Text="Ağı sıfırla" Style="{StaticResource RowTitle}"/>
-                                                    <TextBlock Text="Yeniden başlatma ister" Style="{StaticResource RowSub}"/>
-                                                </StackPanel>
-                                            </DockPanel>
-                                        </Border>
-                                    </UniformGrid>
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Border Grid.ColumnSpan="2" Style="{StaticResource ActionRow}">
-                                            <StackPanel>
-                                                <DockPanel>
-                                                    <Button DockPanel.Dock="Right" Content="&#xE72C;" Style="{StaticResource IconBtn}" Click="NetworkRefresh_Click" ToolTip="Yenile"
-                                                            VerticalAlignment="Center"/>
-                                                    <StackPanel VerticalAlignment="Center"
-                                                                ToolTip="Site adlarını adrese çeviren sunucu. Değiştirmek bazı sitelerin daha hızlı açılmasını ya da reklamların engellenmesini sağlayabilir; sorun olursa Otomatik'e dön.">
-                                                        <TextBlock Text="DNS sunucusu" Style="{StaticResource RowTitle}"/>
-                                                        <TextBlock x:Name="DnsInfo" Style="{StaticResource RowSub}" TextTrimming="CharacterEllipsis"/>
-                                                    </StackPanel>
-                                                </DockPanel>
-                                                <Border Style="{StaticResource SegBar}" Background="{DynamicResource Card}" HorizontalAlignment="Left" Margin="0,8,0,0">
-                                                    <WrapPanel x:Name="DnsPanel"/>
-                                                </Border>
-                                                <Grid x:Name="CustomDnsPanel" Margin="0,10,0,0" Visibility="Collapsed">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="Birincil" Style="{StaticResource RowSub}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                                    <TextBox x:Name="DnsPrimaryBox" Grid.Column="1" Style="{StaticResource SearchBox}" Background="{DynamicResource Card}" Padding="10,6"
-                                                             FontFamily="Cascadia Mono, Consolas" KeyDown="CustomDns_KeyDown"/>
-                                                    <TextBlock Grid.Column="2" Text="İkincil" Style="{StaticResource RowSub}" VerticalAlignment="Center" Margin="14,0,8,0"/>
-                                                    <TextBox x:Name="DnsSecondaryBox" Grid.Column="3" Style="{StaticResource SearchBox}" Background="{DynamicResource Card}" Padding="10,6"
-                                                             FontFamily="Cascadia Mono, Consolas" KeyDown="CustomDns_KeyDown"
-                                                             ToolTip="İsteğe bağlı. Birincil yanıt vermezse kullanılır."/>
-                                                    <Button Grid.Column="4" Content="Uygula" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" c:Elevation.Required="True"
-                                                            VerticalAlignment="Center" Click="CustomDnsApply_Click"/>
-                                                </Grid>
-                                            </StackPanel>
-                                        </Border>
-                                        <Border Grid.Column="2" Style="{StaticResource ActionRow}">
-                                            <DockPanel VerticalAlignment="Top">
-                                                <Button DockPanel.Dock="Right" Content="Düzenle…" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" c:Elevation.Required="True"
-                                                        VerticalAlignment="Center" Click="HostsEdit_Click"/>
-                                                <StackPanel ToolTip="Adları elle bir adrese yönlendiren dosya (C:\Windows\System32\drivers\etc\hosts). Siteleri engellemek için kullanılır; kötü amaçlı yazılımlar da değiştirebilir.">
-                                                    <TextBlock Text="hosts dosyası" Style="{StaticResource RowTitle}"/>
-                                                    <TextBlock x:Name="HostsInfo" Style="{StaticResource RowSub}"/>
-                                                </StackPanel>
-                                            </DockPanel>
-                                        </Border>
-                                    </Grid>
-                                </StackPanel>
-                            </Border>
                         </StackPanel>
                     </ScrollViewer>
                 </TabItem>
@@ -2498,6 +2409,137 @@
                                                    Text="En az 8 GB, içi silinir; yedeğin olduğu USB'yi kullanma."/>
                                     </StackPanel>
                                 </DockPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <TabItem x:Name="NetTab">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,8,0">
+                        <StackPanel>
+                            <Border Style="{StaticResource ToolCard}">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,10">
+                                        <Button DockPanel.Dock="Right" Content="&#xE72C;" Style="{StaticResource IconBtn}" Click="WifiRefresh_Click" ToolTip="Yenile"/>
+                                        <TextBlock Style="{StaticResource CardIcon}" Text="&#xE701;"/>
+                                        <TextBlock Text="Kayıtlı Wi-Fi ağları" Style="{StaticResource CardTitle}"/>
+                                    </DockPanel>
+                                    <TextBlock x:Name="WifiInfo" Style="{StaticResource Hint}" Margin="0,0,0,8"/>
+                                    <ItemsControl x:Name="WifiList">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Style="{StaticResource StaticRow}">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="{Binding Name}" Style="{StaticResource RowTitle}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                                        <TextBlock Grid.Column="1" Text="{Binding Shown}" FontFamily="Cascadia Mono, Consolas" Foreground="{DynamicResource Muted}"
+                                                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="12,0"/>
+                                                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                                            <Button Content="{Binding RevealLabel}" Style="{StaticResource SmallBtn}" Click="WifiReveal_Click" IsEnabled="{Binding HasPassword}"/>
+                                                            <Button Content="Kopyala" Style="{StaticResource SmallBtn}" Click="WifiCopy_Click" IsEnabled="{Binding HasPassword}"/>
+                                                            <Button Content="QR" Style="{StaticResource SmallBtn}" Margin="0" Click="WifiQr_Click"
+                                                                    ToolTip="Telefon kamerasıyla okutunca ağa bağlanır"/>
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource ToolCard}" Padding="18,16,10,8">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,12">
+                                        <TextBlock Style="{StaticResource CardIcon}" Text="&#xE968;"/>
+                                        <TextBlock Text="Ağ araçları" Style="{StaticResource CardTitle}"/>
+                                        <TextBlock Text="Siteler açılmıyorsa sırayla dene" Style="{StaticResource Hint}" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                    </DockPanel>
+                                    <UniformGrid Columns="3">
+                                        <Border Style="{StaticResource ActionRow}">
+                                            <DockPanel>
+                                                <Button DockPanel.Dock="Right" Content="Çalıştır" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" Tag="dns" Click="Network_Click" VerticalAlignment="Center"/>
+                                                <StackPanel ToolTip="ipconfig /flushdns — eski/bozuk alan adı kayıtlarını siler. Bağlantı kopmaz.">
+                                                    <TextBlock Text="DNS'i temizle" Style="{StaticResource RowTitle}"/>
+                                                    <TextBlock Text="Bağlantı kopmaz" Style="{StaticResource RowSub}"/>
+                                                </StackPanel>
+                                            </DockPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource ActionRow}">
+                                            <DockPanel>
+                                                <Button DockPanel.Dock="Right" Content="Çalıştır" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" Tag="renew" c:Elevation.Required="True" Click="Network_Click" VerticalAlignment="Center"/>
+                                                <StackPanel ToolTip="ipconfig /release + /renew — modemden yeni adres alır. İnternet birkaç saniye kopar.">
+                                                    <TextBlock Text="IP'yi yenile" Style="{StaticResource RowTitle}"/>
+                                                    <TextBlock Text="Birkaç saniye kopar" Style="{StaticResource RowSub}"/>
+                                                </StackPanel>
+                                            </DockPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource ActionRow}">
+                                            <DockPanel>
+                                                <Button DockPanel.Dock="Right" Content="Çalıştır" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" Tag="reset" c:Elevation.Required="True" Click="Network_Click" VerticalAlignment="Center"/>
+                                                <StackPanel ToolTip="netsh winsock reset + int ip reset — bozulmuş ağ yığınını varsayılana döndürür. Yeniden başlatma gerekir; elle girilmiş sabit IP ayarları silinir.">
+                                                    <TextBlock Text="Ağı sıfırla" Style="{StaticResource RowTitle}"/>
+                                                    <TextBlock Text="Yeniden başlatma ister" Style="{StaticResource RowSub}"/>
+                                                </StackPanel>
+                                            </DockPanel>
+                                        </Border>
+                                    </UniformGrid>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.ColumnSpan="2" Style="{StaticResource ActionRow}">
+                                            <StackPanel>
+                                                <DockPanel>
+                                                    <Button DockPanel.Dock="Right" Content="&#xE72C;" Style="{StaticResource IconBtn}" Click="NetworkRefresh_Click" ToolTip="Yenile"
+                                                            VerticalAlignment="Center"/>
+                                                    <StackPanel VerticalAlignment="Center"
+                                                                ToolTip="Site adlarını adrese çeviren sunucu. Değiştirmek bazı sitelerin daha hızlı açılmasını ya da reklamların engellenmesini sağlayabilir; sorun olursa Otomatik'e dön.">
+                                                        <TextBlock Text="DNS sunucusu" Style="{StaticResource RowTitle}"/>
+                                                        <TextBlock x:Name="DnsInfo" Style="{StaticResource RowSub}" TextTrimming="CharacterEllipsis"/>
+                                                    </StackPanel>
+                                                </DockPanel>
+                                                <Border Style="{StaticResource SegBar}" Background="{DynamicResource Card}" HorizontalAlignment="Left" Margin="0,8,0,0">
+                                                    <WrapPanel x:Name="DnsPanel"/>
+                                                </Border>
+                                                <Grid x:Name="CustomDnsPanel" Margin="0,10,0,0" Visibility="Collapsed">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="Birincil" Style="{StaticResource RowSub}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                    <TextBox x:Name="DnsPrimaryBox" Grid.Column="1" Style="{StaticResource SearchBox}" Background="{DynamicResource Card}" Padding="10,6"
+                                                             FontFamily="Cascadia Mono, Consolas" KeyDown="CustomDns_KeyDown"/>
+                                                    <TextBlock Grid.Column="2" Text="İkincil" Style="{StaticResource RowSub}" VerticalAlignment="Center" Margin="14,0,8,0"/>
+                                                    <TextBox x:Name="DnsSecondaryBox" Grid.Column="3" Style="{StaticResource SearchBox}" Background="{DynamicResource Card}" Padding="10,6"
+                                                             FontFamily="Cascadia Mono, Consolas" KeyDown="CustomDns_KeyDown"
+                                                             ToolTip="İsteğe bağlı. Birincil yanıt vermezse kullanılır."/>
+                                                    <Button Grid.Column="4" Content="Uygula" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" c:Elevation.Required="True"
+                                                            VerticalAlignment="Center" Click="CustomDnsApply_Click"/>
+                                                </Grid>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Grid.Column="2" Style="{StaticResource ActionRow}">
+                                            <DockPanel VerticalAlignment="Top">
+                                                <Button DockPanel.Dock="Right" Content="Düzenle…" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" c:Elevation.Required="True"
+                                                        VerticalAlignment="Center" Click="HostsEdit_Click"/>
+                                                <StackPanel ToolTip="Adları elle bir adrese yönlendiren dosya (C:\Windows\System32\drivers\etc\hosts). Siteleri engellemek için kullanılır; kötü amaçlı yazılımlar da değiştirebilir.">
+                                                    <TextBlock Text="hosts dosyası" Style="{StaticResource RowTitle}"/>
+                                                    <TextBlock x:Name="HostsInfo" Style="{StaticResource RowSub}"/>
+                                                </StackPanel>
+                                            </DockPanel>
+                                        </Border>
+                                    </Grid>
+                                </StackPanel>
                             </Border>
                         </StackPanel>
                     </ScrollViewer>

@@ -300,8 +300,10 @@ namespace Kahya
             if (tab == PrivacyTab && !_privacyLoaded)
                 LoadPrivacy();
             // Araçlar'ın kartları birkaç sayfaya dağıldı; hepsi aynı yükleyiciyi kullanır.
-            if ((tab == ToolsTab || tab == RepairTab || tab == PowerTab || tab == WinUpdatesTab || tab == OldDriversTab) && !_toolsLoaded)
+            if ((tab == ToolsTab || tab == RepairTab || tab == PowerTab || tab == WinUpdatesTab || tab == OldDriversTab || tab == NetTab) && !_toolsLoaded)
                 LoadTools();
+            if (tab == NetTab && !_wifiLoaded)
+                _ = LoadWifiAsync();
             if (tab == AboutTab)
                 LoadAbout();
             if (tab == OverviewTab)
