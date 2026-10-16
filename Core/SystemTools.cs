@@ -61,7 +61,7 @@ namespace Kahya.Core
         }
 
         /// <summary>WinINet/WinHTTP (0x80072EE0–0x80072F8F) ve Windows Update'in ağ hataları (0x80244xxx).</summary>
-        static bool IsNetworkCode(int hresult)
+        internal static bool IsNetworkCode(int hresult)
         {
             uint hr = unchecked((uint)hresult);
             return (hr >= 0x80072EE0 && hr <= 0x80072F8F) || (hr & 0xFFFFF000) == 0x80244000;

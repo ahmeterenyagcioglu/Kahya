@@ -58,6 +58,19 @@ namespace Kahya.Core
     public static class AppCatalog
     {
         /// <summary>
+        /// Kurulu programın adı katalogdaki adla başlıyor mu: "Zoom Workplace" ~ "Zoom", "Brave" ~ "Brave".
+        /// Ad bir kelime sınırında bitmeli ("Steam" "Steamworks"e uymaz); parantezli ekler ("Java 8 (JRE)") yok sayılır.
+        /// </summary>
+        public static bool NameMatches(string installed, string catalog)
+        {
+            var name = System.Text.RegularExpressions.Regex.Replace(catalog, @"\s*\(.*?\)", "").Trim();
+            if (name.Length < 3 || installed == null || !installed.StartsWith(name, System.StringComparison.OrdinalIgnoreCase)) return false;
+            if (installed.Length > name.Length && char.IsLetter(installed[name.Length])) return false;
+            // "Microsoft Teams Meeting Add-in for Microsoft Office" Teams'in kendisi değil.
+            return !System.Text.RegularExpressions.Regex.IsMatch(installed.Substring(name.Length), @"(?i)\b(add-?in|plug-?in|extension|eklenti)\b");
+        }
+
+        /// <summary>
         /// Format sonrası çoğu oyunun ve programın istediği çalışma ortamları ("AIO paketi" yerine, hepsi resmi kaynağından).
         /// IsChecked: format sonrası asistanında varsayılan seçili olanlar.
         /// </summary>

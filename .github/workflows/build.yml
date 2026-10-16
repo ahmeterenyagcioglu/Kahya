@@ -35,6 +35,10 @@ jobs:
       - name: Derle
         run: dotnet build -c Release
 
+      # Testler kırılırsa sürüm yayınlanmaz (bkz. Tests/ParserTests.cs: her test bir gerçek hatanın tekrarı).
+      - name: Test
+        run: dotnet test Tests/Kahya.Tests.csproj -c Release
+
       - name: Sürüm etiketle uyuşuyor mu?
         if: startsWith(github.ref, 'refs/tags/v')
         shell: pwsh

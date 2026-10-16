@@ -155,7 +155,7 @@ namespace Kahya.Core
             }
         }
 
-        static (string exe, string args) SplitCommand(string command)
+        internal static (string exe, string args) SplitCommand(string command)
         {
             var cmd = Environment.ExpandEnvironmentVariables(command.Trim());
             if (cmd.StartsWith("\""))

@@ -103,7 +103,7 @@ namespace Kahya
                 foreach (var a in _catalog)
                 {
                     a.IsInstalled = a.CanInstall && (ids.Contains(a.Id) || ids.Any(i => i.StartsWith(a.Id + ".", StringComparison.OrdinalIgnoreCase)) ||
-                                                     names.Any(n => NameMatches(n, a.Name)));
+                                                     names.Any(n => AppCatalog.NameMatches(n, a.Name)));
                     if (a.IsInstalled) a.IsChecked = false;
                 }
                 _installedLoaded = true;
@@ -118,19 +118,6 @@ namespace Kahya
                 ApplyBusy(false);
                 UpdateInstallInfo();
             }
-        }
-
-        /// <summary>
-        /// Kurulu programın adı katalogdaki adla başlıyor mu: "Zoom Workplace" ~ "Zoom", "Brave" ~ "Brave".
-        /// Ad bir kelime sınırında bitmeli ("Steam" "Steamworks"e uymaz); parantezli ekler ("Java 8 (JRE)") yok sayılır.
-        /// </summary>
-        static bool NameMatches(string installed, string catalog)
-        {
-            var name = System.Text.RegularExpressions.Regex.Replace(catalog, @"\s*\(.*?\)", "").Trim();
-            if (name.Length < 3 || installed == null || !installed.StartsWith(name, StringComparison.OrdinalIgnoreCase)) return false;
-            if (installed.Length > name.Length && char.IsLetter(installed[name.Length])) return false;
-            // "Microsoft Teams Meeting Add-in for Microsoft Office" Teams'in kendisi değil.
-            return !System.Text.RegularExpressions.Regex.IsMatch(installed.Substring(name.Length), @"(?i)\b(add-?in|plug-?in|extension|eklenti)\b");
         }
 
         void FilterInstall()

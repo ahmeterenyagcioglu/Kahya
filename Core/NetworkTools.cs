@@ -48,13 +48,18 @@ Get-NetAdapter -Physical -ErrorAction SilentlyContinue | Where-Object Status -eq
             {
                 var p = line.Split('\t');
                 if (p.Length < 2 || p[0].Length == 0) continue;
-                // Değerin sonunda boşluk ya da NUL dolgusu olabiliyor; yalnızca adres karakterleri alınır.
-                var servers = System.Text.RegularExpressions.Regex.Matches(p[1], @"[0-9A-Fa-f:.]+").Cast<System.Text.RegularExpressions.Match>()
-                    .Select(m => m.Value).Where(v => v.Contains('.') || v.Contains(':')).ToList();
-                list.Add((p[0], servers));
+                list.Add((p[0], ParseServers(p[1])));
             }
             return list;
         }
+
+        /// <summary>
+        /// Kayıt defterindeki NameServer değeri ("1.1.1.1,1.0.0.1" ya da boşlukla ayrılmış). Değerin sonunda boşluk ya da
+        /// NUL dolgusu olabiliyor; yalnızca adres karakterleri alınır.
+        /// </summary>
+        internal static List<string> ParseServers(string value) =>
+            System.Text.RegularExpressions.Regex.Matches(value ?? "", @"[0-9A-Fa-f:.]+").Cast<System.Text.RegularExpressions.Match>()
+                .Select(m => m.Value).Where(v => v.Contains('.') || v.Contains(':')).ToList();
 
         /// <summary>Kartlardaki DNS'in hangi hazır seçenek olduğu; karışıksa ya da listede yoksa null.</summary>
         public static DnsPreset Match(List<(string adapter, List<string> servers)> current)

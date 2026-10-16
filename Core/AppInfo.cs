@@ -6,6 +6,8 @@ using System.Runtime.InteropServices;
 using Microsoft.Win32;
 using static Kahya.Core.Lang;
 
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Kahya.Tests")]
+
 namespace Kahya.Core
 {
     public sealed class ReleaseNote
