@@ -1776,4 +1776,8 @@
   <t tr="Bildirim alanında çalışırken bir uygulamanın (CapCut, Premiere, tarayıcılar…) önbelleği bu boyutu geçince haber verir. Kendiliğinden silmez; bildirime tıklayınca Temizlik açılır.">While running in the notification area, lets you know when an app's cache (CapCut, Premiere, browsers…) grows past this size. It never deletes by itself; clicking the notification opens Cleanup.</t>
   <t tr="Uyarılar Kahya bildirim alanında çalışırken gelir. Üstteki 'Kapatınca bildirim alanında çalışmaya devam et'i de aç.">Alerts arrive while Kahya runs in the notification area. Also turn on 'Keep running in the notification area when closed' above.</t>
   <t tr="{0} {1} oldu">{0} has grown to {1}</t>
+  <t tr="Dil dosyaları…">Language files…</t>
+  <t tr="Dil dosyalarının klasörünü açar. en.xml'i kopyalayıp (ör. de.xml) kendi dilini ekleyebilirsin; nasıl yapılacağı dosyanın başında yazıyor.">Opens the language files folder. Copy en.xml (e.g. to de.xml) to add your own language; how to do it is written at the top of the file.</t>
+  <t tr="Yarım kalan geri yüklemeyi unut; bir daha sorulmaz.">Forget the unfinished restore; you won't be asked again.</t>
+  <t tr="Açık tema">Light theme</t>
 </language>

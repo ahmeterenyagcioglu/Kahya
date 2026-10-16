@@ -225,9 +225,8 @@ namespace Kahya
         {
             try
             {
-                var folder = Lang.ExportTemplate();
-                Info(T("Dil dosyaları klasörü açılıyor. Yeni bir dil eklemek için en.xml'i kopyala (ör. de.xml), içindeki code ve name'i değiştir, metinleri çevir. Kahya'yı yeniden açınca dil listesinde çıkar."));
-                Process.Start(new ProcessStartInfo(folder) { UseShellExecute = true });
+                // Nasıl yapılacağı en.xml'in başında yazıyor; klasör doğrudan açılır.
+                Process.Start(new ProcessStartInfo(Lang.ExportTemplate()) { UseShellExecute = true });
             }
             catch (Exception ex) { Info(ex.Message); }
         }

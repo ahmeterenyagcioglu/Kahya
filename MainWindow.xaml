@@ -2163,13 +2163,15 @@
                                     </DockPanel>
                                     <DockPanel Margin="0,0,0,12">
                                         <TextBlock Text="Dil / Language" Style="{StaticResource Label}" Width="150"/>
-                                        <Button DockPanel.Dock="Right" Content="Dil dosyaları…" Style="{StaticResource SmallBtn}" Margin="10,0,0,0"
-                                                VerticalAlignment="Center" Click="LanguageFiles_Click"
-                                                ToolTip="Dil dosyalarının klasörünü açar (en.xml şablonuyla). Kopyalayıp kendi dilini ekleyebilirsin."/>
-                                        <!-- Türkçe + bulunan dil dosyaları; düğmeler koddan eklenir -->
-                                        <Border Style="{StaticResource SegBar}" Background="{DynamicResource Row}">
-                                            <WrapPanel x:Name="LangPanel" Orientation="Horizontal"/>
-                                        </Border>
+                                        <StackPanel Orientation="Horizontal">
+                                            <!-- Türkçe + bulunan dil dosyaları; düğmeler koddan eklenir -->
+                                            <Border Style="{StaticResource SegBar}" Background="{DynamicResource Row}">
+                                                <WrapPanel x:Name="LangPanel" Orientation="Horizontal"/>
+                                            </Border>
+                                            <Button Content="Dil dosyaları…" Style="{StaticResource SmallBtn}" Margin="10,0,0,0"
+                                                    VerticalAlignment="Center" Click="LanguageFiles_Click"
+                                                    ToolTip="Dil dosyalarının klasörünü açar. en.xml'i kopyalayıp (ör. de.xml) kendi dilini ekleyebilirsin; nasıl yapılacağı dosyanın başında yazıyor."/>
+                                        </StackPanel>
                                     </DockPanel>
                                     <DockPanel Margin="0,0,0,12">
                                         <TextBlock Text="Tema" Style="{StaticResource Label}" Width="150"/>
