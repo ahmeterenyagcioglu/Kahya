@@ -86,6 +86,29 @@ namespace Kahya
             public bool Expanded { get => _expanded; set { _expanded = value; Notify(nameof(Expanded), nameof(ExpandText)); } }
             public string ExpandText => _expanded ? T("Gizle ▴") : T("Seç ▾");
             public bool IsChecked => Items.Any(i => i.IsChecked);
+
+            // Uzun listelerde arama: görünüm filtrelenir, seçimler korunur.
+            System.Windows.Data.ListCollectionView _view;
+            public System.Windows.Data.ListCollectionView View
+            {
+                get
+                {
+                    if (_view == null)
+                    {
+                        _view = new System.Windows.Data.ListCollectionView(Items);
+                        _view.Filter = o => string.IsNullOrWhiteSpace(_search) || ((ItemVm)o).Title.IndexOf(_search.Trim(), StringComparison.CurrentCultureIgnoreCase) >= 0;
+                    }
+                    return _view;
+                }
+            }
+            string _search = "";
+            public string Search { get => _search; set { _search = value ?? ""; View.Refresh(); Notify(nameof(Search), nameof(SearchEmpty)); } }
+            public bool SearchEmpty => _search.Length == 0;
+            /// <summary>Arama ve Tümü/Hiçbiri düğmeleri: sadece uzun listelerde.</summary>
+            public bool HasTools => Items.Count > 10;
+            /// <summary>Aramayla görünen ve seçilebilen öğeler (Tümü/Hiçbiri bunlara uygulanır).</summary>
+            public IEnumerable<ItemVm> Visible => View.Cast<ItemVm>().Where(i => i.IsEnabled);
+
             public string Detail
             {
                 get
@@ -119,6 +142,13 @@ namespace Kahya
         readonly Action<string> _restartAsAdmin;
         readonly string _initialPath;
         readonly CategoryVm _wifiCategory = new CategoryVm { Kind = "wifi" };
+        /// <summary>Programlar kendi adımında (3) listelenir; diğer kategoriler 4. adımda.</summary>
+        CategoryVm _programCat;
+        List<ProgramEntry> _manualList = new List<ProgramEntry>();
+        IEnumerable<CategoryVm> AllCategories => _programCat != null ? _categories.Concat(new[] { _programCat }) : _categories;
+
+        // Sayfa sıraları
+        const int PBackup = 0, PNet = 1, PPrograms = 2, PFiles = 3, PGpu = 4, PRun = 5;
 
         BackupSource _src;
         RestoreState _state, _pending;
@@ -137,10 +167,10 @@ namespace Kahya
             SourceInitialized += (s, e) => TitleBar.Apply(this);
             _initialPath = initialPath;
             _restartAsAdmin = restartAsAdmin;
-            _pages = new FrameworkElement[] { PageBackup, PageNet, PageChoose, PageGpu, PageRun };
+            _pages = new FrameworkElement[] { PageBackup, PageNet, PagePrograms, PageChoose, PageGpu, PageRun };
 
             int n = 1;
-            foreach (var t in new[] { "Yedek", "İnternet", "Seçim", "Ekran kartı", "Geri yükleme" })
+            foreach (var t in new[] { "Yedek", "İnternet ve Wi-Fi", "Programlar", "Dosyalar ve kayıtlar", "Ekran kartı", "Kurulum" })
                 _steps.Add(new StepVm { Title = T(t), Number = n++ });
             StepList.ItemsSource = _steps;
             FoundList.ItemsSource = _found;
@@ -182,10 +212,10 @@ namespace Kahya
                 _pages[i].Visibility = i == page ? Visibility.Visible : Visibility.Collapsed;
                 _steps[i].State = i < page ? 2 : i == page ? 1 : 0;
             }
-            BackBtn.Visibility = page > 0 && page < 4 ? Visibility.Visible : Visibility.Collapsed;
-            NextBtn.Content = page == 3 ? (_state?.Done.Count > 0 ? T("Kalanlarla devam et") : T("Geri yüklemeyi başlat")) : page == 4 ? T("Kapat") : T("İleri");
-            NextBtn.IsEnabled = page != 0 || _src != null;
-            if (page == 4) NextBtn.IsEnabled = _finished;
+            BackBtn.Visibility = page > PBackup && page < PRun ? Visibility.Visible : Visibility.Collapsed;
+            NextBtn.Content = page == PGpu ? (_state?.Done.Count > 0 ? T("Kalanlarla devam et") : T("Kurulumu başlat")) : page == PRun ? T("Kapat") : T("İleri");
+            NextBtn.IsEnabled = page != PBackup || _src != null;
+            if (page == PRun) NextBtn.IsEnabled = _finished;
             SaveState();
         }
 
@@ -198,7 +228,7 @@ namespace Kahya
             if (_built)
             {
                 _state.Selected.Clear();
-                foreach (var i in _categories.SelectMany(c => c.Items).Where(i => i.IsChecked)) _state.Selected.Add(i.StateKey);
+                foreach (var i in AllCategories.SelectMany(c => c.Items).Where(i => i.IsChecked)) _state.Selected.Add(i.StateKey);
             }
             _state.Save();
         }
@@ -211,7 +241,9 @@ namespace Kahya
             if (_initialPath != null && !found.Contains(_initialPath, StringComparer.OrdinalIgnoreCase))
                 found.Insert(0, _initialPath);
             foreach (var f in found) _found.Add(MakeFound(f));
-            FoundText.Text = found.Count == 0 ? T("Takılı disklerde yedek bulunamadı") : T("Bulunan yedekler ({0})", found.Count);
+            FoundText.Text = found.Count == 0 ? T("Takılı disklerde yedek bulunamadı; yedeği manuel olarak seç.") : T("Bulunan yedekler ({0})", found.Count);
+            // Bulunamadıysa tek yol bu düğme: öne çıksın.
+            if (found.Count == 0) BrowseBtn.Style = (Style)FindResource("AccentBtn");
             var first = _found.FirstOrDefault(f => _initialPath != null && SamePath(f.Path, _initialPath)) ?? _found.FirstOrDefault();
             if (first != null && _src == null) await SelectAsync(first);
         }
@@ -291,7 +323,7 @@ namespace Kahya
             if (path != null)
             {
                 // Yeniden başlayınca kaldığı yerden sürsün.
-                if (_state == null) _state = new RestoreState { Backup = path, Page = Math.Max(_page, 1) };
+                if (_state == null) _state = new RestoreState { Backup = path, Page = Math.Max(_page, PNet) };
                 else SaveState();
                 _state.Save();
             }
@@ -317,20 +349,20 @@ namespace Kahya
             BuildChoices();
             // Kaydedilen seçimler; bitmiş olanlar "yapıldı" olarak kilitlenir.
             if (saved.Selected.Count > 0)
-                foreach (var i in _categories.SelectMany(c => c.Items).Where(i => i.IsEnabled))
+                foreach (var i in AllCategories.SelectMany(c => c.Items).Where(i => i.IsEnabled))
                     i.IsChecked = saved.Selected.Contains(i.StateKey);
             ApplyDone();
             UpdateChoiceInfo();
-            int page = Math.Min(Math.Max(saved.Page, 1), 3); // geri yükleme sırasında kaldıysa: başlatmadan önceki adım
+            int page = Math.Min(Math.Max(saved.Page, PNet), PGpu); // kurulum sırasında kaldıysa: başlatmadan önceki adım
             ShowPage(page);
-            if (page == 1) await CheckNetAsync();
-            if (page == 3) await CheckGpuAsync();
+            if (page == PNet) await CheckNetAsync();
+            if (page == PGpu) await CheckGpuAsync();
         }
 
         void ApplyDone()
         {
             if (_state == null) return;
-            foreach (var c in _categories)
+            foreach (var c in AllCategories)
             {
                 foreach (var i in c.Items)
                 {
@@ -486,7 +518,9 @@ namespace Kahya
                 c.Items.Add(new ItemVm { Category = c, Key = key, Title = title, Size = size, Program = program, IsChecked = on && c.IsEnabled, IsEnabled = c.IsEnabled,
                                          Detail = size > 0 ? Format.Bytes(size) : "" });
 
-            var drivers = _src.SubFolders(m.Drivers);
+            // Ağ kartı sürücüleri burada yok: 2. adımda (internet yoksa) kurulur, Windows da çoğu zaman kendisi bulur.
+            var networks = new HashSet<string>(RestoreRunner.NetworkDrivers(_src), StringComparer.OrdinalIgnoreCase);
+            var drivers = _src.SubFolders(m.Drivers).Where(d => !networks.Contains(d)).ToList();
             if (drivers.Count > 0)
             {
                 var c = Cat("drivers", "", T("Sürücüler"), Elevation.IsAdmin ? null : T("yönetici olarak açılınca kurulabilir"), Elevation.IsAdmin);
@@ -522,13 +556,18 @@ namespace Kahya
             all = all ?? new List<ProgramEntry>();
             _dependencies = all.Count(Core.ProgramList.IsDependency);
             var programs = all.Where(p => p.Installable && !Core.ProgramList.IsDependency(p)).OrderBy(p => p.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
-            _manualPrograms = all.Count(p => !p.Installable && !Core.ProgramList.IsDependency(p));
-            if (programs.Count > 0)
-            {
-                var c = Cat("program", "", T("Programlar"), ProgramNote());
-                foreach (var p in programs) Item(c, p.Id, p.Name, -1, true, p);
-                foreach (var i in c.Items) i.Detail = i.Program.Source == "msstore" ? T("Microsoft Store") : "";
-            }
+            _manualList = all.Where(p => !p.Installable && !Core.ProgramList.IsDependency(p)).OrderBy(p => p.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
+            _manualPrograms = _manualList.Count;
+            // Programlar kendi adımında listelenir (CategoryList'te değil).
+            _programCat = new CategoryVm { Kind = "program", Title = T("Programlar") };
+            foreach (var p in programs) Item(_programCat, p.Id, p.Name, -1, true, p);
+            foreach (var i in _programCat.Items) i.Detail = i.Program.Source == "msstore" ? T("Microsoft Store") : "";
+            ProgramList.ItemsSource = _programCat.View;
+            ManualTitle.Text = T("winget'te olmayan {0} program", _manualPrograms);
+            ManualSub.Text = _manualPrograms == 0 ? T("Hepsi winget ile kurulabiliyor.")
+                : string.Join(", ", _manualList.Take(6).Select(p => p.Name)) + (_manualPrograms > 6 ? "…" : "") + "\n" +
+                  T("Bunlar elle kurulmalı; listeyi masaüstüne kaydedip sonra tek tek indirebilirsin.");
+            ManualSaveBtn.IsEnabled = _manualPrograms > 0;
 
             var settings = RestoreRunner.SettingsItems(_src, m.Settings, ctx);
             if (settings.Count > 0)
@@ -552,17 +591,16 @@ namespace Kahya
 
         string ProgramNote() =>
             T("winget ile en yeni sürümü kurulur") +
-            (_manualPrograms > 0 ? " · " + T("{0} tanesi winget'te yok, elle kurulmalı", _manualPrograms) : "") +
             (_dependencies > 0 ? " · " + T("{0} bileşen gizlendi (programlar kendisi kurar)", _dependencies) : "") +
             (_online ? "" : " · " + T("internet gerekir"));
 
         /// <summary>Zaten kurulu programların işareti kaldırılır (winget varsa; birkaç saniye sürer).</summary>
         async Task MarkInstalledAsync()
         {
-            var cat = _categories.FirstOrDefault(c => c.Kind == "program");
+            var cat = _programCat;
             if (cat == null) return;
             cat.Note = T("hangilerinin zaten kurulu olduğuna bakılıyor…");
-            cat.Refresh();
+            UpdateChoiceInfo();
             var ids = await Task.Run(() =>
             {
                 try { return Winget.IsInstalled() ? Winget.InstalledIds(new CleanContext(_ => { }, CancellationToken.None)) : null; }
@@ -581,8 +619,12 @@ namespace Kahya
 
         void UpdateChoiceInfo()
         {
-            foreach (var c in _categories) c.Refresh();
-            _steps[2].Detail = T("{0} seçili", _categories.Sum(c => c.Items.Count(i => i.IsChecked)));
+            foreach (var c in AllCategories) c.Refresh();
+            int programs = _programCat?.Items.Count(i => i.IsChecked) ?? 0;
+            _steps[PPrograms].Detail = T("{0} seçili", programs);
+            _steps[PFiles].Detail = T("{0} seçili", _categories.Sum(c => c.Items.Count(i => i.IsChecked)));
+            if (_programCat != null)
+                ProgramsInfo.Text = T("{0} / {1} seçili", programs, _programCat.Items.Count) + " · " + (_programCat.Note ?? ProgramNote());
         }
 
         void Category_Click(object sender, RoutedEventArgs e)
@@ -592,6 +634,48 @@ namespace Kahya
             foreach (var i in c.Items.Where(i => i.IsEnabled))
                 i.IsChecked = on && i.Detail != T("zaten kurulu");
             UpdateChoiceInfo();
+        }
+
+        /// <summary>Tümü / Hiçbiri: aramayla görünenlere uygulanır; zaten kurulu programlar "Tümü"ye girmez.</summary>
+        void SetVisible(CategoryVm c, bool on)
+        {
+            if (c == null) return;
+            foreach (var i in c.Visible) i.IsChecked = on && i.Detail != T("zaten kurulu");
+            UpdateChoiceInfo();
+        }
+
+        void CategoryAll_Click(object sender, RoutedEventArgs e) => SetVisible((sender as FrameworkElement)?.DataContext as CategoryVm, true);
+        void CategoryNone_Click(object sender, RoutedEventArgs e) => SetVisible((sender as FrameworkElement)?.DataContext as CategoryVm, false);
+        void ProgramsAll_Click(object sender, RoutedEventArgs e) => SetVisible(_programCat, true);
+        void ProgramsNone_Click(object sender, RoutedEventArgs e) => SetVisible(_programCat, false);
+
+        void ProgramSearch_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            ProgramSearchHint.Visibility = ProgramSearch.Text.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
+            if (_programCat != null) _programCat.Search = ProgramSearch.Text;
+        }
+
+        /// <summary>winget'te olmayan programların listesi Masaüstü'ne: format sonrası tek tek indirmek için.</summary>
+        void ManualSave_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+                var path = System.IO.Path.Combine(desktop, FormatBackup.Safe(T("Elle kurulacak programlar - {0}", _src?.Manifest.Computer ?? "")) + ".txt");
+                var sb = new System.Text.StringBuilder();
+                sb.AppendLine(T("Kahya · winget ile kurulamayan programlar ({0} bilgisayarından, {1:dd.MM.yyyy})", _src?.Manifest.Computer ?? "?", _src?.Manifest.Date ?? DateTime.Now));
+                sb.AppendLine(T("Bunları üreticinin sitesinden indirip kurman gerekiyor. İnternette \"<ad> indir\" diye aratabilirsin."));
+                sb.AppendLine();
+                foreach (var p in _manualList)
+                    sb.AppendLine("• " + p.Name + (string.IsNullOrEmpty(p.Version) || p.Version.Equals("Unknown", StringComparison.OrdinalIgnoreCase) ? "" : "  (" + p.Version + ")"));
+                File.WriteAllText(path, sb.ToString(), new System.Text.UTF8Encoding(true));
+                ManualSaveBtn.Content = T("Kaydedildi ✓");
+                try { Process.Start("explorer.exe", $"/select,\"{path}\""); } catch { }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, T("Liste kaydedilemedi: {0}", ex.Message), "Kahya", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
 
         void Item_Click(object sender, RoutedEventArgs e)
@@ -613,7 +697,7 @@ namespace Kahya
             DriverFolders = Picked("drivers"),
             FontFiles = Picked("fonts"),
             FolderKeys = Picked("folder"),
-            Programs = _categories.Where(c => c.Kind == "program").SelectMany(c => c.Items).Where(i => i.IsChecked && i.IsEnabled).Select(i => i.Program).ToList(),
+            Programs = _programCat?.Items.Where(i => i.IsChecked && i.IsEnabled).Select(i => i.Program).ToList() ?? new List<ProgramEntry>(),
             SettingsIds = Picked("settings"),
             GameIds = Picked("games"),
             Done = _state != null ? new HashSet<string>(_state.Done, StringComparer.OrdinalIgnoreCase) : new HashSet<string>(StringComparer.OrdinalIgnoreCase),
@@ -657,7 +741,7 @@ namespace Kahya
                 Detail = T("Format sonrası eksik sürücüler ve güvenlik güncellemeleri buradan gelir; bir kez çalıştırmak iyi olur.") });
             GpuList.ItemsSource = list;
             GpuNote.Text = gpus.Count == 0 ? T("Ekran kartı bulunamadı.") : _online ? "" : T("İnternet olmadığı için en yeni sürüm kontrol edilemedi.");
-            _steps[3].Detail = list.Count(x => x.IconColor == warn) > 0 ? T("dikkat") : T("tamam");
+            _steps[PGpu].Detail = list.Count(x => x.IconColor == warn) > 0 ? T("dikkat") : T("tamam");
         }
 
         static string VendorPage(string vendor) =>
@@ -693,14 +777,14 @@ namespace Kahya
             // Biten her birim hemen kaydedilir: kapatılırsa kalan yerden sürer.
             void Done(string unit)
             {
-                lock (_state) { _state.Done.Add(unit); _state.Page = 4; _state.Save(); }
+                lock (_state) { _state.Done.Add(unit); _state.Page = PRun; _state.Save(); }
             }
 
             bool cancelled = false;
             try
             {
                 _result = await Task.Run(() => RestoreRunner.Run(_src, options, ctx,
-                    title => Dispatcher.BeginInvoke(new Action(() => { RunStatus.Text = title; _steps[4].Detail = title; })), Done));
+                    title => Dispatcher.BeginInvoke(new Action(() => { RunStatus.Text = title; _steps[PRun].Detail = title; })), Done));
                 RunTitle.Text = _result.Failed == 0 ? T("Bitti ✔") : T("Bitti, {0} adımda sorun var", _result.Failed);
                 RunSub.Text = _result.Failed == 0 ? T("Her şey geri yüklendi.") : T("Sorunlu adımların ayrıntıları aşağıda. Diğerleri tamamlandı.");
                 Append(T("Geri yükleme bitti: {0} adım tamam, {1} adımda sorun var.", _result.Ok, _result.Failed));
@@ -727,7 +811,7 @@ namespace Kahya
                 RunStatus.Text = "";
                 CancelBtn.Visibility = Visibility.Collapsed;
                 NextBtn.IsEnabled = true;
-                _steps[4].State = 2;
+                _steps[PRun].State = 2;
                 lock (log) SaveLog(log.ToString());
             }
             // Bitti: bir dahaki açılışta "devam et" sorulmasın. Durdurulduysa kayıt kalır.
@@ -769,7 +853,7 @@ namespace Kahya
         {
             switch (_page)
             {
-                case 0:
+                case PBackup:
                     if (_src == null) return;
                     // Yeni bir geri yükleme başlıyor (ya da aynı yedekle devam): durum bu yedeğe bağlanır.
                     if (_state == null || !SamePath(_state.Backup ?? "", _src.Path))
@@ -778,28 +862,32 @@ namespace Kahya
                         ResumeBanner.Visibility = Visibility.Collapsed;
                         _pending = null;
                     }
-                    ShowPage(1);
+                    ShowPage(PNet);
                     await CheckNetAsync();
                     break;
-                case 1:
+                case PNet:
                     BuildChoices();
-                    ShowPage(2);
+                    // Programı olmayan (eski) yedekte program adımı atlanır.
+                    ShowPage(_programCat?.Items.Count > 0 ? PPrograms : PFiles);
                     break;
-                case 2:
+                case PPrograms:
+                    ShowPage(PFiles);
+                    break;
+                case PFiles:
                     var o = Options();
                     if (o.DriverFolders.Count == 0 && o.FontFiles.Count == 0 && o.FolderKeys.Count == 0 && o.Programs.Count == 0 && o.SettingsIds.Count == 0 && o.GameIds.Count == 0)
                     {
                         MessageBox.Show(this, T("Önce geri yüklenecek en az bir şey seç."), "Kahya", MessageBoxButton.OK, MessageBoxImage.Information);
                         return;
                     }
-                    ShowPage(3);
+                    ShowPage(PGpu);
                     await CheckGpuAsync();
                     break;
-                case 3:
-                    ShowPage(4);
+                case PGpu:
+                    ShowPage(PRun);
                     await RunAsync();
                     break;
-                case 4:
+                case PRun:
                     Close();
                     break;
             }
@@ -807,7 +895,10 @@ namespace Kahya
 
         void Back_Click(object sender, RoutedEventArgs e)
         {
-            if (_page > 0 && !_running) ShowPage(_page - 1);
+            if (_page <= PBackup || _running) return;
+            int page = _page - 1;
+            if (page == PPrograms && !(_programCat?.Items.Count > 0)) page = PNet;
+            ShowPage(page);
         }
 
         void Cancel_Click(object sender, RoutedEventArgs e)

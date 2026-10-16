@@ -78,13 +78,16 @@ kalırsan ilk onlar lazım. Belgeler gibi seçili bir klasörün içinde kalan o
 Format sonrası yedek klasöründeki `Kahya.exe`'yi aç, **Format yardımcısı › Asistanı başlat** de. Kurulum sihirbazı gibi
 adım adım ilerler:
 
-1. **Yedek:** yanındaki ya da USB bellek / ikinci diskteki yedeği kendisi bulur.
+1. **Yedek:** yanındaki ya da USB bellek / ikinci diskteki yedeği kendisi bulur; bulamazsa **Manuel olarak seç**.
 2. **İnternet ve Wi-Fi:** kayıtlı Wi-Fi ağlarını şifreleriyle ekler (istediklerini seçersin); internet yoksa yedekteki ağ
    kartı sürücüsünü kurmayı teklif eder.
-3. **Seçim:** her kategoriyi açıp içindekileri tek tek seçersin: sürücü paketleri, fontlar, kişisel klasörler, programlar,
-   program ayarları, oyunlar. Zaten kurulu programlar kendiliğinden atlanır; Visual C++, .NET gibi bileşenler listelenmez.
-4. **Ekran kartı:** Windows'un genel sürücüsü mü kullanılıyor, yeni sürücü var mı bakar; üreticinin sayfasını açar.
-5. **Geri yükleme:** seçilenler sırayla. Var olan daha yeni dosyaların üzerine yazılmaz.
+3. **Programlar:** kurulacakları seçersin (arama, Tümü/Hiçbiri). Zaten kurulu olanlar kendiliğinden atlanır; Visual C++,
+   .NET gibi bileşenler listelenmez. winget'te olmayanların listesi tek tıkla masaüstüne kaydedilir.
+4. **Dosyalar ve kayıtlar:** sürücü paketleri, fontlar, kişisel klasörler, program ayarları ve oyun kayıtları; her kategoriyi
+   açıp içindekileri tek tek seçersin (uzun listelerde arama var).
+5. **Ekran kartı:** Windows'un genel sürücüsü mü kullanılıyor, yeni sürücü var mı bakar; üreticinin sayfasını açar.
+6. **Kurulum:** önce programlar, sonra sürücüler, fontlar, kişisel klasörler, program ayarları; oyun kayıtları en sonda.
+   Var olan daha yeni dosyaların üzerine yazılmaz.
 
 **Kaldığı yerden devam eder:** asistanı kapatırsan, Kahya'yı yeniden başlatırsan ya da bilgisayar kapanırsa hangi adımda
 kaldığın, neleri seçtiğin ve neyin bittiği kaydedilir; bir sonraki açılışta asistan kendisi açılır ve kalanlarla sürer.

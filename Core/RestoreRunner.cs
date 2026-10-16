@@ -33,7 +33,7 @@ namespace Kahya.Core
     }
 
     /// <summary>
-    /// Geri yükleme adımları. Sıra: sürücüler → fontlar → kişisel klasörler → programlar → program ayarları → oyunlar.
+    /// Geri yükleme adımları. Sıra: programlar → sürücüler → fontlar → kişisel klasörler → program ayarları → oyunlar.
     /// Ayarlar ve oyunlar programlardan sonra gelir ki kurulum onların üzerine yazmasın. Her adım ötekilerden bağımsızdır.
     /// Bitirilen her birim (<see cref="Unit"/>) <c>done</c> ile bildirilir; asistan bunu kaydeder, yarıda kalırsa kalan yerden sürer.
     /// </summary>
@@ -72,6 +72,10 @@ namespace Kahya.Core
                 }
             }
 
+            // Önce programlar (ayarlar ve oyun kayıtları onların klasörlerine gider), oyun kayıtları en sonda.
+            var programs = o.Programs.Where(p => !o.Done.Contains(Unit.Program(p.Id))).ToList();
+            if (programs.Count > 0)
+                Step("programs", T("Programlar ({0})", programs.Count), () => InstallPrograms(programs, ctx, id => done?.Invoke(Unit.Program(id))));
             if (o.DriverFolders.Count > 0 && Elevation.IsAdmin)
                 Step(Unit.Drivers, T("Sürücüler ({0})", o.DriverFolders.Count), () =>
                 {
@@ -97,9 +101,6 @@ namespace Kahya.Core
                 if (dest == null || !m.Folders.TryGetValue(key, out var rel) || !src.Has(rel)) continue;
                 Step(Unit.Folder(key), T(FolderTitle(key)), () => FormatBackup.RestoreFolder(src.Local(rel, ctx), dest, ctx));
             }
-            var programs = o.Programs.Where(p => !o.Done.Contains(Unit.Program(p.Id))).ToList();
-            if (programs.Count > 0)
-                Step("programs", T("Programlar ({0})", programs.Count), () => InstallPrograms(programs, ctx, id => done?.Invoke(Unit.Program(id))));
             if (o.SettingsIds.Count > 0 && src.Has(m.Settings))
                 Step(Unit.Settings, T("Program ayarları ({0})", o.SettingsIds.Count),
                     () => FormatExtras.RestoreAppSettings(LocalSettings(src, m.Settings, o.SettingsIds, ctx), ctx, o.SettingsIds) > 0);
