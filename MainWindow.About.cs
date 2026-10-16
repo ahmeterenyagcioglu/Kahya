@@ -161,6 +161,7 @@ namespace Kahya
 
         /// <summary>Önbellek uyarısına tıklanınca bildirim alanından çağrılır.</summary>
         public void ShowCleanTab() => Tabs.SelectedItem = CleanTab;
+        public void ShowFormatTab() => Tabs.SelectedItem = FormatTab;
 
         void TraySetting_Click(object sender, RoutedEventArgs e)
         {

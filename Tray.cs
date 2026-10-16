@@ -23,7 +23,8 @@ namespace Kahya
         static DispatcherTimer _timer;
         static string _lastNotice;
         static bool _hintShown;
-        static bool _openCleanOnClick;
+        /// <summary>Son bildirime tıklanınca açılacak sekme (yoksa sadece pencere açılır).</summary>
+        static Action<MainWindow> _onClick;
 
         public static bool Active => _icon != null;
 
@@ -49,8 +50,8 @@ namespace Kahya
             _icon.BalloonTipClicked += (s, e) =>
             {
                 ShowMain();
-                // Önbellek uyarısına tıklandıysa doğrudan Temizlik'e git; silmeden önce kullanıcı seçsin.
-                if (_openCleanOnClick) (Application.Current.MainWindow as MainWindow)?.ShowCleanTab();
+                // Önbellek uyarısı Temizlik'e (silmeden önce kullanıcı seçsin), disk uyarısı Format yardımcısına götürür.
+                if (Application.Current.MainWindow is MainWindow w) _onClick?.Invoke(w);
             };
 
             // İlk kontrol açılıştan birkaç dakika sonra (oturum açılışını yavaşlatmasın), sonra 6 saatte bir.
@@ -105,12 +106,12 @@ namespace Kahya
         {
             if (_hintShown) return;
             _hintShown = true;
-            _openCleanOnClick = false;
+            _onClick = null;
             Notify("Kahya", T("Kahya bildirim alanında çalışmaya devam ediyor. Tamamen kapatmak için simgeye sağ tıkla › Çıkış."));
         }
 
-        public static void Notify(string title, string text) =>
-            _icon?.ShowBalloonTip(10000, title, text, Forms.ToolTipIcon.Info);
+        public static void Notify(string title, string text, bool warning = false) =>
+            _icon?.ShowBalloonTip(10000, title, text, warning ? Forms.ToolTipIcon.Warning : Forms.ToolTipIcon.Info);
 
         /// <summary>
         /// Uygulama, tarayıcı ve video/fotoğraf programı önbelleklerinden eşiği (ayarlar › önbellek uyarısı) geçenler.
@@ -132,10 +133,20 @@ namespace Kahya
         {
             var notes = new List<string>();
             bool cacheAlert = false;
+            List<PhysicalDiskInfo> riskyDisks = null;
             try
             {
                 await Task.Run(() =>
                 {
+                    // Disk bozuluyorsa her şeyden önce o söylenir: veriler kaybolmadan yedek alınmalı.
+                    try
+                    {
+                        riskyDisks = SystemCare.DiskHealth(new CleanContext(_ => { }, CancellationToken.None)).Where(d => d.AtRisk).ToList();
+                        foreach (var d in riskyDisks)
+                            notes.Add("⚠ " + T("{0}: {1} · verilerini hemen yedekle (tıkla: Format yardımcısı)", d.Name, d.RiskText));
+                    }
+                    catch { }
+
                     var low = SystemDrive.LowSpaceWarning();
                     if (low != null) notes.Add("⚠ " + low);
 
@@ -173,7 +184,10 @@ namespace Kahya
                 });
             }
             catch { }
-            _openCleanOnClick = cacheAlert;
+            bool diskAlert = riskyDisks?.Count > 0;
+            _onClick = diskAlert ? (Action<MainWindow>)(w => w.ShowFormatTab())
+                     : cacheAlert ? w => w.ShowCleanTab()
+                     : (Action<MainWindow>)null;
 
             var text = string.Join(Environment.NewLine, notes);
             if (notes.Count == 0)
@@ -183,7 +197,7 @@ namespace Kahya
             }
             if (!force && text == _lastNotice) return; // aynı şeyi tekrar tekrar söyleme
             _lastNotice = text;
-            Notify("Kahya", text);
+            Notify(diskAlert ? T("Kahya - disk uyarısı") : "Kahya", text, diskAlert);
         }
 
         // ───────────── Windows açılınca başlat ─────────────

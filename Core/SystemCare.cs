@@ -15,6 +15,15 @@ namespace Kahya.Core
         public string Details { get; set; }
         public string Health { get; set; }
         public bool Healthy { get; set; }
+        /// <summary>SSD'nin aşınma yüzdesi (disk bildiriyorsa).</summary>
+        public int? Wear { get; set; }
+
+        /// <summary>Veriler risk altında: disk kendini sorunlu/uyarıda bildiriyor ya da SSD ömrünün sonuna yaklaşmış.</summary>
+        public bool AtRisk => !Healthy || Wear >= WearLimit;
+        public const int WearLimit = 90;
+
+        /// <summary>Bildirimde gösterilecek kısa neden.</summary>
+        public string RiskText => !Healthy ? Health : T("aşınma %{0}", Wear);
     }
 
     public sealed class HibernationInfo
@@ -82,7 +91,8 @@ Get-PhysicalDisk | Sort-Object DeviceId | ForEach-Object {
                 if (p[1] != "Unspecified" && p[1].Length > 0) details.Add(p[1]);
                 if (p[2].Length > 0) details.Add(p[2]);
                 if (long.TryParse(p[4], out var size)) details.Add(Format.Bytes(size));
-                if (int.TryParse(p[5], out var wear)) details.Add(T("aşınma %{0}", wear));
+                int? wearValue = int.TryParse(p[5], out var wear) ? wear : (int?)null;
+                if (wearValue != null) details.Add(T("aşınma %{0}", wear));
                 if (int.TryParse(p[6], out var temp) && temp > 0) details.Add($"{temp}°C");
 
                 list.Add(new PhysicalDiskInfo
@@ -90,6 +100,7 @@ Get-PhysicalDisk | Sort-Object DeviceId | ForEach-Object {
                     Name = p[0],
                     Details = string.Join(" · ", details),
                     Healthy = p[3] == "Healthy",
+                    Wear = wearValue,
                     Health = p[3] == "Healthy" ? "✔ " + T("Sağlıklı") : p[3] == "Warning" ? "⚠ " + T("Uyarı") : p[3] == "Unhealthy" ? "✖ " + T("Sorunlu") : p[3],
                 });
             }
