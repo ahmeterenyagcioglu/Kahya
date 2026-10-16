@@ -478,7 +478,7 @@ namespace Kahya
                     SetStatus(T("{0} kopyalanıyor…", f.Name));
                     Log("   " + T("{0} kopyalanıyor ({1})…", f.Name, Format.Bytes(Math.Max(0, f.Size))));
                     f.Status = "…";
-                    bool ok = await Task.Run(() => FormatBackup.CopyFolder(f, Path.Combine(folder, T("klasorler")), ctx));
+                    bool ok = await Task.Run(() => FormatBackup.CopyFolder(f, Path.Combine(folder, T("klasorler")), output, ctx));
                     f.Status = ok ? "✔" : "✖";
                     manifest.Folders[f.Key] = Path.Combine(T("klasorler"), FormatBackup.BackupName(f));
                     if (ok) done.Add(f.Name);
@@ -500,10 +500,11 @@ namespace Kahya
                 SetStatus(T("Yedek paketleniyor…"));
                 Log("   " + T("Yedek paketleniyor; büyük yedeklerde birkaç dakika sürebilir…"));
                 long before = FormatBackup.FolderSize(folder);
-                await Task.Run(() =>
+                var skipped = await Task.Run(() =>
                 {
-                    BackupArchive.Create(folder, zip, ctx);
+                    var s = BackupArchive.Create(folder, zip, ctx);
                     BackupArchive.WriteComment(zip, BackupArchive.Summary(manifest));
+                    return s;
                 });
                 Log("   ✔ " + T("Arşivlendi: {0} → {1}", Format.Bytes(before), Format.Bytes(new FileInfo(zip).Length)));
 
@@ -511,12 +512,21 @@ namespace Kahya
                 SetStatus(T("Yedek doğrulanıyor…"));
                 Log("   " + T("Yedek doğrulanıyor (paket baştan sona okunuyor)…"));
                 var problems = await Task.Run(() => BackupArchive.Verify(zip, folder, ctx));
-                if (problems.Count == 0)
+                // Paketlerken atlananlar doğrulamada "pakette yok" diye bir daha çıkar; onlar aşağıda ayrıca söylenir.
+                problems = problems.Where(p => !skipped.Any(s => p.StartsWith(s + ":"))).ToList();
+                if (skipped.Count > 0)
+                {
+                    // Kullanımdaki ya da okunamayan dosyalar: yedek yine kullanılabilir ama eksik, formattan önce bilinmeli.
+                    Log("! " + T("{0} dosya yedeğe girmedi.", skipped.Count));
+                    Info(T("{0} dosya yedeğe girmedi (açık bir programda kullanımda olabilir):\n\n{1}\n\nProgramı kapatıp yedeği tekrar al ya da bu dosyaları elle kopyala.",
+                           skipped.Count, string.Join("\n", skipped.Take(8)) + (skipped.Count > 8 ? "\n…" : "")));
+                }
+                if (problems.Count == 0 && skipped.Count == 0)
                 {
                     Log("   ✔ " + T("Yedek doğrulandı: bütün dosyalar sağlam okunuyor."));
                     done.Add(T("Doğrulandı ✔"));
                 }
-                else
+                else if (problems.Count > 0)
                 {
                     foreach (var pr in problems.Take(10)) Log("   ✖ " + pr);
                     Log("! " + T("Doğrulamada {0} sorun bulundu.", problems.Count));

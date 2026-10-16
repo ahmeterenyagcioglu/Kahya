@@ -261,6 +261,7 @@ namespace Kahya.Core
         {
             try
             {
+                path = LongPath.Of(path); // 260 karakteri aşan alt klasörler de silinsin
                 if (File.Exists(path))
                 {
                     File.SetAttributes(path, FileAttributes.Normal);
@@ -461,10 +462,17 @@ namespace Kahya.Core
         /// <summary>Kişisel klasörün yedekteki alt klasör adı.</summary>
         public static string BackupName(PersonalFolder f) => Safe(f.Name);
 
-        /// <summary>Klasörü yedeğe kopyalar (robocopy: kilitli dosyada takılmaz, bağlantıları izlemez). Başarılıysa true.</summary>
-        public static bool CopyFolder(PersonalFolder f, string target, CleanContext ctx)
+        /// <summary>
+        /// Klasörü yedeğe kopyalar (robocopy: kilitli dosyada takılmaz, bağlantıları izlemez). Başarılıysa true.
+        /// <paramref name="backupRoot"/> yedeğin yazıldığı klasördür; varsayılan hedef Masaüstü olduğundan çoğu zaman
+        /// kopyalanan klasörün içindedir. Hariç tutulmazsa robocopy yedeği kendi içine kopyalar ve hiç bitmez.
+        /// Daha önce alınmış Kahya yedekleri de yedeğe girmez.
+        /// </summary>
+        public static bool CopyFolder(PersonalFolder f, string target, string backupRoot, CleanContext ctx)
         {
-            int code = ProcessRunner.Run("robocopy.exe", $"\"{f.Path}\" \"{Path.Combine(target, BackupName(f))}\" /E /DCOPY:DT /R:1 /W:1 /XJ /NFL /NDL /NP", ctx);
+            int code = ProcessRunner.Run("robocopy.exe",
+                $"\"{f.Path}\" \"{Path.Combine(target, BackupName(f))}\" /E /DCOPY:DT /R:1 /W:1 /XJ /NFL /NDL /NP " +
+                $"/XD \"{backupRoot.TrimEnd('\\')}\" \"Kahya-Yedek-*\"", ctx);
             return code < 8; // robocopy: 0-7 başarılı
         }
 
@@ -486,7 +494,7 @@ namespace Kahya.Core
         {
             long total = 0;
             var stack = new Stack<DirectoryInfo>();
-            try { stack.Push(new DirectoryInfo(folder)); } catch { return 0; }
+            try { stack.Push(new DirectoryInfo(LongPath.Of(folder))); } catch { return 0; }
             while (stack.Count > 0)
             {
                 var dir = stack.Pop();

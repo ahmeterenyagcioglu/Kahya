@@ -9,6 +9,25 @@ using static Kahya.Core.Lang;
 namespace Kahya.Core
 {
     /// <summary>
+    /// Windows'ta uzun yollar varsayılan olarak kapalıdır (LongPathsEnabled=0): 260 karakteri aşan dosyalar normal
+    /// yolla açılamaz, silinemez. "\\?\" önekli yolda bu sınır yoktur. Robocopy bu dosyaları kopyalar, bu yüzden
+    /// yedeğin geri kalanı da (paketleme, doğrulama, açma, silme) onlarla baş edebilmeli.
+    /// </summary>
+    public static class LongPath
+    {
+        public static string Of(string path)
+        {
+            if (string.IsNullOrEmpty(path) || path.StartsWith(@"\\?\")) return path;
+            var full = Path.GetFullPath(path);
+            return full.StartsWith(@"\\") ? @"\\?\UNC\" + full.Substring(2) : @"\\?\" + full;
+        }
+
+        /// <summary>Önekli yolu ekranda ve kayıtta gösterilecek hale getirir.</summary>
+        public static string Strip(string path) =>
+            path == null ? null : path.StartsWith(@"\\?\UNC\") ? @"\\" + path.Substring(8) : path.StartsWith(@"\\?\") ? path.Substring(4) : path;
+    }
+
+    /// <summary>
     /// Format yedeğinin tek dosyası (.zip). Yedeğin ne içerdiği (<see cref="BackupManifest"/>) ZIP'in açıklamasına yazılır:
     /// arşiv açılmadan, dosyanın sonundan okunur (WinRAR / 7-Zip de gösterir). Açıklama kaybolursa diye aynı metin
     /// arşivin içinde <see cref="ManifestEntry"/> olarak da durur.
@@ -43,11 +62,15 @@ namespace Kahya.Core
             // .mca (Minecraft dünyaları) burada değil: içleri sıkıştırılmış olsa da 4 KB'lık boşluklarla dolu, epey küçülür.
         };
 
-        /// <summary>Klasörün içeriğini ZIP'e koyar (klasörün kendisi değil). Okunamayan dosyalar kayda yazılır ve atlanır.</summary>
-        public static void Create(string folder, string zipPath, CleanContext ctx)
+        /// <summary>
+        /// Klasörün içeriğini ZIP'e koyar (klasörün kendisi değil). Okunamayan dosyalar kayda yazılır ve atlanır;
+        /// atlananların adları döndürülür ki yedek "tamam" denmeden önce kullanıcı bunu görsün.
+        /// </summary>
+        public static List<string> Create(string folder, string zipPath, CleanContext ctx)
         {
-            var root = folder.TrimEnd('\\') + "\\";
-            var files = Directory.GetFiles(folder, "*", SearchOption.AllDirectories);
+            var skipped = new List<string>();
+            var root = LongPath.Of(folder).TrimEnd('\\') + "\\";
+            var files = Directory.GetFiles(root, "*", SearchOption.AllDirectories);
             long total = Math.Max(1, files.Sum(f => { try { return new FileInfo(f).Length; } catch { return 0L; } })), done = 0;
             int lastPercent = -1;
 
@@ -65,13 +88,14 @@ namespace Kahya.Core
                         var level = Stored.Contains(Path.GetExtension(file)) ? CompressionLevel.NoCompression : CompressionLevel.Optimal;
                         var entry = zip.CreateEntry(name, level);
                         entry.LastWriteTime = File.GetLastWriteTime(file);
+                        entry.ExternalAttributes = (int)(File.GetAttributes(file) & KeptAttributes);
                         using (var src = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
                         using (var dst = entry.Open())
                             src.CopyTo(dst, 1 << 16);
                         done += new FileInfo(file).Length;
                     }
-                    catch (IOException ex) { ctx.Log("   ! " + T("{0} arşive eklenemedi: {1}", name, ex.Message)); }
-                    catch (UnauthorizedAccessException ex) { ctx.Log("   ! " + T("{0} arşive eklenemedi: {1}", name, ex.Message)); }
+                    catch (IOException ex) { skipped.Add(name); ctx.Log("   ! " + T("{0} arşive eklenemedi: {1}", name, ex.Message)); }
+                    catch (UnauthorizedAccessException ex) { skipped.Add(name); ctx.Log("   ! " + T("{0} arşive eklenemedi: {1}", name, ex.Message)); }
 
                     int percent = (int)(done * 100 / total);
                     if (percent != lastPercent)
@@ -80,8 +104,27 @@ namespace Kahya.Core
                         ctx.Progress?.Invoke(T("Yedek paketleniyor… %{0}", percent));
                     }
                 }
+
+                // Boş klasörler de yedeğe girsin (ZIP'te dosyasız klasör ancak "ad/" girdisiyle durur).
+                foreach (var dir in Directory.GetDirectories(root, "*", SearchOption.AllDirectories))
+                {
+                    try
+                    {
+                        if (Directory.EnumerateFileSystemEntries(dir).Any()) continue;
+                        zip.CreateEntry(dir.Substring(root.Length).Replace('\\', '/') + "/");
+                    }
+                    catch (IOException) { }
+                    catch (UnauthorizedAccessException) { }
+                }
             }
+            return skipped;
         }
+
+        /// <summary>
+        /// Geri yüklemede korunan öznitelikler (ZIP'in "harici öznitelik" alanında, 7-Zip de böyle yazar). Gizli kalmayan
+        /// desktop.ini masaüstünde görünür; salt okunur dosya da öyle kalmalı.
+        /// </summary>
+        const FileAttributes KeptAttributes = FileAttributes.ReadOnly | FileAttributes.Hidden | FileAttributes.System;
 
         // ───────────── ZIP açıklaması ─────────────
         // ZIP'in sonunda "merkezi dizin sonu" kaydı (22 bayt + açıklama) durur; son 2 baytı açıklamanın uzunluğudur.
@@ -162,15 +205,23 @@ namespace Kahya.Core
 
         /// <summary>
         /// Paketi baştan sona okur: her girdi açılıp sonuna kadar okunur (bozuk sıkıştırma hata verir) ve boyutu
-        /// yedeklenen dosyanınkiyle karşılaştırılır. Sorunları döndürür; boşsa paket sağlam.
+        /// yedeklenen dosyanınkiyle karşılaştırılır; yedeklenen klasörde olup pakete hiç girmemiş dosya da sorundur.
+        /// Sorunları döndürür; boşsa paket sağlam.
         /// </summary>
         public static List<string> Verify(string zipPath, string sourceFolder, CleanContext ctx)
         {
             var problems = new List<string>();
             var buffer = new byte[1 << 16];
+            var root = LongPath.Of(sourceFolder).TrimEnd('\\') + "\\";
             using (var zip = ZipFile.Open(zipPath, ZipArchiveMode.Read, new UTF8Encoding(false)))
             {
                 var entries = zip.Entries.Where(e => !e.FullName.EndsWith("/")).ToList();
+                var names = new HashSet<string>(entries.Select(e => e.FullName), StringComparer.OrdinalIgnoreCase);
+                foreach (var file in Directory.GetFiles(root, "*", SearchOption.AllDirectories))
+                {
+                    var name = file.Substring(root.Length).Replace('\\', '/');
+                    if (!names.Contains(name)) problems.Add(T("{0}: pakette yok", name));
+                }
                 long total = Math.Max(1, entries.Sum(e => e.Length)), done = 0;
                 int lastPercent = -1;
                 foreach (var e in entries)
@@ -182,7 +233,7 @@ namespace Kahya.Core
                         using (var s = e.Open())
                             for (int n; (n = s.Read(buffer, 0, buffer.Length)) > 0;) read += n;
                         if (read != e.Length) problems.Add(T("{0}: eksik okundu", e.FullName));
-                        var source = Path.Combine(sourceFolder, e.FullName.Replace('/', '\\'));
+                        var source = root + e.FullName.Replace('/', '\\');
                         if (File.Exists(source) && new FileInfo(source).Length != e.Length)
                             problems.Add(T("{0}: boyutu asıl dosyayla uyuşmuyor", e.FullName));
                     }
@@ -217,11 +268,16 @@ namespace Kahya.Core
                     ctx.Token.ThrowIfCancellationRequested();
                     if (!(e.FullName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) || e.FullName.Equals(file, StringComparison.OrdinalIgnoreCase)))
                         continue;
-                    var target = Path.GetFullPath(Path.Combine(root, e.FullName.Replace('/', '\\')));
-                    if (!target.StartsWith(root, StringComparison.OrdinalIgnoreCase)) continue;
+                    var plain = Path.GetFullPath(Path.Combine(root, e.FullName.Replace('/', '\\')));
+                    if (!plain.StartsWith(root, StringComparison.OrdinalIgnoreCase)) continue;
+                    // Önek, "../" denetimi normal yolla yapıldıktan sonra eklenir (önekli yolda ".." çözülmez).
+                    var target = LongPath.Of(plain);
                     if (e.FullName.EndsWith("/")) { Directory.CreateDirectory(target); continue; }
                     Directory.CreateDirectory(Path.GetDirectoryName(target));
+                    if (File.Exists(target)) File.SetAttributes(target, FileAttributes.Normal); // salt okunursa üzerine yazılamaz
                     e.ExtractToFile(target, true);
+                    var attributes = (FileAttributes)e.ExternalAttributes & KeptAttributes;
+                    if (attributes != 0) File.SetAttributes(target, File.GetAttributes(target) | attributes);
                     count++;
                 }
             }
