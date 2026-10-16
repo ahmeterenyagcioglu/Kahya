@@ -1951,4 +1951,8 @@
   <t tr="Donan programı görev çubuğundan sağ tıkla kapat.">Close a frozen app by right-clicking it on the taskbar.</t>
   <t tr="Neyin yer kapladığını görmek için bir diske tıkla.">Click a disk to see what takes up space.</t>
   <t tr="• Birden fazla ağ kartı olan bilgisayarlarda alınan yedekler geri yüklenemiyordu; düzeldi\n• Sade menü: 8 bölüm, alt sekmeler (Temizlik, Güncellemeler, Uygulamalar, Windows ayarları, Sistem, Yedekleme)\n• Kısa ve anlaşılır metinler\n• Program kur: Brave, Zoom gibi kurulu programlar artık tanınıyor\n• Sistem › Durum'da disk alanı; DNS satırındaki boşluk giderildi">• Backups taken on PCs with more than one network adapter couldn't be restored; fixed\n• Simpler menu: 8 sections with sub-tabs (Cleanup, Updates, Apps, Windows settings, System, Backup)\n• Shorter, clearer texts\n• Install apps: installed programs like Brave and Zoom are now recognized\n• Disk space in System › Status; the gap in the DNS row is gone</t>
+  <t tr="{0}: Windows bu ayarın değiştirilmesine izin vermiyor; gerekirse Ayarlar'dan elle değiştir.">{0}: Windows doesn't allow changing this setting; change it in Settings if needed.</t>
+  <t tr="Pencere Öğeleri düğmesi">Widgets button</t>
+  <t tr="Sohbet düğmesi">Chat button</t>
+  <t tr="Görev çubuğu hizalaması">Taskbar alignment</t>
 </language>

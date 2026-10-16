@@ -54,6 +54,18 @@ namespace Kahya.Core
         // ───────────── yedekle ─────────────
 
         /// <summary>Ayarları klasöre yazar; yazılan grup sayısını döndürür.</summary>
+        /// <summary>Kayıtta değer adı yerine anlaşılır ad (bilinenler için).</summary>
+        static string ValueTitle(string name)
+        {
+            switch (name)
+            {
+                case "TaskbarDa": return T("Pencere Öğeleri düğmesi");
+                case "TaskbarMn": return T("Sohbet düğmesi");
+                case "TaskbarAl": return T("Görev çubuğu hizalaması");
+                default: return name;
+            }
+        }
+
         public static int Save(string folder)
         {
             Directory.CreateDirectory(folder);
@@ -154,6 +166,9 @@ namespace Kahya.Core
                             k.SetValue(c[2], value, kind);
                         written++;
                     }
+                    // Windows 11 bazı değerleri (TaskbarDa: Pencere Öğeleri düğmesi) korumaya aldı, dışarıdan yazılamaz.
+                    // Bunlar kullanıcının Ayarlar'dan tek tıkla değiştirebileceği şeyler; İngilizce ham hata yerine bunu söyle.
+                    catch (UnauthorizedAccessException) { ctx.Log("   " + T("{0}: Windows bu ayarın değiştirilmesine izin vermiyor; gerekirse Ayarlar'dan elle değiştir.", ValueTitle(c[2]))); }
                     catch (Exception ex) { ctx.Log("   ! " + c[2] + ": " + ex.Message); }
 
                 if (g.Id == "wallpaper")

@@ -553,9 +553,10 @@ namespace Kahya
                 c.Items.Add(new ItemVm { Category = c, Key = key, Title = title, Size = size, Program = program, IsChecked = on && c.IsEnabled, IsEnabled = c.IsEnabled,
                                          Detail = size > 0 ? Format.Bytes(size) : "" });
 
-            // Ağ kartı sürücüleri burada yok: 2. adımda (internet yoksa) kurulur, Windows da çoğu zaman kendisi bulur.
+            // İnternet yokken ağ kartı sürücüleri 2. adımda kurulur. İnternet varsa (ör. kabloyla) burada da listelenir:
+            // yoksa Ethernet çalışırken Wi-Fi kartının sürücüsü hiç kurulmazdı. pnputil eskisini yenisinin üzerine kurmaz.
             var networks = new HashSet<string>(RestoreRunner.NetworkDrivers(_src), StringComparer.OrdinalIgnoreCase);
-            var drivers = _src.SubFolders(m.Drivers).Where(d => !networks.Contains(d)).ToList();
+            var drivers = _src.SubFolders(m.Drivers).Where(d => _online || !networks.Contains(d)).ToList();
             if (drivers.Count > 0)
             {
                 var c = Cat("drivers", "", T("Sürücüler"), Elevation.IsAdmin ? null : T("yönetici olarak açılınca kurulabilir"), Elevation.IsAdmin);
@@ -563,7 +564,8 @@ namespace Kahya
                 {
                     var cls = d.Split(new[] { " - " }, StringSplitOptions.None)[0];
                     // Sanal ağ kartları (Tailscale, VPN, sanal makine): programları kurulunca kendileri gelir; varsayılan seçili değil.
-                    bool virtualNet = RestoreRunner.LooksVirtual(d) || cls == "NET" && m.NetworkDrivers.Count > 0;
+                    // NetworkDrivers listesi varken (1.4+) onun dışındaki NET sürücüleri sanaldır; listedekiler gerçek karttır.
+                    bool virtualNet = RestoreRunner.LooksVirtual(d) || cls == "NET" && m.NetworkDrivers.Count > 0 && !networks.Contains(d);
                     Item(c, d, DriverClass(cls) + " · " + DriverName(d), _src.Size(m.Drivers + "\\" + d), !virtualNet);
                     if (virtualNet) c.Items.Last().Detail = T("sanal ağ kartı (VPN vb.); programı kurulunca gelir");
                 }
