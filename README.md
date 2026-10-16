@@ -88,8 +88,10 @@ hesapları. Liste bu bilgisayarda kurulu olanlara göre oluşur. Altta **Format 
 Aracını (ya da Rufus'u) açar.
 
 ### 🧭 Format sonrası asistanı
-Format sonrası yedek klasöründeki `Kahya.exe`'yi aç: yeni kurulmuş bir Windows'ta yedeği görünce asistanı kendisi önerir
-(ya da **Format yardımcısı › Asistanı başlat**). Kurulum sihirbazı gibi
+Format sonrası yedek klasöründeki `Kahya.exe`'yi aç: yedeğin bu Windows'tan eski olduğunu görünce kendini bilgisayara
+kopyalar (`%LOCALAPPDATA%\Programs\Kahya`, Başlat menüsü ve masaüstü kısayoluyla) ve doğrudan asistanla açılır; USB'yi
+sonra çıkarabilirsin. Yedeği alır almaz, formattan önce açarsan asistan gelmez. Kahya zaten kuruluysa yeni kurulmuş bir
+Windows'ta takılı diskteki yedeği görünce asistanı önerir (ya da **Format yardımcısı › Asistanı başlat**). Kurulum sihirbazı gibi
 adım adım ilerler:
 
 1. **Yedek:** yanındaki ya da USB bellek / ikinci diskteki yedeği kendisi bulur; bulamazsa **Manuel olarak seç**.

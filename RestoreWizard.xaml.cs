@@ -183,6 +183,11 @@ namespace Kahya
             WifiList.ItemsSource = _wifi;
 
             AdminBanner.Visibility = Elevation.IsAdmin ? Visibility.Collapsed : Visibility.Visible;
+            if (App.JustInstalled)
+            {
+                InstalledText.Text = T("Kahya bu bilgisayara kopyalandı ({0}); Başlat menüsünde ve masaüstünde kısayolu var. Geri yükleme bitince USB'yi çıkarabilirsin.", SelfInstall.InstallDir);
+                InstalledBanner.Visibility = Visibility.Visible;
+            }
             AdminNote.Text = Elevation.IsAdmin ? T("Yönetici olarak çalışıyor ✓") : T("Normal kullanıcı olarak çalışıyor; sürücüler kurulamaz.");
 
             _pending = RestoreState.Load();

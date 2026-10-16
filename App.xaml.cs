@@ -24,6 +24,9 @@ namespace Kahya
         /// <summary>Asistanda seçili gelecek yedek; yoksa null (asistan kendisi arar).</summary>
         public static string StartRestore { get; private set; }
 
+        /// <summary>Kahya az önce yedeğin yanından bilgisayara kopyalandı (asistan bunu söyler).</summary>
+        public static bool JustInstalled { get; private set; }
+
         protected override void OnStartup(StartupEventArgs e)
         {
             if (!NetFrameworkOk())
@@ -66,6 +69,32 @@ namespace Kahya
                 Shutdown();
                 return;
             }
+
+            // Format sonrası yedeğin yanındaki Kahya (USB'den) açıldıysa: kendini bilgisayara kopyalar, oradan asistanla açılır.
+            if (!StartWizard && !e.Args.Contains("--tray") && !IsAlreadyRunning())
+            {
+                var exe = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
+                if (!SelfInstall.IsInstalledCopy(exe))
+                {
+                    var package = SelfInstall.PostFormatPackage(Path.GetDirectoryName(exe));
+                    if (package != null)
+                    {
+                        var installed = SelfInstall.Install(exe);
+                        if (installed != null)
+                            try
+                            {
+                                System.Diagnostics.Process.Start(installed, $"--wizard \"{package}\" --installed");
+                                Shutdown();
+                                return;
+                            }
+                            catch { }
+                        // Kopyalanamadıysa olduğu yerden asistanla açılır.
+                        StartWizard = true;
+                        StartRestore = package;
+                    }
+                }
+            }
+            JustInstalled = e.Args.Contains("--installed");
 
             // "Her zaman yönetici olarak aç": çift tıklanınca kendini yönetici olarak yeniden başlatır.
             // Oturum açılışında (--tray) yapılmaz, yoksa her açılışta izin penceresi çıkar. Kahya zaten açıksa da yapılmaz;

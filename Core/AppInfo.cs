@@ -39,7 +39,7 @@ namespace Kahya.Core
             new ReleaseNote
             {
                 Version = "1.5.0", Date = T("16 Ekim 2026"),
-                Notes = T("• Formattan önce kontrol listesi: tarayıcı şifreleri, OneDrive, iki adımlı doğrulama, Office/Adobe lisansları, oyun hesapları (bu bilgisayarda olanlara göre)\n• BitLocker ile şifreli disklerin kurtarma anahtarları yedeğe eklenir\n• Windows ayarları yedeklenir ve geri yüklenir: duvar kâğıdı, koyu/açık tema ve renkler, görev çubuğu, Gezgin, fare, klavye düzenleri\n• Yedek bitince doğrulanır: paket baştan sona okunur, bozuk USB ya da yarım kopya formattan önce fark edilir\n• Yeni kurulmuş bir Windows'ta yedek bulunursa format sonrası asistanı kendiliğinden önerilir\n• Format USB'si hazırlama: Microsoft'un Medya Oluşturma Aracı ya da Rufus tek tıkla"),
+                Notes = T("• Formattan önce kontrol listesi: tarayıcı şifreleri, OneDrive, iki adımlı doğrulama, Office/Adobe lisansları, oyun hesapları (bu bilgisayarda olanlara göre)\n• BitLocker ile şifreli disklerin kurtarma anahtarları yedeğe eklenir\n• Windows ayarları yedeklenir ve geri yüklenir: duvar kâğıdı, koyu/açık tema ve renkler, görev çubuğu, Gezgin, fare, klavye düzenleri\n• Yedek bitince doğrulanır: paket baştan sona okunur, bozuk USB ya da yarım kopya formattan önce fark edilir\n• Yeni kurulmuş bir Windows'ta yedek bulunursa format sonrası asistanı kendiliğinden önerilir\n• Format sonrası yedeğin yanındaki Kahya açılınca: kendini bilgisayara kopyalar (Başlat menüsü ve masaüstü kısayoluyla) ve doğrudan asistanla açılır; USB sonra çıkarılabilir\n• Format USB'si hazırlama: Microsoft'un Medya Oluşturma Aracı ya da Rufus tek tıkla"),
             },
             new ReleaseNote
             {
