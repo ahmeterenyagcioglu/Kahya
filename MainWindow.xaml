@@ -194,8 +194,7 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <Grid Width="26" Height="26" Margin="0,0,14,0" VerticalAlignment="Center">
-                        <TextBlock Text="&#xE7C4;" FontFamily="{StaticResource Icons}" FontSize="18" Foreground="{DynamicResource Faint}"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Style="{StaticResource IconFallback}"/>
                         <Image Source="{Binding Icon}" Width="26" Height="26"/>
                     </Grid>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
@@ -651,7 +650,7 @@
                                                         </StackPanel>
                                                         <StackPanel Grid.Column="2" VerticalAlignment="Center" MinWidth="160" Margin="14,0,0,0">
                                                             <TextBlock HorizontalAlignment="Right" FontSize="12.5">
-                                                                <Run Text="{Binding Version, Mode=OneWay}" Foreground="{DynamicResource Muted}"/>
+                                                                <Run Text="{Binding VersionText, Mode=OneWay}" Foreground="{DynamicResource Muted}"/>
                                                                 <Run Text=" → " Foreground="{DynamicResource Faint}"/>
                                                                 <Run Text="{Binding Available, Mode=OneWay}" Foreground="{DynamicResource Good}" FontWeight="SemiBold"/>
                                                             </TextBlock>
@@ -734,7 +733,10 @@
                                                             <ColumnDefinition Width="Auto"/>
                                                             <ColumnDefinition Width="Auto"/>
                                                         </Grid.ColumnDefinitions>
-                                                        <Image Source="{Binding Icon}" Width="26" Height="26" Margin="0,0,14,0" VerticalAlignment="Center"/>
+                                                        <Grid Width="26" Height="26" Margin="0,0,14,0" VerticalAlignment="Center">
+                                                            <TextBlock Style="{StaticResource IconFallback}"/>
+                                                            <Image Source="{Binding Icon}" Width="26" Height="26"/>
+                                                        </Grid>
                                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                                             <TextBlock Text="{Binding Name}" Style="{StaticResource RowTitle}"/>
                                                             <TextBlock Text="{Binding Details}" Style="{StaticResource RowSub}"/>
@@ -886,7 +888,10 @@
                                                             <ColumnDefinition Width="*"/>
                                                             <ColumnDefinition Width="Auto"/>
                                                         </Grid.ColumnDefinitions>
-                                                        <Image Source="{Binding Icon}" Width="26" Height="26" Margin="0,0,14,0" VerticalAlignment="Center"/>
+                                                        <Grid Width="26" Height="26" Margin="0,0,14,0" VerticalAlignment="Center">
+                                                            <TextBlock Style="{StaticResource IconFallback}"/>
+                                                            <Image Source="{Binding Icon}" Width="26" Height="26"/>
+                                                        </Grid>
                                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                                             <TextBlock Text="{Binding Name}" Style="{StaticResource RowTitle}"/>
                                                             <TextBlock Style="{StaticResource RowSub}" ToolTip="{Binding Command}">

@@ -32,6 +32,30 @@ namespace Kahya.Core
             var n = value.ToString(format, CultureInfo.CurrentCulture);
             return Lang.English ? n + "%" : "%" + n;
         }
+
+        /// <summary>
+        /// Programın kendi yazdığı sürüm, ekranda gösterilecek hale: "ad 9.8.1" (AnyDesk) → "9.8.1",
+        /// winget'in "&lt; 174.2" (kurulu sürüm bilinmiyor, bundan eski) → "eski sürüm", "Unknown" → "bilinmiyor".
+        /// </summary>
+        public static string Version(string version)
+        {
+            if (string.IsNullOrWhiteSpace(version)) return version;
+            var v = version.Trim();
+            if (v.StartsWith("<")) return T("eski sürüm");
+            if (v.Equals("Unknown", StringComparison.OrdinalIgnoreCase)) return T("bilinmiyor");
+            var m = System.Text.RegularExpressions.Regex.Match(v, @"^[^\d\s]+\s+(\d.*)$");
+            return m.Success ? m.Groups[1].Value : v;
+        }
+
+        /// <summary>Ağ hatalarında teknik mesaj ("(503) Sunucu Kullanılamıyor") yerine ne yapılacağını söyler.</summary>
+        public static string Error(Exception ex)
+        {
+            for (var e = ex; e != null; e = e.InnerException)
+                if (e is System.Net.WebException || e is System.Net.Sockets.SocketException ||
+                    e.GetType().Name == "HttpRequestException" || e is System.TimeoutException)
+                    return T("sunucuya şu an ulaşılamıyor; internetini kontrol edip sonra tekrar dene.");
+            return ex.Message;
+        }
     }
 
     public static class RecycleBin

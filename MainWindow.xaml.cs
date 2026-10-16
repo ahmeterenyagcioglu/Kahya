@@ -177,7 +177,7 @@ namespace Kahya
             "Programlarını tek yerden güncelle",
             "Program kaldır, gereksiz Windows uygulamalarını temizle",
             "Windows açılırken başlayanlar · kapattığın silinmez, istediğin zaman geri açabilirsin",
-            "Reklam ve veri toplama · anahtar açıksa o özellik kapalıdır",
+            "Reklam, veri toplama ve Windows ayarları · anahtar açıksa ayar uygulanmış demektir",
             "Diskte neyin yer kapladığını gör",
             "Sistem bilgisi, sağlık ve onarım",
             "Format öncesi yedek al, sonra kolayca geri yükle",
@@ -226,7 +226,7 @@ namespace Kahya
             else if (tab == PrivacyTab)
             {
                 TotalText.Text = $"{_privacy.Count(p => p.IsApplied)}/{_privacy.Count}";
-                TotalCaption.Text = T("gizlilik ayarı uygulanmış");
+                TotalCaption.Text = T("ayar uygulanmış");
             }
             else if (tab == FormatTab)
             {

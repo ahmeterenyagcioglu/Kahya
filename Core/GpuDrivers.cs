@@ -81,7 +81,7 @@ namespace Kahya.Core
                 {
                     case "nvidia":
                         try { CheckNvidia(g); }
-                        catch (Exception ex) { g.Status = T("Kontrol edilemedi: {0}", ex.Message); g.Url = "https://www.nvidia.com/en-us/drivers/"; }
+                        catch (Exception ex) { g.Status = T("Kontrol edilemedi: {0}", Format.Error(ex)); g.Url = "https://www.nvidia.com/en-us/drivers/"; }
                         break;
                     case "amd":
                         g.Url = AmdPage;

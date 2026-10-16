@@ -252,7 +252,9 @@ namespace Kahya.Core
         public static string Uptime()
         {
             var t = UptimeSpan;
-            return t.TotalDays >= 1 ? T("{0} gün {1} saat", (int)t.TotalDays, t.Hours) : T("{0} saat {1} dakika", t.Hours, t.Minutes);
+            return t.TotalDays >= 1 ? T("{0} gün {1} saat", (int)t.TotalDays, t.Hours)
+                 : t.Hours >= 1 ? T("{0} saat {1} dakika", t.Hours, t.Minutes)
+                 : T("{0} dakika", t.Minutes);
         }
     }
 }

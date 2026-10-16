@@ -82,7 +82,7 @@ namespace Kahya
             }
             catch (Exception ex)
             {
-                if (!silent) GpuInfoText.Text = T("Kontrol edilemedi: {0}", ex.Message);
+                if (!silent) GpuInfoText.Text = T("Kontrol edilemedi: {0}", Format.Error(ex));
             }
         }
 

@@ -296,7 +296,7 @@ namespace Kahya
             }
             catch (Exception ex)
             {
-                AppUpdateText.Text = silent ? "" : T("Kontrol edilemedi: {0}", ex.Message);
+                AppUpdateText.Text = silent ? "" : T("Kontrol edilemedi: {0}", Format.Error(ex));
             }
         }
 

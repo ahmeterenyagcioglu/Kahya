@@ -31,7 +31,7 @@ namespace Kahya.Core
             {
                 var parts = new List<string>();
                 if (!string.IsNullOrEmpty(Publisher)) parts.Add(Publisher);
-                if (!string.IsNullOrEmpty(Version)) parts.Add("v" + Version);
+                if (!string.IsNullOrEmpty(Version)) parts.Add("v" + Format.Version(Version));
                 if (InstallDate.HasValue) parts.Add(InstallDate.Value.ToString("d MMM yyyy", CultureInfo.CurrentCulture));
                 return string.Join(" · ", parts);
             }

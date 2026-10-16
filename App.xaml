@@ -240,6 +240,22 @@
             <Setter Property="TextWrapping" Value="Wrap"/>
         </Style>
 
+        <!-- Simgesi okunamayan satırlarda yerine görünen genel uygulama simgesi; simge varsa gizli (şeffaf simgenin arkasından görünmesin) -->
+        <Style x:Key="IconFallback" TargetType="TextBlock">
+            <Setter Property="Text" Value="&#xE7C4;"/>
+            <Setter Property="FontFamily" Value="{StaticResource Icons}"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Foreground" Value="{DynamicResource Faint}"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Visibility" Value="Collapsed"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Icon}" Value="{x:Null}">
+                    <Setter Property="Visibility" Value="Visible"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
         <Style x:Key="SearchBox" TargetType="TextBox">
             <Setter Property="Background" Value="{DynamicResource Card}"/>
             <Setter Property="Foreground" Value="{DynamicResource Text}"/>

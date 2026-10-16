@@ -1808,6 +1808,12 @@
   <t tr="ayarlar ve veriler olabilir">may contain settings and data</t>
   <t tr="{0} yedeklenemediği için silinmedi.">{0} was not deleted because it couldn't be backed up.</t>
   <t tr="Geride kalanlar">Leftovers</t>
+  <t tr="eski sürüm">older version</t>
+  <t tr="bilinmiyor">unknown</t>
+  <t tr="{0} dakika">{0} minutes</t>
+  <t tr="sunucuya şu an ulaşılamıyor; internetini kontrol edip sonra tekrar dene.">the server can't be reached right now; check your internet connection and try again later.</t>
+  <t tr="ayar uygulanmış">settings applied</t>
+  <t tr="Reklam, veri toplama ve Windows ayarları · anahtar açıksa ayar uygulanmış demektir">Ads, data collection and Windows settings · switch on means the setting is applied</t>
   <t tr="WinSxS (Windows bileşen deposu)\n\nGezgin'de görünen boyutu: {0}\nGerçek boyutu: {1}\nBunun Windows'un kendisi olan kısmı (silinemez): {2}\nEski sürümler ve kapalı özellikler: {3}\nKaldırılabilir eski paket: {4}">WinSxS (Windows component store)\n\nSize shown in Explorer: {0}\nActual size: {1}\nPart that is Windows itself (can't be removed): {2}\nOld versions and disabled features: {3}\nRemovable old packages: {4}</t>
   <t tr="Temizliğe gerek yok ✔">No cleanup needed ✔</t>
   <t tr="Temizlik öneriliyor. Temizlik sekmesinde 'Bileşen deposu temizliği' seçilsin mi? Temizliği oradan başlatırsın.">Cleanup is recommended. Select 'Component store cleanup' on the Cleanup tab? You start the cleanup from there.</t>
