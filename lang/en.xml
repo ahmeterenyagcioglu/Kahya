@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Kahya dil dosyası (İngilizce).
+  Kahya'nın içine gömülü İngilizce. Yeni bir dil eklemek için bu dosyayı kopyala (ör. de.xml), code ve name'i
+  değiştir, metinleri çevir; tr="…" kısmına, {0} gibi yer tutuculara ve \n'e dokunma. Kahya'da aynı örnek
+  Data\Lang\lang-sample.xml olarak da çıkar. Çeviriyi GitHub'da paylaşırsan sonraki sürüme eklenir.
 
-  Yeni bir dil eklemek için: bu dosyayı kopyala (ör. de.xml), en üstteki code ve name'i değiştir,
-  her <t> satırında sadece aradaki metni çevir. tr="…" kısmına dokunma: Kahya metni onunla bulur.
-  {0}, {1} gibi yer tutucular ve \n (yeni satır) olduğu gibi kalmalı.
-  Dosyayı Kahya'nın yanındaki Data\Lang klasörüne koy, Hakkında › Ayarlar › Dil'den seç.
-  Çevrilmemiş satırlar Türkçe görünür. Bitince GitHub'da paylaşırsan sonraki sürüme eklenir.
+  Built-in English. To add a new language, copy this file (e.g. de.xml), change code and name and translate the
+  texts; do not touch tr="…", placeholders like {0} or \n. Kahya also writes this sample as
+  Data\Lang\lang-sample.xml. Share your translation on GitHub and it can ship in the next version.
 -->
 <language code="en" name="English" author="Ahmet Eren Yağcıoğlu">
   <t tr="🧹  Temizlik">🧹  Cleanup</t>
@@ -1777,7 +1777,7 @@
   <t tr="Uyarılar Kahya bildirim alanında çalışırken gelir. Üstteki 'Kapatınca bildirim alanında çalışmaya devam et'i de aç.">Alerts arrive while Kahya runs in the notification area. Also turn on 'Keep running in the notification area when closed' above.</t>
   <t tr="{0} {1} oldu">{0} has grown to {1}</t>
   <t tr="Dil dosyaları…">Language files…</t>
-  <t tr="Dil dosyalarının klasörünü açar. en.xml'i kopyalayıp (ör. de.xml) kendi dilini ekleyebilirsin; nasıl yapılacağı dosyanın başında yazıyor.">Opens the language files folder. Copy en.xml (e.g. to de.xml) to add your own language; how to do it is written at the top of the file.</t>
+  <t tr="Dil dosyalarının klasörünü açar. lang-sample.xml'i kopyalayıp (ör. de.xml) kendi dilini ekleyebilirsin; nasıl yapılacağı dosyanın başında yazıyor.">Opens the language files folder. Copy lang-sample.xml (e.g. to de.xml) to add your own language; how to do it is written at the top of the file.</t>
   <t tr="Yarım kalan geri yüklemeyi unut; bir daha sorulmaz.">Forget the unfinished restore; you won't be asked again.</t>
   <t tr="Açık tema">Light theme</t>
 </language>

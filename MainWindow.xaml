@@ -2170,7 +2170,7 @@
                                             </Border>
                                             <Button Content="Dil dosyaları…" Style="{StaticResource SmallBtn}" Margin="10,0,0,0"
                                                     VerticalAlignment="Center" Click="LanguageFiles_Click"
-                                                    ToolTip="Dil dosyalarının klasörünü açar. en.xml'i kopyalayıp (ör. de.xml) kendi dilini ekleyebilirsin; nasıl yapılacağı dosyanın başında yazıyor."/>
+                                                    ToolTip="Dil dosyalarının klasörünü açar. lang-sample.xml'i kopyalayıp (ör. de.xml) kendi dilini ekleyebilirsin; nasıl yapılacağı dosyanın başında yazıyor."/>
                                         </StackPanel>
                                     </DockPanel>
                                     <DockPanel Margin="0,0,0,12">

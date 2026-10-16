@@ -82,7 +82,8 @@ namespace Kahya.Core
             try
             {
                 if (System.IO.Directory.Exists(Folder))
-                    foreach (var file in System.IO.Directory.GetFiles(Folder, "*.xml"))
+                    foreach (var file in System.IO.Directory.GetFiles(Folder, "*.xml")
+                                 .Where(f => !string.Equals(System.IO.Path.GetFileName(f), SampleFile, StringComparison.OrdinalIgnoreCase)))
                         try
                         {
                             using (var s = System.IO.File.OpenRead(file))
@@ -168,27 +169,54 @@ namespace Kahya.Core
             return sb.ToString();
         }
 
+        /// <summary>Data\Lang'daki örnek dosya: dil olarak sayılmaz, sadece kopyalanıp çevrilmek için.</summary>
+        public const string SampleFile = "lang-sample.xml";
+
+        const string SampleHeader = @"
+  TÜRKÇE
+  Bu bir ÖRNEK dosyadır; Kahya onu dil olarak saymaz. İngilizce zaten Kahya'nın içinde.
+  Yeni bir dil eklemek için:
+    1. Bu dosyayı aynı klasöre kopyala ve dilin koduyla adlandır (ör. de.xml).
+    2. Aşağıdaki <language> satırında code ve name'i değiştir, author'a adını yaz
+       (ör. code=""de"" name=""Deutsch"" author=""Max"").
+    3. Her <t> satırında sadece aradaki metni çevir. tr=""…"" kısmına, {0} gibi yer tutuculara
+       ve \n (yeni satır) işaretine dokunma. Çevrilmemiş satırlar Türkçe görünür.
+    4. Kahya'yı yeniden aç, Hakkında › Ayarlar › Dil'den seç.
+  Dosyayı silersen o dil listeden kalkar. Bitince GitHub'da paylaşırsan sonraki sürüme eklenir:
+  https://github.com/ahmeterenyagcioglu/Kahya
+
+  ENGLISH
+  This is a SAMPLE file; Kahya does not load it as a language. English is already built into Kahya.
+  To add a new language:
+    1. Copy this file into the same folder and name it after the language code (e.g. de.xml).
+    2. In the <language> line below, change code and name and put your name in author
+       (e.g. code=""de"" name=""Deutsch"" author=""Max"").
+    3. In each <t> line, translate only the text between the tags. Do not touch tr=""…"" (Kahya finds
+       the text by it), placeholders like {0}, or \n (new line). Untranslated lines show in Turkish.
+    4. Restart Kahya and pick it under About › Settings › Language.
+  Delete the file to remove that language. Share it on GitHub when done and it can ship in the next version:
+  https://github.com/ahmeterenyagcioglu/Kahya
+";
+
         /// <summary>
-        /// Çeviri için şablon: gömülü en.xml'i Data\Lang'a yazar ve klasörün yolunu döndürür. Her açılışta çağrılır:
-        /// dosya yoksa ya da daha eski bir Kahya sürümünün yazdığı şablonsa (kahya="1.5.0") yenilenir, böylece yeni
-        /// metinler de şablonda olur. Kopyalayıp code/name'i değiştiren kendi dilini ekler.
+        /// Çeviri için örnek: gömülü İngilizceyi Data\Lang\lang-sample.xml olarak yazar ve klasörün yolunu döndürür.
+        /// Her açılışta çağrılır: dosya yoksa ya da daha eski bir Kahya sürümünün yazdığıysa (kahya="1.5.0") yenilenir,
+        /// böylece yeni metinler de örnekte olur.
         /// </summary>
         public static string ExportTemplate()
         {
             System.IO.Directory.CreateDirectory(Folder);
-            var dest = System.IO.Path.Combine(Folder, "en.xml");
             var version = AppInfo.Version;
+
+            // 1.5 geliştirme sürümlerinin "en.xml" adıyla yazdığı şablon: dil sanılmasın diye kaldırılır.
+            var old = System.IO.Path.Combine(Folder, "en.xml");
+            if (WrittenBy(old) != null) try { System.IO.File.Delete(old); } catch { }
+
+            var dest = System.IO.Path.Combine(Folder, SampleFile);
             if (System.IO.File.Exists(dest))
             {
-                string written = null;
-                try
-                {
-                    using (var r = System.Xml.XmlReader.Create(dest, new System.Xml.XmlReaderSettings { IgnoreComments = true, DtdProcessing = System.Xml.DtdProcessing.Prohibit }))
-                        if (r.ReadToFollowing("language")) written = r.GetAttribute("kahya");
-                }
-                catch { }
-                // Elle düzenlenmiş (kahya="…" yok) ya da bu sürümün yazdığı dosyaya dokunulmaz.
-                if (written == null || !Version.TryParse(written, out var w) || !Version.TryParse(version, out var v) || w >= v)
+                var written = WrittenBy(dest);
+                if (written != null && Version.TryParse(written, out var w) && Version.TryParse(version, out var v) && w >= v)
                     return Folder;
             }
             string text;
@@ -197,10 +225,27 @@ namespace Kahya.Core
                 if (s == null) return Folder;
                 using (var sr = new System.IO.StreamReader(s, System.Text.Encoding.UTF8)) text = sr.ReadToEnd();
             }
-            // Hangi sürümün yazdığı: sonraki sürüm şablonu yenileyebilsin diye.
+            // Gömülü dosyanın açıklaması yerine örneğin iki dilli açıklaması.
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"<!--.*?-->", "<!--" + SampleHeader.Replace("\r\n", "\n") + "-->",
+                                                                System.Text.RegularExpressions.RegexOptions.Singleline);
+            // Hangi sürümün yazdığı: sonraki sürüm örneği yenileyebilsin diye.
             text = text.Replace("<language code=\"en\"", $"<language kahya=\"{version}\" code=\"en\"");
+            // Kopyalayan kendi adını yazsın.
+            text = System.Text.RegularExpressions.Regex.Replace(text, "(<language [^>]*author=\")[^\"]*\"", "$1\"");
             System.IO.File.WriteAllText(dest, text, new System.Text.UTF8Encoding(false));
             return Folder;
+        }
+
+        /// <summary>Dosyayı Kahya yazdıysa yazan sürüm (kahya="…"); değilse ya da yoksa null.</summary>
+        static string WrittenBy(string file)
+        {
+            try
+            {
+                if (!System.IO.File.Exists(file)) return null;
+                using (var r = System.Xml.XmlReader.Create(file, new System.Xml.XmlReaderSettings { IgnoreComments = true, DtdProcessing = System.Xml.DtdProcessing.Prohibit }))
+                    return r.ReadToFollowing("language") ? r.GetAttribute("kahya") : null;
+            }
+            catch { return null; }
         }
 
         public static string T(string tr, params object[] args) => string.Format(CultureInfo.CurrentCulture, T(tr), args);

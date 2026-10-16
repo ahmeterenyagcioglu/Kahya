@@ -212,7 +212,7 @@ namespace Kahya
                 var b = new System.Windows.Controls.Button
                 {
                     Content = lang.Name, Tag = lang.Code, Style = (Style)FindResource("Seg"),
-                    ToolTip = lang.Author != null ? lang.Name + " · " + lang.Author : lang.Name,
+                    ToolTip = string.IsNullOrWhiteSpace(lang.Author) ? lang.Name : lang.Name + " · " + lang.Author,
                 };
                 b.Click += Language_Click;
                 LangPanel.Children.Add(b);

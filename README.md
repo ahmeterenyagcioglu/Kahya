@@ -154,11 +154,12 @@ Kaynak kodun tamamı bu depoda.
 
 Kahya Türkçe yazılır; diğer diller [`lang/`](lang) klasöründeki XML dosyalarıdır. Yeni bir dil eklemek için:
 
-1. **Hakkında › Ayarlar › Dil dosyaları…** düğmesine bas; `Data\Lang` klasörü `en.xml` şablonuyla açılır.
-2. `en.xml`'i kopyala (ör. `de.xml`), en üstteki `code="de"` ve `name="Deutsch"` kısmını değiştir.
+1. **Hakkında › Ayarlar › Dil dosyaları…** düğmesine bas; `Data\Lang` klasörü açılır. İçindeki `lang-sample.xml` örnektir (Kahya onu dil olarak saymaz),
+   nasıl yapılacağı en üstünde Türkçe ve İngilizce yazıyor.
+2. `lang-sample.xml`'i aynı klasöre kopyala (ör. `de.xml`), en üstteki `code="de"` ve `name="Deutsch"` kısmını değiştir.
 3. Her `<t tr="…">…</t>` satırında sadece aradaki metni çevir. `tr="…"` kısmına, `{0}` gibi yer tutuculara ve `\n`'e
    dokunma. Çevrilmemiş satırlar Türkçe görünür.
-4. Kahya'yı yeniden aç, dil listesinden seç.
+4. Kahya'yı yeniden aç, dil listesinden seç. Dosyayı silersen dil listeden kalkar.
 
 Bitince dosyayı bir Pull Request ya da [Issue](https://github.com/ahmeterenyagcioglu/Kahya/issues) ile gönderirsen sonraki
 sürüme eklenir.
