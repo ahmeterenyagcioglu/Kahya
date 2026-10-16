@@ -81,7 +81,7 @@ namespace Kahya.Core
         }
 
         public string Details =>
-            (_size < 0 ? T("hesaplanıyor…") : Format.Bytes(_size)) + " · " + Path +
+            (_size < 0 ? T("hesaplanıyor…") : Format.Bytes(_size)) + (_size > 15L * 1024 * 1024 * 1024 ? " · ⚠ " + T("çok büyük, yedek uzun sürer") : "") + " · " + Path +
             (InCloud ? " · " + T("bulutla eşitleniyor") : OnSystemDrive ? " · " + T("C: diskinde, format atınca silinir") : "");
 
         /// <summary>Sistem diskinde, bulutta değil ve boş değil: yedeklenmezse format sonrası kaybolur.</summary>

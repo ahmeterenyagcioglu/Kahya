@@ -2043,4 +2043,6 @@
   <t tr="Ayarlar › Sistem › Etkinleştirme sayfasından bakabilirsin.">You can check it in Settings › System › Activation.</t>
   <t tr="Şu an kapatılacak açık uygulama yok; güç planı ve bildirimler yine ayarlanır.">No open apps to close right now; the power plan and notifications are still set.</t>
   <t tr="{0} kapanmadı; kaydedilmemiş bir şey soruyor olabilir">{0} didn't close; it may be asking about unsaved work</t>
+  <t tr="çok büyük, yedek uzun sürer">very large, backup will take long</t>
+  <t tr="Bu klasörler çok büyük:\n{0}\n\nYedek uzun sürer ve diske sığmayabilir. Büyük dosyaları (video, oyun) doğrudan dış diske kopyalamak daha hızlı. Yine de devam edilsin mi?">These folders are very large:\n{0}\n\nThe backup will take long and may not fit. Copying big files (videos, games) straight to an external drive is faster. Continue anyway?</t>
 </language>

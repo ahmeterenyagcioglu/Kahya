@@ -17,6 +17,9 @@ namespace Kahya
         bool _formatLoaded;
         List<DriverBackupItem> _backupDrivers = new List<DriverBackupItem>();
         List<PersonalFolder> _backupFolders = new List<PersonalFolder>();
+
+        /// <summary>Bu boyutu aşan kişisel klasör için yedeklemeden önce uyarılır.</summary>
+        const long LargeFolder = 15L * 1024 * 1024 * 1024;
         List<ProgramBackupItem> _backupApps = new List<ProgramBackupItem>();
         List<FontBackupItem> _backupFonts = new List<FontBackupItem>();
         List<AppSettingsItem> _backupSettings = new List<AppSettingsItem>();
@@ -370,6 +373,14 @@ namespace Kahya
                 Info(T("Önce yedeklenecek en az bir şey seç."));
                 return;
             }
+
+            // Çok büyük klasör (genelde videolar ya da oyun dosyaları): yedek saatler sürer ve USB'ye sığmayabilir.
+            // Kullanıcı bilerek devam etsin; büyük dosyaları doğrudan dış diske kopyalamak çoğu zaman daha hızlıdır.
+            var big = folders.Where(f => f.Size > LargeFolder).ToList();
+            if (big.Count > 0 &&
+                !Confirm(T("Bu klasörler çok büyük:\n{0}\n\nYedek uzun sürer ve diske sığmayabilir. Büyük dosyaları (video, oyun) doğrudan dış diske kopyalamak daha hızlı. Yine de devam edilsin mi?",
+                           string.Join("\n", big.Select(f => "• " + f.Name + " — " + Format.Bytes(f.Size)))), MessageBoxImage.Warning))
+                return;
 
             var sys = Path.GetPathRoot(Environment.GetFolderPath(Environment.SpecialFolder.Windows));
             if (_backupTarget.StartsWith(sys, StringComparison.OrdinalIgnoreCase) &&
