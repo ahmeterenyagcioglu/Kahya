@@ -50,18 +50,21 @@
                     <ControlTemplate TargetType="ListBoxItem">
                         <Grid Margin="0,1">
                             <Border x:Name="bg" CornerRadius="8" Background="Transparent"/>
-                            <Border x:Name="bar" Width="3" Height="18" CornerRadius="2" HorizontalAlignment="Left"
-                                    Background="{StaticResource AccentGradient}" Visibility="Collapsed"/>
+                            <Border x:Name="hov" CornerRadius="8" Background="{DynamicResource NavHover}" Opacity="0"/>
                             <ContentPresenter Margin="14,9,10,9"/>
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bg" Property="Background" Value="{DynamicResource NavHover}"/>
                                 <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="hov" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12"/></Storyboard></BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="hov" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18"/></Storyboard></BeginStoryboard>
+                                </Trigger.ExitActions>
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter TargetName="bg" Property="Background" Value="{DynamicResource NavSelected}"/>
-                                <Setter TargetName="bar" Property="Visibility" Value="Visible"/>
                                 <Setter Property="Foreground" Value="{DynamicResource Text}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -247,6 +250,7 @@
                                TextAlignment="Center" Margin="0,8,0,0"/>
                 </StackPanel>
 
+                <Grid x:Name="NavHost">
                 <ListBox x:Name="Nav" Style="{StaticResource NavList}" ItemContainerStyle="{StaticResource NavItem}"
                          SelectionChanged="Nav_SelectionChanged">
                     <ListBoxItem>
@@ -298,6 +302,11 @@
                         </StackPanel>
                     </ListBoxItem>
                 </ListBox>
+                    <Border x:Name="NavIndicator" Width="3" Height="18" CornerRadius="2" HorizontalAlignment="Left" VerticalAlignment="Top"
+                            Background="{StaticResource AccentGradient}" IsHitTestVisible="False" Opacity="0">
+                        <Border.RenderTransform><TranslateTransform x:Name="NavIndicatorMove"/></Border.RenderTransform>
+                    </Border>
+                </Grid>
             </DockPanel>
         </Border>
 
@@ -374,6 +383,7 @@
             </StackPanel>
 
             <TabControl x:Name="Tabs" Grid.Row="2" SelectionChanged="Tabs_SelectionChanged">
+                <TabControl.RenderTransform><TranslateTransform x:Name="PageMove"/></TabControl.RenderTransform>
 
                 <!-- ═════════════ Genel bakış ═════════════ -->
                 <TabItem x:Name="OverviewTab">

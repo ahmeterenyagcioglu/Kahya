@@ -25,7 +25,8 @@ namespace Kahya
                 int dark = Theme.IsDark ? 1 : 0;
                 if (DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, ref dark, 4) != 0)
                     DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE_OLD, ref dark, 4);
-                int color = Theme.CaptionColor();
+                // Mica'lı pencerede başlık da Mica olmalı: elle renk verilmez (DWMWA_COLOR_DEFAULT).
+                int color = Backdrop.Active && window is MainWindow ? unchecked((int)0xFFFFFFFF) : Theme.CaptionColor();
                 DwmSetWindowAttribute(hwnd, DWMWA_CAPTION_COLOR, ref color, 4);
             }
             catch { }

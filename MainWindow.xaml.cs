@@ -31,7 +31,7 @@ namespace Kahya
         {
             InitializeComponent();
             Lang.TranslateTree(this);
-            SourceInitialized += (s, e) => TitleBar.Apply(this);
+            SourceInitialized += (s, e) => { Backdrop.Apply(this); TitleBar.Apply(this); };
             FitToWorkArea();
             NameNavItems();
 

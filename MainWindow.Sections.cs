@@ -125,8 +125,10 @@ namespace Kahya
             PageSubtitle.Text = T(sec.Pages[page].Subtitle);
 
             // Başlık sık güncellenir (seçim değiştikçe); alt sekmeler yalnızca sayfa değişince yeniden çizilir.
+            MoveNavIndicator();
             if (_shownPage == (s, page)) return;
             _shownPage = (s, page);
+            AnimatePage();
             SubNav.Children.Clear();
             SubNavBar.Visibility = sec.Pages.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
             for (int i = 0; i < sec.Pages.Count && sec.Pages.Count > 1; i++)
