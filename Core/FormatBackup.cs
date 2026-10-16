@@ -237,55 +237,6 @@ namespace Kahya.Core
         }
 
         /// <summary>
-        /// Yedek klasörünün içeriğini tek bir arşive koyar (<paramref name="keep"/> içindekiler hariç: format sonrası
-        /// arşiv açılmadan önce lazım olanlar) ve arşive giren dosyaları siler. Arşivin adını döndürür.
-        /// </summary>
-        public static string CompressBackup(string folder, string format, ICollection<string> keep, CleanContext ctx)
-        {
-            var name = T("yedek") + (format == "7z" ? ".7z" : ".zip");
-            var archive = Path.Combine(folder, name);
-            if (File.Exists(archive)) File.Delete(archive);
-            var items = Directory.GetFileSystemEntries(folder)
-                .Where(p => !keep.Contains(Path.GetFileName(p), StringComparer.OrdinalIgnoreCase) && !p.Equals(archive, StringComparison.OrdinalIgnoreCase))
-                .ToList();
-            if (items.Count == 0) return null;
-
-            if (format == "7z")
-            {
-                var exe = SevenZip() ?? throw new InvalidOperationException(T("7-Zip kurulu değil."));
-                // Liste dosyasıyla: komut satırı uzunluğuna takılmasın. -mx=5 hız/boyut dengesi, -mmt tüm çekirdekler.
-                var list = Path.Combine(Path.GetTempPath(), "kahya-7z-" + Guid.NewGuid().ToString("N") + ".txt");
-                File.WriteAllLines(list, items.Select(Path.GetFileName), new UTF8Encoding(false));
-                try
-                {
-                    int code = ProcessRunner.Run(exe, $"a -t7z -mx=5 -mmt=on -scsUTF-8 \"{archive}\" @\"{list}\"", ctx, workingDirectory: folder);
-                    if (code > 1) throw new InvalidOperationException(T("7-Zip {0} koduyla bitti.", code)); // 1: bazı dosyalar okunamadı (uyarı)
-                }
-                finally { try { File.Delete(list); } catch { } }
-            }
-            else
-            {
-                using (var zip = ZipFile.Open(archive, ZipArchiveMode.Create, Encoding.UTF8))
-                    foreach (var item in items)
-                    {
-                        var files = File.Exists(item) ? new[] { item } : Directory.GetFiles(item, "*", SearchOption.AllDirectories);
-                        foreach (var file in files)
-                        {
-                            ctx.Token.ThrowIfCancellationRequested();
-                            var rel = file.Substring(folder.TrimEnd('\\').Length + 1);
-                            try { zip.CreateEntryFromFile(file, rel.Replace('\\', '/'), CompressionLevel.Optimal); }
-                            catch (IOException ex) { ctx.Log("   ! " + T("{0} arşive eklenemedi: {1}", rel, ex.Message)); }
-                        }
-                    }
-            }
-
-            foreach (var item in items)
-                if (!ForceDelete(item))
-                    ctx.Log("   ! " + T("{0} arşive girdi ama silinemedi; elle silebilirsin.", Path.GetFileName(item)));
-            return name;
-        }
-
-        /// <summary>
         /// Dosya ya da klasörü siler; salt okunur / gizli / sistem işaretli olanlar dahil (Masaüstü, Belgeler gibi özel
         /// klasörlerin kopyaları salt okunur gelir ve Directory.Delete onları silemez). Bağlantıların hedefine girilmez.
         /// </summary>

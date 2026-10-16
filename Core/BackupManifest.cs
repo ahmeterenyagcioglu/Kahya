@@ -49,7 +49,11 @@ namespace Kahya.Core
 
         public static string FileName(string computer) => FormatBackup.Safe(computer) + Extension;
 
-        public void Save(string folder, string readMe)
+        public void Save(string folder, string readMe) =>
+            File.WriteAllText(Path.Combine(folder, FileName(Computer)), ToText(readMe), new UTF8Encoding(true));
+
+        /// <summary>Düz metin hali: '#' ile açıklama satırları, sonra [Kahya] / [Contents] / [Folders] bölümleri.</summary>
+        public string ToText(string readMe)
         {
             var sb = new StringBuilder();
             foreach (var line in readMe.Replace("\r", "").TrimEnd().Split('\n'))
@@ -77,14 +81,18 @@ namespace Kahya.Core
                 sb.AppendLine("[Folders]");
                 foreach (var f in Folders) sb.AppendLine(f.Key + "=" + f.Value);
             }
-            File.WriteAllText(Path.Combine(folder, FileName(Computer)), sb.ToString(), new UTF8Encoding(true));
+            return sb.ToString();
         }
 
-        public static BackupManifest Load(string path)
+        public static BackupManifest Load(string path) =>
+            Parse(File.ReadAllLines(path), Path.GetDirectoryName(Path.GetFullPath(path)));
+
+        /// <summary>Metinden okur. <paramref name="root"/>: yedek klasörü (ZIP yedekte null; yollar arşivin içindedir).</summary>
+        public static BackupManifest Parse(IEnumerable<string> lines, string root)
         {
-            var m = new BackupManifest { Root = Path.GetDirectoryName(Path.GetFullPath(path)), Computer = null, Version = null };
+            var m = new BackupManifest { Root = root, Computer = null, Version = null };
             string section = "";
-            foreach (var raw in File.ReadAllLines(path))
+            foreach (var raw in lines)
             {
                 var line = raw.Trim();
                 if (line.Length == 0 || line.StartsWith("#")) continue;

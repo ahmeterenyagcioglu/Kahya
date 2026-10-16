@@ -26,7 +26,6 @@ namespace Kahya
         string _productKey;
         bool _keyRevealed;
         string _backupTarget;
-        string _backupFormat;
 
         // Format sonrası Windows'un kendisinin bulamayabileceği sürücüler (ekran kartı hariç: büyük, üreticiden yenisi indirilmeli).
         static readonly HashSet<string> ImportantDriverClasses = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
@@ -35,11 +34,7 @@ namespace Kahya
         void InitFormat()
         {
             _backupTarget = Settings.BackupTarget ?? DefaultBackupTarget();
-            _backupFormat = Settings.BackupFormat ?? (FormatBackup.SevenZip() != null ? "7z" : "zip");
-            if (_backupFormat == "7z" && FormatBackup.SevenZip() == null) _backupFormat = "zip";
-            Fmt7zBtn.ToolTip = FormatBackup.SevenZip() != null ? T("En iyi sıkıştırma (7-Zip ile)") : T("En iyi sıkıştırma (7-Zip ile). 7-Zip kurulu değil; seçince kurulur.");
             UpdateBackupTarget();
-            UpdateBackupFormat();
             RegisterKahyaFiles();
         }
 
@@ -67,15 +62,8 @@ namespace Kahya
             bool onSystem = _backupTarget.StartsWith(sys, StringComparison.OrdinalIgnoreCase);
             BackupTargetHint.Text = onSystem
                 ? "⚠ " + T("Bu klasör C: diskinde: format atınca yedek de silinir! USB belleğe ya da başka bir diske kaydet, ya da yedeği sonra oraya kopyala.")
-                : T("Her yedek kendi klasörüne kaydedilir: Kahya-Yedek-{0}-tarih", Environment.MachineName);
+                : T("Yedek tek bir dosya olarak kaydedilir: Kahya-Yedek-{0}-tarih.zip (Kahya da içinde)", Environment.MachineName);
             BackupTargetHint.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, onSystem ? "Warn" : "Muted");
-        }
-
-        void UpdateBackupFormat()
-        {
-            Highlight(FmtFolderBtn, _backupFormat == "folder");
-            Highlight(FmtZipBtn, _backupFormat == "zip");
-            Highlight(Fmt7zBtn, _backupFormat == "7z");
         }
 
         async Task LoadFormatAsync()
@@ -292,15 +280,6 @@ namespace Kahya
             UpdateBackupTarget();
         }
 
-        async void BackupFormat_Click(object sender, RoutedEventArgs e)
-        {
-            var format = (sender as FrameworkElement)?.Tag as string ?? "zip";
-            if (format == "7z" && !await EnsureSevenZipAsync()) return;
-            _backupFormat = format;
-            Settings.BackupFormat = _backupFormat;
-            SaveSettings();
-            UpdateBackupFormat();
-        }
 
         void BackupDriversImportant_Click(object sender, RoutedEventArgs e) =>
             _backupDrivers.ForEach(d => d.IsChecked = ImportantDriverClasses.Contains(d.ClassName));
@@ -332,8 +311,8 @@ namespace Kahya
             try
             {
                 long need = drivers.Sum(d => d.Size) + folders.Where(f => f.Size > 0).Sum(f => f.Size) + ExtrasSize();
-                // Sıkıştırırken arşiv bitene kadar kopyalar da diskte durur.
-                if (_backupFormat != "folder") need = (long)(need * 1.8);
+                // Arşiv bitene kadar geçici kopyalar da diskte durur.
+                need = (long)(need * 1.9);
                 long free = new DriveInfo(Path.GetPathRoot(_backupTarget)).AvailableFreeSpace;
                 if (need > free)
                 {
@@ -343,16 +322,20 @@ namespace Kahya
             }
             catch { }
 
-            var folder = Path.Combine(_backupTarget, FormatBackup.Safe($"Kahya-Yedek-{Environment.MachineName}-{DateTime.Now:yyyy-MM-dd_HHmm}"));
+            // Her şey önce gizli bir geçici klasöre kopyalanır, sonra tek bir ZIP olur ve klasör silinir.
+            var name = FormatBackup.Safe($"Kahya-Yedek-{Environment.MachineName}-{DateTime.Now:yyyy-MM-dd_HHmm}");
+            var zip = Path.Combine(_backupTarget, name + ".zip");
+            var folder = Path.Combine(_backupTarget, ".kahya-gecici-" + name);
             var token = SetBusy(T("yedekleniyor…"));
             ShowLog(true);
-            Log("──────────\n" + T("Format yedeği başladı: {0}", folder));
+            Log("──────────\n" + T("Format yedeği başladı: {0}", zip));
             var done = new List<string>();
             var manifest = new BackupManifest();
             try
             {
                 var ctx = Context(token);
                 Directory.CreateDirectory(folder);
+                try { new DirectoryInfo(folder).Attributes |= FileAttributes.Hidden; } catch { }
 
                 if (apps)
                 {
@@ -445,58 +428,52 @@ namespace Kahya
                     Log(ok ? "   ✔ " + f.Name : "   ✖ " + T("{0} tam kopyalanamadı (bazı dosyalar kullanımda olabilir).", f.Name));
                 }
 
-                // Format sonrası Kahya'yı indirmeye gerek kalmasın: yedeğin yanında dursun.
+                // Format sonrası Kahya'yı indirmeye gerek kalmasın: arşivin içinde dursun (ZIP'i Windows kendisi açar).
                 try
                 {
                     File.Copy(Process.GetCurrentProcess().MainModule.FileName, Path.Combine(folder, "Kahya.exe"), true);
-                    done.Add(T("Kahya (format sonrası buradan açabilirsin)"));
+                    done.Add(T("Kahya (format sonrası arşivden çıkarıp açabilirsin)"));
                 }
                 catch (Exception ex) { Log("   ! " + T("Kahya.exe yedeğe kopyalanamadı: {0}", ex.Message)); }
 
-                // Sürücüler, Wi-Fi ve Kahya dışarıda kalır: format sonrası internet ve 7-Zip yokken de ilk onlar lazım.
-                if (_backupFormat != "folder")
-                {
-                    SetStatus(T("Yedek sıkıştırılıyor ({0})…", _backupFormat.ToUpperInvariant()));
-                    Log("   " + T("Yedek sıkıştırılıyor ({0}); büyük yedeklerde birkaç dakika sürebilir…", _backupFormat.ToUpperInvariant()));
-                    long before = FormatBackup.FolderSize(folder);
-                    var keep = new[] { BackupManifest.FileName(manifest.Computer), "Kahya.exe", T("suruculer"), "wifi" };
-                    var format = _backupFormat;
-                    manifest.Archive = await Task.Run(() => FormatBackup.CompressBackup(folder, format, keep, ctx));
-                    long after = FormatBackup.FolderSize(folder);
-                    if (manifest.Archive != null)
-                        Log("   ✔ " + T("Sıkıştırıldı: {0} → {1}", Format.Bytes(before), Format.Bytes(after)));
-                }
+                // Yedeğin ne içerdiği: arşivin açıklamasına (Kahya buradan okur) ve içine de bir kopyası.
+                var text = manifest.ToText(ReadMe(done));
+                File.WriteAllText(Path.Combine(folder, BackupArchive.ManifestEntry), text, new UTF8Encoding(true));
 
-                manifest.Save(folder, ReadMe(done));
-                Log(T("Yedek tamamlandı: {0}", folder));
+                SetStatus(T("Arşivleniyor…"));
+                Log("   " + T("Tek bir ZIP dosyasına arşivleniyor; büyük yedeklerde birkaç dakika sürebilir…"));
+                long before = FormatBackup.FolderSize(folder);
+                await Task.Run(() =>
+                {
+                    BackupArchive.Create(folder, zip, ctx);
+                    BackupArchive.WriteComment(zip, text);
+                });
+                Log("   ✔ " + T("Arşivlendi: {0} → {1}", Format.Bytes(before), Format.Bytes(new FileInfo(zip).Length)));
+                Log(T("Yedek tamamlandı: {0}", zip));
             }
             catch (OperationCanceledException)
             {
-                SaveManifest(manifest, folder, done);
-                Log(T("Yedekleme iptal edildi; yarım kalan yedek: {0}", folder));
+                Log(T("Yedekleme iptal edildi."));
+                await Task.Run(() => { FormatBackup.ForceDelete(zip); });
                 return;
             }
             catch (Exception ex)
             {
-                SaveManifest(manifest, folder, done);
                 Log("! " + T("Yedekleme hatası: {0}", ex.Message));
+                await Task.Run(() => { FormatBackup.ForceDelete(zip); });
                 Info(T("Yedekleme yarıda kaldı:\n{0}", ex.Message));
                 return;
             }
             finally
             {
+                // Geçici kopyalar her durumda silinir (asıllar zaten bilgisayarda).
+                await Task.Run(() => { if (!FormatBackup.ForceDelete(folder)) Log("! " + T("Geçici klasör silinemedi: {0}", folder)); });
                 ApplyBusy(false);
             }
 
-            if (Confirm(T("Yedek hazır:\n{0}\n\n{1}\n\nFormat sonrası Kahya'yı açıp Format yardımcısı › 'Yedekten geri yükle' ile {2} dosyasını seçmen yeterli; hepsi sırayla geri yüklenir.\n\nKlasör açılsın mı?",
-                    folder, string.Join("\n", done.Select(d => "• " + d)), BackupManifest.FileName(Environment.MachineName))))
-                try { Process.Start(new ProcessStartInfo(folder) { UseShellExecute = true }); } catch { }
-        }
-
-        /// <summary>Yarıda kalan yedekte de o ana kadar alınanlar geri yüklenebilsin.</summary>
-        static void SaveManifest(BackupManifest manifest, string folder, List<string> done)
-        {
-            try { if (Directory.Exists(folder) && !manifest.IsEmpty) manifest.Save(folder, ReadMe(done)); } catch { }
+            if (Confirm(T("Yedek hazır:\n{0}\n\n{1}\n\nFormat sonrası: bu ZIP'in içindeki Kahya.exe'yi aç › Format yardımcısı › Format sonrası asistanı. Yedeği kendisi bulur ve her şeyi adım adım geri yükler.\n\nDosyanın yeri açılsın mı?",
+                    zip, string.Join("\n", done.Select(d => "• " + d)))))
+                try { Process.Start("explorer.exe", $"/select,\"{zip}\""); } catch { }
         }
 
         static string ReadMe(List<string> done)
@@ -507,10 +484,10 @@ namespace Kahya
             sb.AppendLine(T("İçindekiler:"));
             foreach (var d in done) sb.AppendLine("  • " + d);
             sb.AppendLine();
-            sb.AppendLine(T("Format sonrası en kolayı: bu dosyanın yanındaki Kahya.exe'yi aç › Format yardımcısı › 'Yedekten geri yükle' › bu dosyayı seç. Her şey sırayla geri yüklenir."));
+            sb.AppendLine(T("Format sonrası en kolayı: bu arşivdeki Kahya.exe'yi çıkarıp aç › Format yardımcısı › Format sonrası asistanı. Yedeği kendisi bulur, internet yoksa önce ağ sürücüsünü ve Wi-Fi'yi kurar, sonra seçtiklerini sırayla geri yükler."));
             sb.AppendLine();
-            sb.AppendLine(T("Kahya olmadan elle yapmak istersen (yedek sıkıştırıldıysa önce yedek.7z / yedek.zip'i aç; sürücüler ve wifi onun dışında):"));
-            sb.AppendLine(T("  1. Önce sürücüleri kur (özellikle Wi-Fi/Ethernet): Kahya › Format yardımcısı › Sürücüler › Seç… (klasör, .zip ya da .7z)."));
+            sb.AppendLine(T("Kahya olmadan elle yapmak istersen önce arşivi bir klasöre çıkar:"));
+            sb.AppendLine(T("  1. Önce sürücüleri kur (özellikle Wi-Fi/Ethernet): Kahya › Format yardımcısı › Sürücüler › Seç… ('suruculer' klasörü)."));
             sb.AppendLine(T("     Kahya yoksa: yönetici komut isteminde  pnputil /add-driver \"suruculer\\*.inf\" /subdirs /install"));
             sb.AppendLine(T("  2. Wi-Fi ağları: Kahya › Format yardımcısı › Wi-Fi ağları › Seç… ('wifi' klasörü). Şifreler wifi-sifreleri.txt içinde de yazılı."));
             sb.AppendLine(T("  3. Programlar: Kahya › Uygulamalar › Program kur › Listeden yükle… (programlar.txt). Hepsinin en yeni sürümü kurulur."));
@@ -563,7 +540,6 @@ namespace Kahya
             };
             string source = dialog.ShowDialog(this) == true ? dialog.FileName : PickFolder(T("Sürücü yedeği klasörünü seç ('suruculer')"));
             if (source == null) return;
-            if (source.EndsWith(".7z", StringComparison.OrdinalIgnoreCase) && !await EnsureSevenZipAsync()) return;
 
             var token = SetBusy(T("sürücüler kuruluyor…"));
             ShowLog(true);
@@ -663,37 +639,6 @@ namespace Kahya
                    "Chrome / Edge / Brave: Ayarlar › Yer imlerini ve ayarları içe aktar › Yer imleri HTML dosyası.\n" +
                    "Firefox: Yer imleri › Yer imlerini yönet › İçe aktar ve yedekle › HTML'den içe aktar.\n\n" +
                    "Firefox yedeği (.jsonlz4) için: İçe aktar ve yedekle › Geri yükle › Dosya seç."));
-
-        /// <summary>7-Zip yoksa winget ile kurmayı teklif eder. Hazırsa true.</summary>
-        async Task<bool> EnsureSevenZipAsync()
-        {
-            if (FormatBackup.SevenZip() != null) return true;
-            if (!Confirm(T("Bunun için 7-Zip gerekiyor ama kurulu değil. Kahya şimdi kursun mu? (ücretsiz, birkaç saniye sürer)")))
-                return false;
-            if (!await EnsureWingetAsync()) return false;
-
-            var token = SetBusy(T("7-Zip kuruluyor…"));
-            ShowLog(true);
-            Log("──────────\n" + T("7-Zip kuruluyor…"));
-            string error = null;
-            try
-            {
-                var ctx = Context(token);
-                error = await Task.Run(() => Winget.InstallId("7zip.7zip", ctx));
-            }
-            catch (OperationCanceledException) { return false; }
-            catch (Exception ex) { error = ex.Message; }
-            finally { ApplyBusy(false); }
-
-            if (error == null && FormatBackup.SevenZip() != null)
-            {
-                Log("✔ " + T("7-Zip kuruldu."));
-                Fmt7zBtn.ToolTip = T("En iyi sıkıştırma (7-Zip ile)");
-                return true;
-            }
-            Info(T("7-Zip kurulamadı: {0}", error ?? T("bilinmeyen hata")));
-            return false;
-        }
 
         static string PickFolder(string description)
         {

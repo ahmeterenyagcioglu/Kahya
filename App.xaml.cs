@@ -18,11 +18,11 @@ namespace Kahya
         /// <summary>Yeniden başlatma tek tıkla bakım için istendiyse bakım penceresi kendiliğinden açılır (--maintenance).</summary>
         public static bool StartMaintenance { get; private set; }
 
-        /// <summary>Çift tıklanan .kahya dosyası (--restore yol): açılınca geri yükleme başlar.</summary>
-        public static string StartRestore { get; private set; }
+        /// <summary>Açılınca format sonrası asistanı açılsın mı (--wizard [yedek] ya da eski .kahya için --restore yedek).</summary>
+        public static bool StartWizard { get; private set; }
 
-        /// <summary>Geri yükleme onaylandıktan sonra yönetici olarak yeniden başlatıldı; tekrar sorulmaz.</summary>
-        public static bool StartRestoreConfirmed { get; private set; }
+        /// <summary>Asistanda seçili gelecek yedek; yoksa null (asistan kendisi arar).</summary>
+        public static string StartRestore { get; private set; }
 
         protected override void OnStartup(StartupEventArgs e)
         {
@@ -38,8 +38,11 @@ namespace Kahya
             {
                 if (e.Args[i] == "--tab" && i + 1 < e.Args.Length && int.TryParse(e.Args[i + 1], out var tab)) StartTab = tab;
                 if (e.Args[i] == "--maintenance") StartMaintenance = true;
-                if (e.Args[i] == "--restore" && i + 1 < e.Args.Length) StartRestore = e.Args[i + 1];
-                if (e.Args[i] == "--restore-confirmed") StartRestoreConfirmed = true;
+                if (e.Args[i] == "--wizard" || e.Args[i] == "--restore")
+                {
+                    StartWizard = true;
+                    if (i + 1 < e.Args.Length && !e.Args[i + 1].StartsWith("--")) StartRestore = e.Args[i + 1];
+                }
             }
 
             Settings.Read();

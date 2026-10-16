@@ -73,9 +73,8 @@ namespace Kahya.Core
         /// <summary>Pencere kapatılınca bildirim alanında çalışmaya devam et.</summary>
         public static bool TrayEnabled { get; set; }
 
-        /// <summary>Format yedeğinin kaydedileceği klasör ve sürücü yedeğinin biçimi (folder, zip, 7z).</summary>
+        /// <summary>Format yedeğinin kaydedileceği klasör.</summary>
         public static string BackupTarget { get; set; }
-        public static string BackupFormat { get; set; }
 
         /// <summary>
         /// Tek tıkla / otomatik bakımda temizliğe ek olarak yapılacaklar. İkisi de varsayılan kapalı:
@@ -136,7 +135,6 @@ namespace Kahya.Core
                         case "theme": Theme = value == "dark" || value == "light" ? value : "system"; break;
                         case "tray": TrayEnabled = value == "1"; break;
                         case "backupTarget": BackupTarget = value.Length > 0 ? value : null; break;
-                        case "backupFormat": BackupFormat = value == "folder" || value == "zip" || value == "7z" ? value : null; break;
                         case "maintUpdates": MaintenanceUpdates = value == "1"; break;
                         case "maintDrivers": MaintenanceDrivers = value == "1"; break;
                         case "gpuDismissed": GpuDismissed = value.Length > 0 ? value : null; break;
@@ -208,8 +206,6 @@ namespace Kahya.Core
                     lines.Add("gpuDismissed=" + GpuDismissed);
                 if (BackupTarget != null)
                     lines.Add("backupTarget=" + BackupTarget);
-                if (BackupFormat != null)
-                    lines.Add("backupFormat=" + BackupFormat);
                 File.WriteAllLines(FilePath, lines);
             }
             catch { }

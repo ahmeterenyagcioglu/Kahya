@@ -60,7 +60,7 @@ Format atmadan önce tek ekrandan yedek:
 - Yüklü programların listesi (format sonrası winget'te olanlar tek seferde, en yeni sürümüyle kurulur)
 - Wi-Fi ağları ve şifreleri
 - Windows ürün anahtarı
-- Sürücüler (klasör, ZIP ya da 7z)
+- Sürücüler
 - Masaüstü, Belgeler, İndirilenler gibi kişisel klasörler
 - Tarayıcı yer imleri, sonradan kurulan fontlar
 - Program ayarları (Premiere, Photoshop, Lightroom, CapCut, OBS…)
@@ -69,14 +69,21 @@ Format atmadan önce tek ekrandan yedek:
   My Games ve Unity oyunları. Oyunun kendisi yedeklenmez, sadece senin kayıtların. Bilinen yerlere bakılır; kaydını
   bambaşka bir yerde tutan oyunlar kaçabilir (Steam Cloud'u olanlar zaten güvende).
 
-Yedek bitince tek bir arşive (**7z** ya da **ZIP**) sıkıştırılır; çoğu zaman üçte bir küçülür. Yanına `Kahya.exe` de konur,
-format sonrası indirmen gerekmez. Sürücüler ve Wi-Fi arşivin dışında kalır: format sonrası internet ve 7-Zip yokken de
-hemen kurulabilsinler (7-Zip yoksa arşivi Windows'un kendi aracı açar).
+Hiçbir şey sorulmaz: yedek tek bir dosya olur, `Kahya-Yedek-BILGISAYARADI-tarih.zip`. `Kahya.exe` de içindedir ve ZIP'i
+Windows ek program olmadan açar. Yedeğin ne içerdiği arşivin açıklamasına yazılır; Kahya yedeği açmadan tanır.
 
-Yedeğin içinde `BILGISAYARADI.kahya` adında bir dosya oluşur. Format sonrası yanındaki Kahya'yı açıp **Yedekten geri yükle**
-deyip bu dosyayı seçmen (ya da dosyaya çift tıklaman) yeterli: sürücüler, Wi-Fi, fontlar, kişisel klasörler, programlar, ayarlar
-ve oyun kayıtları sırayla, tek seferde geri yüklenir. Sürücüler için yönetici izni gerekirse Kahya yeniden başlayıp
-kaldığı yerden devam eder.
+### 🧭 Format sonrası asistanı
+Format sonrası arşivdeki `Kahya.exe`'yi aç, **Format yardımcısı › Asistanı başlat** de. Kurulum sihirbazı gibi adım adım ilerler:
+
+1. **Yedek:** USB bellek ya da ikinci diskteki yedeği kendisi bulur.
+2. **İnternet:** bağlantı yoksa yedekteki ağ kartı sürücüsünü kurar ve Wi-Fi ağlarını şifreleriyle ekler.
+3. **Seçim:** neyin geri yükleneceğini seçersin; programlar tek tek seçilebilir, zaten kurulu olanlar kendiliğinden atlanır.
+4. **Ekran kartı:** Windows'un genel sürücüsü mü kullanılıyor, yeni sürücü var mı bakar; üreticinin sayfasını açar.
+5. **Geri yükleme:** sürücüler, Wi-Fi, fontlar, kişisel klasörler, programlar (winget ile en yeni sürümü), program ayarları
+   ve oyun kayıtları sırayla. Var olan daha yeni dosyaların üzerine yazılmaz.
+
+Sürücüler için yönetici izni gerekir; asistan tek tıkla yönetici olarak yeniden başlar ve kaldığı yerden açılır.
+Eski sürümlerin klasör yedekleri (`.kahya`) de açılır.
 
 ### 📊 Disk analizi
 En çok yer kaplayan klasörler, büyük ve uzun süredir dokunulmamış dosyalar, dosya türlerine göre dağılım,

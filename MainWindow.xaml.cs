@@ -68,6 +68,9 @@ namespace Kahya
             {
                 MigrateLegacyTask();
                 RefreshScheduleText();
+                // Format sonrası asistanı taramaları beklemeden açılır (ayrı penceredir).
+                if (App.StartWizard)
+                    OpenRestoreWizard(App.StartRestore);
                 _ = CheckAppUpdateAsync(silent: true);
                 _ = CheckGpuAsync(silent: true);
                 var analyze = AnalyzeAsync();
@@ -81,8 +84,6 @@ namespace Kahya
                 if (App.StartMaintenance && Elevation.IsAdmin)
                     Maintenance_Click(null, null);
                 await overview;
-                if (App.StartRestore != null)
-                    await RunRestoreAsync(App.StartRestore, App.StartRestoreConfirmed);
             };
             Closing += (s, e) =>
             {

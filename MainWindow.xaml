@@ -1757,6 +1757,21 @@
                 <TabItem x:Name="FormatTab">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,8,0">
                         <StackPanel>
+                            <!-- Format sonrası buraya gelen hemen bulsun -->
+                            <Border Background="{DynamicResource AccentSoft}" CornerRadius="12" Padding="18,14" Margin="0,0,0,14">
+                                <DockPanel>
+                                    <Button DockPanel.Dock="Right" Content="Asistanı başlat" Style="{StaticResource AccentBtn}" Margin="12,0,0,0"
+                                            VerticalAlignment="Center" Click="RestoreFromBackup_Click"/>
+                                    <TextBlock Text="&#xE777;" FontFamily="{StaticResource Icons}" FontSize="22" Foreground="{DynamicResource AccentText}"
+                                               VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="Format attın mı?" FontWeight="SemiBold"/>
+                                        <TextBlock Foreground="{DynamicResource Muted}" FontSize="12" TextWrapping="Wrap" Margin="0,2,0,0"
+                                                   Text="Format sonrası asistanı yedeğini bulup her şeyi adım adım geri yükler. Yedek almak için aşağıdan devam et."/>
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+
                             <Border Style="{StaticResource ToolCard}">
                                 <StackPanel>
                                     <DockPanel Margin="0,0,0,8">
@@ -1766,23 +1781,6 @@
                                     </DockPanel>
                                     <TextBlock x:Name="BackupTargetText" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
                                     <TextBlock x:Name="BackupTargetHint" Style="{StaticResource Hint}" Margin="0,3,0,0"/>
-                                    <DockPanel Margin="0,12,0,0">
-                                        <Border DockPanel.Dock="Right" Style="{StaticResource SegBar}" Background="{DynamicResource Row}">
-                                            <StackPanel Orientation="Horizontal">
-                                                <Button x:Name="FmtFolderBtn" Content="Yok" Style="{StaticResource Seg}" Tag="folder" Click="BackupFormat_Click"
-                                                        ToolTip="Sıkıştırmadan, klasör olarak (en hızlı, en çok yer kaplar)"/>
-                                                <Button x:Name="FmtZipBtn" Content="ZIP" Style="{StaticResource Seg}" Tag="zip" Click="BackupFormat_Click"
-                                                        ToolTip="Her Windows'ta ek program olmadan açılır"/>
-                                                <Button x:Name="Fmt7zBtn" Content="7z" Style="{StaticResource Seg}" Tag="7z" Click="BackupFormat_Click"
-                                                        ToolTipService.ShowOnDisabled="True"/>
-                                            </StackPanel>
-                                        </Border>
-                                        <StackPanel VerticalAlignment="Center">
-                                            <TextBlock Text="Sıkıştırma" FontWeight="SemiBold"/>
-                                            <TextBlock Style="{StaticResource Hint}" TextWrapping="Wrap" Margin="0,2,12,0"
-                                                       Text="Yedek bitince tek bir arşive konur; çoğu zaman üçte bir küçülür. Sürücüler, Wi-Fi ve Kahya.exe dışarıda kalır ki format sonrası internet yokken de hemen kurulabilsin."/>
-                                        </StackPanel>
-                                    </DockPanel>
                                 </StackPanel>
                             </Border>
 
@@ -2067,12 +2065,12 @@
                                     </DockPanel>
                                     <Border Style="{StaticResource StaticRow}" Margin="0,0,8,10">
                                         <DockPanel>
-                                            <Button DockPanel.Dock="Right" Content="Yedekten geri yükle…" Style="{StaticResource AccentBtn}" Margin="12,0,0,0"
+                                            <Button DockPanel.Dock="Right" Content="Asistanı başlat" Style="{StaticResource AccentBtn}" Margin="12,0,0,0"
                                                     VerticalAlignment="Center" Click="RestoreFromBackup_Click"/>
                                             <StackPanel>
-                                                <TextBlock Text="Hepsini tek seferde" Style="{StaticResource RowTitle}"/>
+                                                <TextBlock Text="Format sonrası asistanı" Style="{StaticResource RowTitle}"/>
                                                 <TextBlock Style="{StaticResource RowSub}" TextWrapping="Wrap"
-                                                           Text="Yedeğin içindeki .kahya dosyasını seç: sürücüler, Wi-Fi, fontlar, kişisel klasörler, programlar, ayarlar ve oyun kayıtları sırayla geri yüklenir. Dosyaya çift tıklamak da yeter."/>
+                                                           Text="Yedeği kendisi bulur; internet yoksa önce ağ sürücüsünü ve Wi-Fi'yi kurar, sonra seçtiklerini adım adım geri yükler ve ekran kartı sürücüsüne bakar."/>
                                             </StackPanel>
                                         </DockPanel>
                                     </Border>

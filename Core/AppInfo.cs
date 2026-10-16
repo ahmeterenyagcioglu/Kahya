@@ -38,6 +38,11 @@ namespace Kahya.Core
         {
             new ReleaseNote
             {
+                Version = "1.4.0", Date = T("16 Ekim 2026"),
+                Notes = T("• Format sonrası asistanı: yedeği kendisi bulur; internet yoksa önce ağ sürücüsünü ve Wi-Fi ağlarını kurar; neyin geri yükleneceğini (programları tek tek) seçtirir; ekran kartı sürücüsüne bakar; sonra her şeyi sırayla geri yükler\n• Format yedeği artık tek bir ZIP dosyası: soru yok, Kahya.exe de içinde, Windows ek program olmadan açar\n• Zaten kurulu programlar asistanda kendiliğinden atlanır"),
+            },
+            new ReleaseNote
+            {
                 Version = "1.3.1", Date = T("16 Ekim 2026"),
                 Notes = T("• Sıkıştırılan yedekte Masaüstü, Belgeler gibi klasörlerin boş kopyaları geride kalıyordu; artık temizleniyor\n• .kahya yedek dosyalarının kendi simgesi var (belge + Kahya rozeti); Kahya.exe ile karışmıyor"),
             },
