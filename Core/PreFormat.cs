@@ -35,7 +35,10 @@ namespace Kahya.Core
         public bool HasActions => Actions.Count > 0;
     }
 
-    /// <summary>Kontrol listesindeki bir düğme: bir programı verilen adresle açar.</summary>
+    /// <summary>
+    /// Kontrol listesindeki bir düğme: Exe varsa programı Args ile açar; yoksa Args bir adrestir (ms-settings:, https:)
+    /// ya da Kahya'nın bir sayfasıdır ("kahya:backup").
+    /// </summary>
     public sealed class CheckAction
     {
         public string Label { get; set; }
@@ -186,6 +189,57 @@ namespace Kahya.Core
 
             Add("\uE88E", T("Format USB'si"), T("Yedeğin olduğu USB'yi kullanma; en az 8 GB ayrı bir USB."));
             return list;
+        }
+
+        /// <summary>Bilgisayarı satmadan ya da devretmeden önce yapılacaklar, sırasıyla.</summary>
+        public static List<PreFormatCheck> SaleChecklist(List<BitLockerVolume> bitlocker)
+        {
+            var list = new List<PreFormatCheck>();
+            PreFormatCheck Add(string icon, string title, string detail)
+            {
+                var c = new PreFormatCheck { Icon = icon, Title = title, Detail = detail };
+                list.Add(c);
+                return c;
+            }
+            Add("\uE8F1", T("1. Yedeğini al"), T("Sıfırlama her şeyi siler.")).Actions.Add(new CheckAction { Label = T("Yedek al"), Args = "kahya:backup" });
+            Add("\uE77B", T("2. Hesaplardan çıkış yap"), T("Tarayıcılar, Steam, Office, Adobe ve iCloud gibi programlarda."));
+            Add("\uE7F8", T("3. Cihazı Microsoft hesabından kaldır"), T("'Cihazımı bul' kapanır, yeni sahip kendi hesabını ekler."))
+                .Actions.Add(new CheckAction { Label = T("Cihazlarım"), Args = "https://account.microsoft.com/devices" });
+            if (bitlocker.Count > 0)
+                Add("\uE72E", T("4. BitLocker"), T("Sıfırlama şifreli diski de temizler; kurtarma anahtarı artık gerekmez."));
+            Add("\uE777", T("Son adım: Windows'u sıfırla"), T("'Her şeyi kaldır' ve 'Sürücüyü temizle' seç; dosyalar geri getirilemez."))
+                .Actions.Add(new CheckAction { Label = T("Kurtarma ayarları"), Args = "ms-settings:recovery" });
+            return list;
+        }
+
+        /// <summary>Windows'un etkinleştirme durumu ve format sonrası ne olacağı (başlık, açıklama, iyi mi).</summary>
+        public static (string title, string detail, bool good) Activation()
+        {
+            try
+            {
+                using (var s = new System.Management.ManagementObjectSearcher(
+                    "SELECT LicenseStatus, ProductKeyChannel FROM SoftwareLicensingProduct WHERE ApplicationID='55c92734-d682-4d71-983e-d6ec3f16059f' AND PartialProductKey IS NOT NULL"))
+                using (var items = s.Get())
+                {
+                    var p = items.Cast<System.Management.ManagementObject>().FirstOrDefault();
+                    if (p == null) return (T("Windows etkin değil"), T("Format sonrası ürün anahtarı gerekecek."), false);
+                    bool licensed = Convert.ToInt32(p["LicenseStatus"]) == 1;
+                    var channel = (p["ProductKeyChannel"] as string ?? "").ToLowerInvariant();
+                    string oem = null;
+                    using (var svc = new System.Management.ManagementObjectSearcher("SELECT OA3xOriginalProductKey FROM SoftwareLicensingService"))
+                    using (var r = svc.Get())
+                        oem = r.Cast<System.Management.ManagementObject>().FirstOrDefault()?["OA3xOriginalProductKey"] as string;
+                    if (!licensed) return (T("Windows etkin değil"), T("Format sonrası ürün anahtarı gerekecek."), false);
+                    if (!string.IsNullOrEmpty(oem))
+                        return (T("Windows etkin · anahtar BIOS'ta"), T("Format sonrası internete bağlanınca kendiliğinden etkinleşir."), true);
+                    if (channel.StartsWith("oem") || channel.Contains("retail"))
+                        return (T("Windows etkin · dijital lisans"), T("Bu donanıma bağlı; aynı sürümü kurarsan kendiliğinden etkinleşir. Microsoft hesabına bağlıysa daha güvenli."), true);
+                    if (channel.Contains("volume") || channel.Contains("kms") || channel.Contains("mak"))
+                        return (T("Windows etkin · kurumsal lisans"), T("Kuruluşun lisansı; format sonrası kendiliğinden etkinleşmeyebilir."), false);
+                    return (T("Windows etkin"), channel, true);
+                }
+            }
+            catch (Exception ex) { return (T("Etkinleştirme okunamadı"), ex.Message, false); }
         }
 
         static bool Exists(string path)

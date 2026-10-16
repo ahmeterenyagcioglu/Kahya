@@ -126,6 +126,13 @@ namespace Kahya
         void CheckAction_Click(object sender, RoutedEventArgs e)
         {
             if (!((sender as FrameworkElement)?.DataContext is CheckAction a)) return;
+            if (a.Exe == null)
+            {
+                if (a.Args == "kahya:backup") { Tabs.SelectedItem = FormatTab; return; }
+                try { Process.Start(new ProcessStartInfo(a.Args) { UseShellExecute = true }); }
+                catch (Exception ex) { Log("! " + T("{0} açılamadı: {1}", a.Label, ex.Message)); }
+                return;
+            }
             try
             {
                 // Açıklama tarayıcıdan önce: tarayıcı açılınca öne geçer, sonra çıkan pencere arkasında kalırdı.
@@ -146,6 +153,11 @@ namespace Kahya
             {
                 _bitlocker = await Task.Run(() => PreFormat.BitLocker(new CleanContext(_ => { }, default)));
                 ChecklistList.ItemsSource = PreFormat.Checklist(_bitlocker);
+                SaleList.ItemsSource = PreFormat.SaleChecklist(_bitlocker);
+                var (title, detail, good) = await Task.Run(() => PreFormat.Activation());
+                ActivationTitle.Text = title;
+                ActivationDetail.Text = detail;
+                ActivationIcon.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, good ? "Good" : "Warn");
                 ChecklistCard.Visibility = Visibility.Visible;
                 BitLockerRow.Visibility = _bitlocker.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
                 bool keys = _bitlocker.All(v => v.Keys.Count > 0);

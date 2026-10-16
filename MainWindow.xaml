@@ -2385,6 +2385,16 @@
                 <TabItem x:Name="PreFormatTab">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,8,0">
                         <StackPanel>
+                            <Border Style="{StaticResource ToolCard}">
+                                <DockPanel>
+                                    <TextBlock x:Name="ActivationIcon" Style="{StaticResource CardIcon}" Text="&#xE8D7;" VerticalAlignment="Top" Margin="0,2,12,0"/>
+                                    <StackPanel>
+                                        <TextBlock x:Name="ActivationTitle" Text="Windows etkinleştirme" Style="{StaticResource CardTitle}"/>
+                                        <TextBlock x:Name="ActivationDetail" Style="{StaticResource Hint}" TextWrapping="Wrap" Margin="0,2,0,0" Text="Okunuyor…"/>
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+
                             <Border x:Name="ChecklistCard" Style="{StaticResource ToolCard}" Visibility="Collapsed">
                                 <StackPanel>
                                     <DockPanel Margin="0,0,0,4">
@@ -2440,6 +2450,45 @@
                                                    Text="En az 8 GB, içi silinir; yedeğin olduğu USB'yi kullanma."/>
                                     </StackPanel>
                                 </DockPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource ToolCard}">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,4">
+                                        <TextBlock Style="{StaticResource CardIcon}" Text="&#xE7BF;"/>
+                                        <TextBlock Text="Satmadan ya da devretmeden önce" Style="{StaticResource CardTitle}"/>
+                                    </DockPanel>
+                                    <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,10" Text="Sırayla yap, bitince işaretle."/>
+                                    <ItemsControl x:Name="SaleList">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Style="{StaticResource StaticRow}">
+                                                    <DockPanel>
+                                                        <CheckBox IsChecked="{Binding Done, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                                        <TextBlock Text="{Binding Icon}" FontFamily="{StaticResource Icons}" FontSize="16" Foreground="{DynamicResource AccentText}"
+                                                                   VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                                        <StackPanel>
+                                                            <TextBlock Text="{Binding Title}" Style="{StaticResource RowTitle}"/>
+                                                            <TextBlock Text="{Binding Detail}" Style="{StaticResource RowSub}" TextWrapping="Wrap" TextTrimming="None"/>
+                                                            <ItemsControl ItemsSource="{Binding Actions}" Margin="0,8,0,0"
+                                                                          Visibility="{Binding HasActions, Converter={StaticResource BoolVis}}">
+                                                                <ItemsControl.ItemsPanel>
+                                                                    <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+                                                                </ItemsControl.ItemsPanel>
+                                                                <ItemsControl.ItemTemplate>
+                                                                    <DataTemplate>
+                                                                        <Button Content="{Binding Label}" Style="{StaticResource SmallBtn}" Margin="0,0,6,4"
+                                                                                Click="CheckAction_Click"/>
+                                                                    </DataTemplate>
+                                                                </ItemsControl.ItemTemplate>
+                                                            </ItemsControl>
+                                                        </StackPanel>
+                                                    </DockPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
                             </Border>
                         </StackPanel>
                     </ScrollViewer>
