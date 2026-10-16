@@ -78,7 +78,7 @@ namespace Kahya.Core
         }
     }
 
-    public static class NetworkTools
+    public static partial class NetworkTools
     {
         public static void FlushDns(CleanContext ctx) => ProcessRunner.Run("ipconfig.exe", "/flushdns", ctx, logOutput: true);
 

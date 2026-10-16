@@ -33,6 +33,7 @@ namespace Kahya
             _ = CheckWindowsUpdateAsync();
             _ = LoadSystemInfoAsync();
             _ = LoadDiskHealthAsync();
+            _ = LoadNetworkAsync();
             _ = LoadBatteryAsync();
             if (_gpus != null) ShowGpus();
             else _ = CheckGpuAsync(silent: false);
