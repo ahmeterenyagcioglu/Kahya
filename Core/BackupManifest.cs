@@ -109,7 +109,9 @@ namespace Kahya.Core
                 if (eq <= 0) continue;
                 string key = line.Substring(0, eq).Trim(), value = line.Substring(eq + 1).Trim();
                 // Yedekten dışarı çıkan yollar (..\, C:\) kabul edilmez.
-                bool safe = !Path.IsPathRooted(value) && !value.Split('\\', '/').Contains("..");
+                // NetworkDrivers bir yol değil, '|' ile ayrılmış sürücü adları: '|' yolda geçersiz olduğundan
+                // IsPathRooted ona hata fırlatıp bütün yedeği okunmaz yapıyordu. Geçersiz karakterli yol güvenli sayılmaz.
+                bool safe = key == "NetworkDrivers" || IsSafeRelative(value);
 
                 if (section == "Kahya")
                 {
@@ -139,6 +141,12 @@ namespace Kahya.Core
             if (m.Computer == null && m.IsEmpty)
                 throw new InvalidDataException(T("Bu bir Kahya yedek dosyası değil."));
             return m;
+        }
+
+        static bool IsSafeRelative(string value)
+        {
+            if (value.IndexOfAny(Path.GetInvalidPathChars()) >= 0) return false;
+            return !Path.IsPathRooted(value) && !value.Split('\\', '/').Contains("..");
         }
     }
 }

@@ -1451,6 +1451,39 @@
                                         </StackPanel>
                                     </Border>
 
+                                    <Border Style="{StaticResource ToolCard}">
+                                        <StackPanel>
+                                            <DockPanel Margin="0,0,0,10">
+                                                <TextBlock Style="{StaticResource CardIcon}" Text="&#xEDA2;"/>
+                                                <TextBlock Text="Disk alanı" Style="{StaticResource CardTitle}"
+                                                           ToolTip="Neyin yer kapladığını görmek için bir diske tıkla."/>
+                                            </DockPanel>
+                                            <ItemsControl x:Name="DriveSpaceList">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Style="{StaticResource StaticRow}" Cursor="Hand" MouseLeftButtonUp="DriveSpace_Click" ToolTip="{Binding Tooltip}">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock VerticalAlignment="Center" Margin="0,0,14,0" MinWidth="60">
+                                                                    <Run Text="{Binding Letter, Mode=OneWay}" FontWeight="SemiBold"/>
+                                                                    <Run Text="{Binding Label, Mode=OneWay}" Foreground="{DynamicResource Muted}" FontSize="12"/>
+                                                                </TextBlock>
+                                                                <ProgressBar Grid.Column="1" Style="{StaticResource BarStyle}" Value="{Binding UsedPercent, Mode=OneWay}"
+                                                                             VerticalAlignment="Center"/>
+                                                                <TextBlock Grid.Column="2" Text="{Binding FreeText}" Foreground="{DynamicResource Muted}" FontSize="12"
+                                                                           VerticalAlignment="Center" Margin="14,0,0,0"/>
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </Border>
+
                                 </StackPanel>
                             </Grid>
 

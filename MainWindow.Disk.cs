@@ -120,9 +120,17 @@ namespace Kahya
                 catch { }
             }
             DriveList.ItemsSource = drives;
+            DriveSpaceList.ItemsSource = drives.Where(d => !d.IsVirtual).ToList(); // Sistem › Durum
             DupFolderText.Text = _dupFolder;
             HighlightFilters();
             ApplyDiskMode();
+        }
+
+        /// <summary>Sistem › Durum'daki disk alanı satırı: o diskin analizini açar.</summary>
+        void DriveSpace_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            Tabs.SelectedItem = DiskTab;
+            Drive_Click(sender, null);
         }
 
         async void Drive_Click(object sender, RoutedEventArgs e)

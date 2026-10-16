@@ -1949,4 +1949,5 @@
   <t tr="Görev çubuğu düğmesi ve Win+C kapanır.">The taskbar button and Win+C are turned off.</t>
   <t tr="Görev çubuğundaki hava durumu ve haber paneli kapanır.">The weather and news panel on the taskbar is turned off.</t>
   <t tr="Donan programı görev çubuğundan sağ tıkla kapat.">Close a frozen app by right-clicking it on the taskbar.</t>
+  <t tr="Neyin yer kapladığını görmek için bir diske tıkla.">Click a disk to see what takes up space.</t>
 </language>
