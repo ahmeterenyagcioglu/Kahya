@@ -1808,6 +1808,9 @@
   <t tr="ayarlar ve veriler olabilir">may contain settings and data</t>
   <t tr="{0} yedeklenemediği için silinmedi.">{0} was not deleted because it couldn't be backed up.</t>
   <t tr="Geride kalanlar">Leftovers</t>
+  <t tr="WinSxS (Windows bileşen deposu)\n\nGezgin'de görünen boyutu: {0}\nGerçek boyutu: {1}\nBunun Windows'un kendisi olan kısmı (silinemez): {2}\nEski sürümler ve kapalı özellikler: {3}\nKaldırılabilir eski paket: {4}">WinSxS (Windows component store)\n\nSize shown in Explorer: {0}\nActual size: {1}\nPart that is Windows itself (can't be removed): {2}\nOld versions and disabled features: {3}\nRemovable old packages: {4}</t>
+  <t tr="Temizliğe gerek yok ✔">No cleanup needed ✔</t>
+  <t tr="Temizlik öneriliyor. Temizlik sekmesinde 'Bileşen deposu temizliği' seçilsin mi? Temizliği oradan başlatırsın.">Cleanup is recommended. Select 'Component store cleanup' on the Cleanup tab? You start the cleanup from there.</t>
   <t tr="Kaldırıcının silmediği klasörler ve kayıt defteri anahtarları. Klasörler Geri Dönüşüm Kutusu'na gider; anahtarlar silinmeden önce yedeklenir. AppData'dakiler programın ayarları olabilir, seçili gelmez.">Folders and registry keys the uninstaller left behind. Folders go to the Recycle Bin; keys are backed up before deleting. Items in AppData may be the program's settings and are not selected.</t>
   <t tr="{0} kaldırıldı, geride {1} şey kaldı">{0} was uninstalled, {1} things were left behind</t>
   <t tr="artıklar aranıyor…">looking for leftovers…</t>

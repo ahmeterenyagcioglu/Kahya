@@ -248,13 +248,16 @@ namespace Kahya
             var token = SetBusy(T("çalışıyor…"));
             ShowLog(true);
             Log("──────────\n▶ " + T("{0} — {1:HH:mm:ss}", title, DateTime.Now));
+            var output = new System.Collections.Concurrent.ConcurrentQueue<string>();
             try
             {
-                var ctx = Context(token);
+                var ctx = new CleanContext(line => { output.Enqueue(line); Log(line); }, token) { Progress = SetStatus };
                 int code = file == null
                     ? await Task.Run(() => { WindowsUpdateReset.Run(ctx); return 0; })
                     : await Task.Run(() => ProcessRunner.Run(file, args, ctx, logOutput: true, encoding: encoding));
                 Log(code == 0 ? "✔ " + T("{0} tamamlandı.", title) : "! " + T("{0} {1} koduyla bitti — ayrıntılar yukarıda.", title, code));
+                if (code == 0 && kind == "winsxs")
+                    ShowComponentStore(ComponentStore.Parse(output));
             }
             catch (OperationCanceledException)
             {
@@ -268,6 +271,27 @@ namespace Kahya
             {
                 ApplyBusy(false);
             }
+        }
+
+        /// <summary>DISM'in ham çıktısı yerine ne anlama geldiğini söyler; temizlik öneriliyorsa Derin Temizlik'e götürür.</summary>
+        void ShowComponentStore(ComponentStore s)
+        {
+            if (s == null) return; // çıktı okunamadı; ham hali işlem kaydında
+            var summary = T("WinSxS (Windows bileşen deposu)\n\nGezgin'de görünen boyutu: {0}\nGerçek boyutu: {1}\nBunun Windows'un kendisi olan kısmı (silinemez): {2}\nEski sürümler ve kapalı özellikler: {3}\nKaldırılabilir eski paket: {4}",
+                            s.ExplorerSize, s.ActualSize, s.Shared, s.Backups, s.ReclaimablePackages);
+            if (!s.CleanupRecommended)
+            {
+                Info(summary + "\n\n" + T("Temizliğe gerek yok ✔"));
+                return;
+            }
+            if (!Confirm(summary + "\n\n" + T("Temizlik öneriliyor. Temizlik sekmesinde 'Bileşen deposu temizliği' seçilsin mi? Temizliği oradan başlatırsın.")))
+                return;
+            var item = _items.FirstOrDefault(i => i.Id == "dism");
+            if (item == null) return;
+            item.IsChecked = true;
+            var group = _groups.FirstOrDefault(g => g.Items.Contains(item));
+            if (group != null) group.IsExpanded = true;
+            Tabs.SelectedItem = CleanTab;
         }
 
         // ───────────── hazırda bekletme ─────────────
