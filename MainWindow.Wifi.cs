@@ -114,3 +114,60 @@ namespace Kahya
         }
     }
 }
+
+namespace Kahya
+{
+    // Sistem › Ağ › Programın internetini kes.
+    public partial class MainWindow
+    {
+        async System.Threading.Tasks.Task LoadBlocksAsync()
+        {
+            if (!Elevation.IsAdmin)
+            {
+                BlockInfo.Text = T("Güncelleme dayatan ya da veri gönderen programlar için. Kullanmak yönetici ister.");
+                return;
+            }
+            try
+            {
+                var list = await System.Threading.Tasks.Task.Run(() => NetBlock.List(new CleanContext(_ => { }, default)));
+                BlockList.ItemsSource = list;
+                BlockInfo.Text = list.Count == 0
+                    ? T("Güncelleme dayatan ya da veri gönderen programlar için. Program çalışır ama internete çıkamaz.")
+                    : T("{0} programın interneti kesik.", list.Count);
+            }
+            catch (System.Exception ex) { BlockInfo.Text = T("Okunamadı: {0}", ex.Message); }
+        }
+
+        async void BlockAdd_Click(object sender, RoutedEventArgs e)
+        {
+            if (!RequireAdmin()) return;
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Title = T("İnterneti kesilecek programı seç"),
+                Filter = T("Programlar") + " (*.exe)|*.exe",
+                InitialDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ProgramFiles),
+            };
+            if (dialog.ShowDialog(this) != true) return;
+            var exe = dialog.FileName;
+            try
+            {
+                await System.Threading.Tasks.Task.Run(() => NetBlock.Block(exe, new CleanContext(_ => { }, default)));
+                Log("🚫 " + T("İnterneti kesildi: {0}", exe));
+            }
+            catch (System.Exception ex) { Info(T("Kural eklenemedi: {0}", ex.Message)); }
+            await LoadBlocksAsync();
+        }
+
+        async void BlockRemove_Click(object sender, RoutedEventArgs e)
+        {
+            if (!((sender as FrameworkElement)?.DataContext is BlockedProgram b) || !RequireAdmin()) return;
+            try
+            {
+                await System.Threading.Tasks.Task.Run(() => NetBlock.Unblock(b.Path, new CleanContext(_ => { }, default)));
+                Log("✔ " + T("İnternete izin verildi: {0}", b.Name));
+            }
+            catch (System.Exception ex) { Info(T("Kural kaldırılamadı: {0}", ex.Message)); }
+            await LoadBlocksAsync();
+        }
+    }
+}

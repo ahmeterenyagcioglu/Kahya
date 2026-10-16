@@ -2572,6 +2572,35 @@
                                     </Grid>
                                 </StackPanel>
                             </Border>
+
+                            <Border Style="{StaticResource ToolCard}">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,6">
+                                        <Button DockPanel.Dock="Right" Content="Program seç…" Style="{StaticResource SmallBtn}" Margin="0" c:Elevation.Required="True"
+                                                Click="BlockAdd_Click"/>
+                                        <TextBlock Style="{StaticResource CardIcon}" Text="&#xE8F8;"/>
+                                        <TextBlock Text="Programın internetini kes" Style="{StaticResource CardTitle}"/>
+                                    </DockPanel>
+                                    <TextBlock x:Name="BlockInfo" Style="{StaticResource Hint}" Margin="0,0,0,8"
+                                               Text="Güncelleme dayatan ya da veri gönderen programlar için. Program çalışır ama internete çıkamaz."/>
+                                    <ItemsControl x:Name="BlockList">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Style="{StaticResource StaticRow}">
+                                                    <DockPanel>
+                                                        <Button DockPanel.Dock="Right" Content="İzin ver" Style="{StaticResource SmallBtn}" Margin="10,0,0,0"
+                                                                VerticalAlignment="Center" Click="BlockRemove_Click"/>
+                                                        <StackPanel>
+                                                            <TextBlock Text="{Binding Name}" Style="{StaticResource RowTitle}"/>
+                                                            <TextBlock Text="{Binding Details}" Style="{StaticResource RowSub}" TextTrimming="CharacterEllipsis"/>
+                                                        </StackPanel>
+                                                    </DockPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
                     </ScrollViewer>
                 </TabItem>

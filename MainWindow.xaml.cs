@@ -310,6 +310,8 @@ namespace Kahya
                 _ = LoadBoostAsync();
             if (tab == DownloadsTab && !_downloadsLoaded)
                 _ = LoadDownloadsAsync();
+            if (tab == NetTab)
+                _ = LoadBlocksAsync();
             if (tab == NetTab && !_wifiLoaded)
                 _ = LoadWifiAsync();
             if (tab == AboutTab)

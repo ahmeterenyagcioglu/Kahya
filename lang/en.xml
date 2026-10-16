@@ -1998,4 +1998,18 @@
   <t tr="Güç planı eski haline döndü">Power plan restored</t>
   <t tr="Bildirimler açıldı">Notifications turned on</t>
   <t tr="Yeniden açıldı: {0}">Reopened: {0}</t>
+  <t tr="Program seç…">Choose program…</t>
+  <t tr="Programın internetini kes">Block a program's internet</t>
+  <t tr="Güncelleme dayatan ya da veri gönderen programlar için. Program çalışır ama internete çıkamaz.">For programs that force updates or send data. The program runs but can't reach the internet.</t>
+  <t tr="Güncelleme dayatan ya da veri gönderen programlar için. Kullanmak yönetici ister.">For programs that force updates or send data. Requires administrator.</t>
+  <t tr="İzin ver">Allow</t>
+  <t tr="program artık yok">program no longer exists</t>
+  <t tr="Program bulunamadı: {0}">Program not found: {0}</t>
+  <t tr="Kahya engeli: {0}">Kahya block: {0}</t>
+  <t tr="{0} programın interneti kesik.">{0} programs are blocked from the internet.</t>
+  <t tr="İnterneti kesilecek programı seç">Choose the program to block</t>
+  <t tr="İnterneti kesildi: {0}">Internet blocked: {0}</t>
+  <t tr="Kural eklenemedi: {0}">Couldn't add the rule: {0}</t>
+  <t tr="İnternete izin verildi: {0}">Internet allowed: {0}</t>
+  <t tr="Kural kaldırılamadı: {0}">Couldn't remove the rule: {0}</t>
 </language>
