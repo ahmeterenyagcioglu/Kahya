@@ -38,6 +38,11 @@ namespace Kahya.Core
         {
             new ReleaseNote
             {
+                Version = "1.8.0", Date = T("16 Ekim 2026"),
+                Notes = T("• Otomatik yedek: kişisel klasörler, Wi-Fi ağları, program listesi ve Windows ayarları seçtiğin sıklıkta yedeklenir (Format yardımcısı › Otomatik yedek). En yeni 3 otomatik yedek tutulur\n• Yedeğe göz at: .kahya yedeğinde gezip arayarak tek bir dosyayı ya da klasörü istediğin yere geri al; var olanların üzerine yazmaz\n• Disk sorunlanınca ya da SSD aşınması %90'ı geçince bildirim alanından uyarı; tıklayınca Format yardımcısı açılır\n• Araçlar › Ağ araçları: DNS sunucusu seçimi (Cloudflare, Google, Quad9, AdGuard ya da Otomatik) ve eski hali yedeklenerek hosts düzenleme\n• Format öncesi kontrol listesinde her tarayıcının şifre sayfasını açan düğmeler (dışa aktarmak için)\n• Kahya'nın temasına uyan soru pencereleri; yer açmayan işlerde '0 B boşaltıldı' yerine 'yapıldı'; Gizlilik geri alınınca Gezgin'i yeniden başlatmayı soruyor"),
+            },
+            new ReleaseNote
+            {
                 Version = "1.7.1", Date = T("16 Ekim 2026"),
                 Notes = T("• Format yedeği Masaüstü'ne alınınca kendini de kopyalamaya çalışıp hiç bitmiyordu; düzeldi\n• Çok derin klasörlerdeki (260 karakteri aşan yollar) dosyalar, gizli ve salt okunur dosyaların öznitelikleri ve boş klasörler artık yedeğe girip geri geliyor; yedeğe giremeyen dosya olursa söyleniyor\n• Bazı programlar (ör. InstallShield ile kurulanlar) Uygulamalar'dan kaldırılamıyordu; düzeldi\n• WinSxS analizinin sonucu anlaşılır bir özet penceresinde; temizlik öneriliyorsa Derin Temizlik'te seçili gelir\n• Pencere küçük ekranlarda ve yüksek ölçeklemede ekrana sığıyor\n• Windows Update, disk sağlığı ve ağ hatalarında anlaşılır mesajlar; simgesi olmayan programlara genel simge"),
             },
