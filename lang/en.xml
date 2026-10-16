@@ -1922,4 +1922,5 @@
   <t tr="Birincil">Primary</t>
   <t tr="İkincil">Secondary</t>
   <t tr="İsteğe bağlı. Birincil yanıt vermezse kullanılır.">Optional. Used if the primary doesn't respond.</t>
+  <t tr="• Araçlar › Ağ araçları › DNS sunucusu: Özel seçeneğiyle kendi DNS sunucunu (birincil ve ikincil) elle girebilirsin\n• Araçlar sayfasında sütunlar dengeli, büyük boşluk kalmıyor; DNS satırı daha derli toplu">• Tools › Network tools › DNS server: with the Custom option you can enter your own DNS server (primary and secondary)\n• The Tools page columns are balanced, no more big empty space; the DNS row is tidier</t>
 </language>
