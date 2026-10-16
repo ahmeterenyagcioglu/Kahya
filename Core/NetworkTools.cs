@@ -15,7 +15,7 @@ namespace Kahya.Core
         public string Description { get; set; }
         public string[] V4 { get; set; } = new string[0];
         public string[] V6 { get; set; } = new string[0];
-        public bool Automatic => V4.Length == 0;
+        public bool Automatic => V4.Length == 0 && V6.Length == 0;
     }
 
     /// <summary>Bağlı ağ kartlarının DNS ayarı ve hosts dosyası.</summary>

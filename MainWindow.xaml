@@ -1409,29 +1409,6 @@
 
                                     <Border Style="{StaticResource ToolCard}">
                                         <StackPanel>
-                                            <DockPanel Margin="0,0,0,8">
-                                                <Button DockPanel.Dock="Right" Content="&#xE72C;" Style="{StaticResource IconBtn}" Click="WuCheck_Click" ToolTip="Kontrol et"/>
-                                                <TextBlock Style="{StaticResource CardIcon}" Text="&#xE895;"/>
-                                                <TextBlock Text="Windows Update" Style="{StaticResource CardTitle}"/>
-                                            </DockPanel>
-                                            <TextBlock x:Name="WuText" Style="{StaticResource Hint}" FontSize="12.5" Text="Kontrol ediliyor…"/>
-                                            <ItemsControl x:Name="WuList" Margin="0,6,0,0">
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <TextBlock Text="{Binding}" FontSize="12" TextWrapping="Wrap" Margin="0,2"/>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
-                                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                                                <Button x:Name="WuPauseBtn" Content="1 hafta ertele" Style="{StaticResource SmallBtn}" Click="WuPause_Click"
-                                                        c:Elevation.Required="True" ToolTip="Ayarlar'daki 'Güncellemeleri duraklat' ile aynı. Süre bitince güncellemeler kendiliğinden sürer."/>
-                                                <Button Content="Ayarlar'da aç" Style="{StaticResource SmallBtn}" Click="WuOpen_Click"/>
-                                            </StackPanel>
-                                        </StackPanel>
-                                    </Border>
-
-                                    <Border Style="{StaticResource ToolCard}">
-                                        <StackPanel>
                                             <DockPanel Margin="0,0,0,10">
                                                 <TextBlock Style="{StaticResource CardIcon}" Text="&#xE945;"/>
                                                 <TextBlock Text="Güç ve performans" Style="{StaticResource CardTitle}"/>
@@ -1569,6 +1546,29 @@
                                                 </ItemsControl.ItemTemplate>
                                             </ItemsControl>
                                             <TextBlock x:Name="DiskHealthNote" Style="{StaticResource Hint}" Visibility="Collapsed"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Style="{StaticResource ToolCard}">
+                                        <StackPanel>
+                                            <DockPanel Margin="0,0,0,8">
+                                                <Button DockPanel.Dock="Right" Content="&#xE72C;" Style="{StaticResource IconBtn}" Click="WuCheck_Click" ToolTip="Kontrol et"/>
+                                                <TextBlock Style="{StaticResource CardIcon}" Text="&#xE895;"/>
+                                                <TextBlock Text="Windows Update" Style="{StaticResource CardTitle}"/>
+                                            </DockPanel>
+                                            <TextBlock x:Name="WuText" Style="{StaticResource Hint}" FontSize="12.5" Text="Kontrol ediliyor…"/>
+                                            <ItemsControl x:Name="WuList" Margin="0,6,0,0">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding}" FontSize="12" TextWrapping="Wrap" Margin="0,2"/>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                                <Button x:Name="WuPauseBtn" Content="1 hafta ertele" Style="{StaticResource SmallBtn}" Click="WuPause_Click"
+                                                        c:Elevation.Required="True" ToolTip="Ayarlar'daki 'Güncellemeleri duraklat' ile aynı. Süre bitince güncellemeler kendiliğinden sürer."/>
+                                                <Button Content="Ayarlar'da aç" Style="{StaticResource SmallBtn}" Click="WuOpen_Click"/>
+                                            </StackPanel>
                                         </StackPanel>
                                     </Border>
                                 </StackPanel>
@@ -1731,24 +1731,40 @@
                                             </DockPanel>
                                         </Border>
                                     </UniformGrid>
-                                    <Grid Margin="0,10,8,8">
+                                    <Grid>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="2*"/>
-                                            <ColumnDefinition Width="24"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel>
-                                            <DockPanel Margin="0,0,0,6">
-                                                <Button DockPanel.Dock="Right" Content="&#xE72C;" Style="{StaticResource IconBtn}" Click="NetworkRefresh_Click" ToolTip="Yenile"/>
-                                                <TextBlock Text="DNS sunucusu" Style="{StaticResource Label}" VerticalAlignment="Center"
-                                                           ToolTip="Site adlarını adrese çeviren sunucu. Değiştirmek bazı sitelerin daha hızlı açılmasını ya da reklamların engellenmesini sağlayabilir; sorun olursa Otomatik'e dön."/>
-                                            </DockPanel>
-                                            <Border Style="{StaticResource SegBar}" Background="{DynamicResource Row}" HorizontalAlignment="Left">
-                                                <WrapPanel x:Name="DnsPanel"/>
-                                            </Border>
-                                            <TextBlock x:Name="DnsInfo" Style="{StaticResource Hint}" Margin="0,4,0,0" TextWrapping="Wrap"/>
-                                        </StackPanel>
-                                        <Border Grid.Column="2" Style="{StaticResource ActionRow}" VerticalAlignment="Top" Margin="0,30,0,0">
+                                        <Border Grid.ColumnSpan="2" Style="{StaticResource ActionRow}">
+                                            <StackPanel>
+                                                <DockPanel>
+                                                    <Button DockPanel.Dock="Right" Content="&#xE72C;" Style="{StaticResource IconBtn}" Click="NetworkRefresh_Click" ToolTip="Yenile"
+                                                            VerticalAlignment="Center"/>
+                                                    <StackPanel VerticalAlignment="Center"
+                                                                ToolTip="Site adlarını adrese çeviren sunucu. Değiştirmek bazı sitelerin daha hızlı açılmasını ya da reklamların engellenmesini sağlayabilir; sorun olursa Otomatik'e dön.">
+                                                        <TextBlock Text="DNS sunucusu" Style="{StaticResource RowTitle}"/>
+                                                        <TextBlock x:Name="DnsInfo" Style="{StaticResource RowSub}" TextTrimming="CharacterEllipsis"/>
+                                                    </StackPanel>
+                                                </DockPanel>
+                                                <Border Style="{StaticResource SegBar}" Background="{DynamicResource Card}" HorizontalAlignment="Left" Margin="0,8,0,0">
+                                                    <WrapPanel x:Name="DnsPanel"/>
+                                                </Border>
+                                                <DockPanel x:Name="CustomDnsPanel" Margin="0,10,0,0" Visibility="Collapsed">
+                                                    <Button DockPanel.Dock="Right" Content="Uygula" Style="{StaticResource SmallBtn}" Margin="8,0,0,0" c:Elevation.Required="True"
+                                                            VerticalAlignment="Center" Click="CustomDnsApply_Click"/>
+                                                    <TextBlock Text="Birincil" Style="{StaticResource RowSub}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                    <TextBox x:Name="DnsPrimaryBox" Style="{StaticResource SearchBox}" Background="{DynamicResource Card}" Padding="10,6"
+                                                             Width="170" FontFamily="Cascadia Mono, Consolas" KeyDown="CustomDns_KeyDown"/>
+                                                    <TextBlock Text="İkincil" Style="{StaticResource RowSub}" VerticalAlignment="Center" Margin="14,0,8,0"/>
+                                                    <TextBox x:Name="DnsSecondaryBox" Style="{StaticResource SearchBox}" Background="{DynamicResource Card}" Padding="10,6"
+                                                             Width="170" FontFamily="Cascadia Mono, Consolas" HorizontalAlignment="Left" KeyDown="CustomDns_KeyDown"
+                                                             ToolTip="İsteğe bağlı. Birincil yanıt vermezse kullanılır."/>
+                                                </DockPanel>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Grid.Column="2" Style="{StaticResource ActionRow}" VerticalAlignment="Top">
                                             <DockPanel>
                                                 <Button DockPanel.Dock="Right" Content="Düzenle…" Style="{StaticResource SmallBtn}" Margin="10,0,0,0" c:Elevation.Required="True"
                                                         VerticalAlignment="Center" Click="HostsEdit_Click"/>
