@@ -190,7 +190,7 @@ namespace Kahya
             {
                 var answer = MessageBox.Show(
                     T("{0}\n\nAyrıntılar şu dosyaya kaydedildi:\n{1}", ex.Message, ErrorLogPath) + "\n\n" +
-                    T("Bu hatayı geliştiriciye bildirmek ister misin? GitHub'da hazır doldurulmuş bir sayfa açılır; ayrıntılar panoya da kopyalanır, istersen WhatsApp vb. ile de gönderebilirsin."),
+                    T("Geliştiriciye bildirilsin mi? GitHub'da hazır bir sayfa açılır, ayrıntılar panoya da kopyalanır."),
                     T("Kahya - beklenmeyen hata"), MessageBoxButton.YesNo, MessageBoxImage.Error);
                 if (answer == MessageBoxResult.Yes)
                 {

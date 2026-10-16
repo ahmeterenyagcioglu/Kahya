@@ -348,7 +348,7 @@
                         <TextBlock DockPanel.Dock="Left" Text="&#xEA18;" FontFamily="{StaticResource Icons}" FontSize="16" Foreground="{DynamicResource Warn}"
                                    VerticalAlignment="Center" Margin="0,0,12,0"/>
                         <TextBlock VerticalAlignment="Center" TextWrapping="Wrap"
-                                   Text="Yönetici olarak çalışmıyor. Kalkan işaretli özellikler (Windows klasörleri, onarım araçları, bakım) kapalı."/>
+                                   Text="Yönetici değil: kalkan işaretli özellikler kapalı."/>
                     </DockPanel>
                 </Border>
                 <Border x:Name="GpuBanner" Background="{DynamicResource WarnSoft}" BorderBrush="{DynamicResource WarnLine}" BorderThickness="1" CornerRadius="10"
@@ -1522,7 +1522,7 @@
                                             <StackPanel>
                                                 <TextBlock Text="Windows ayarları" Style="{StaticResource RowTitle}"/>
                                                 <TextBlock Style="{StaticResource RowSub}" TextWrapping="Wrap"
-                                                           Text="Duvar kâğıdı, koyu/açık tema ve renkler, görev çubuğu, Gezgin, fare hızı, klavye düzenleri"/>
+                                                           Text="Duvar kâğıdı, tema, görev çubuğu, fare ve klavye"/>
                                             </StackPanel>
                                         </DockPanel>
                                     </Border>
@@ -1589,7 +1589,7 @@
                                         <TextBlock Text="Program ayarları" Style="{StaticResource CardTitle}"/>
                                     </DockPanel>
                                     <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,10"
-                                               Text="Ön ayarlar, kısayollar ve sahneler. Program yeniden kurulduktan sonra geri yüklenir; yedekte olmayan yeni ayarlara dokunulmaz."/>
+                                               Text="Ön ayarlar, kısayollar ve sahneler; program kurulunca geri gelir."/>
                                     <ItemsControl x:Name="BackupSettingsList">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
@@ -1621,7 +1621,7 @@
                                         <TextBlock Text="Oyun kayıtları" Style="{StaticResource CardTitle}"/>
                                     </DockPanel>
                                     <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,10" TextWrapping="Wrap"
-                                               Text="Oyunların kendisi değil, kayıtların, dünyaların ve modların yedeklenir. Minecraft'ın oyun dosyaları alınmaz; başlatıcı onları yeniden indirir. Steam bulut kaydı olan oyunlar zaten güvende."/>
+                                               Text="Oyunlar değil; kayıtlar, dünyalar ve modlar yedeklenir."/>
                                     <ItemsControl x:Name="BackupGamesList">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
@@ -1666,7 +1666,7 @@
                                         <TextBlock Text="Program listesi" Style="{StaticResource CardTitle}"/>
                                     </DockPanel>
                                     <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,10"
-                                               Text="Format sonrası yeniden kurmak istediklerini işaretle; winget'te olanlar tek seferde, en yeni sürümüyle kurulur."/>
+                                               Text="Format sonrası kurulacakları işaretle; winget'tekiler tek seferde kurulur."/>
                                     <ScrollViewer MaxHeight="320" VerticalScrollBarVisibility="Auto">
                                         <ItemsControl x:Name="BackupAppList">
                                             <ItemsControl.ItemTemplate>
@@ -1736,7 +1736,7 @@
                                         <TextBlock Text="Kişisel klasörler" Style="{StaticResource CardTitle}"/>
                                     </DockPanel>
                                     <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,10"
-                                               Text="C: diskindeki dosyaların format atınca silinir. Kopyalamak istediklerini işaretle; bulutla eşitlenenler zaten güvende."/>
+                                               Text="C: diskindekiler formatta silinir; kopyalanacakları işaretle."/>
                                     <ItemsControl x:Name="BackupFolderList">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
@@ -2344,7 +2344,7 @@
                                         <TextBlock Text="Otomatik yedek" Style="{StaticResource CardTitle}"/>
                                     </DockPanel>
                                     <TextBlock Style="{StaticResource Hint}" TextWrapping="Wrap" Margin="0,0,0,10"
-                                               Text="Seçtiğin kişisel klasörler, Wi-Fi ağları, program listesi ve Windows ayarları yukarıdaki konuma düzenli olarak yedeklenir. En yeni 3 otomatik yedek tutulur; elle aldıkların silinmez."/>
+                                               Text="Seçtiğin klasörler, Wi-Fi ve ayarlar düzenli yedeklenir; son 3 yedek tutulur."/>
                                     <Border Style="{StaticResource SegBar}" Background="{DynamicResource Row}" HorizontalAlignment="Left">
                                         <StackPanel x:Name="AutoBackupModePanel" Orientation="Horizontal">
                                             <Button Content="Kapalı" Style="{StaticResource Seg}" Tag="off" Click="AutoBackupMode_Click"/>
@@ -2399,7 +2399,7 @@
                                     <StackPanel VerticalAlignment="Center">
                                         <TextBlock Text="Format attın mı?" FontWeight="SemiBold"/>
                                         <TextBlock Foreground="{DynamicResource Muted}" FontSize="12" TextWrapping="Wrap" Margin="0,2,0,0"
-                                                   Text="Format sonrası asistanı yedeğini bulup her şeyi adım adım geri yükler. Yedek almak için aşağıdan devam et."/>
+                                                   Text="Asistan yedeğini bulur ve her şeyi adım adım geri yükler."/>
                                     </StackPanel>
                                 </DockPanel>
                             </Border>
@@ -2417,7 +2417,7 @@
                                         <TextBlock Text="Formattan önce kontrol et" Style="{StaticResource CardTitle}"/>
                                     </DockPanel>
                                     <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,10" TextWrapping="Wrap"
-                                               Text="Bunların bir kısmı yedeğe giremez; formattan önce bir bak, tamamladıkça işaretle."/>
+                                               Text="Yedeğe girmeyenler: formattan önce bak, bitince işaretle."/>
                                     <ItemsControl x:Name="ChecklistList">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
@@ -2462,7 +2462,7 @@
                                     <StackPanel Margin="0,0,12,0">
                                         <TextBlock Text="Format USB'si hazırla" Style="{StaticResource CardTitle}"/>
                                         <TextBlock Style="{StaticResource Hint}" TextWrapping="Wrap" Margin="0,2,0,0"
-                                                   Text="Yedekten sonraki adım: Windows'u kuracağın USB. En az 8 GB olmalı ve içindekiler silinir; yedeğin olduğu USB'yi kullanma."/>
+                                                   Text="En az 8 GB, içi silinir; yedeğin olduğu USB'yi kullanma."/>
                                     </StackPanel>
                                 </DockPanel>
                             </Border>

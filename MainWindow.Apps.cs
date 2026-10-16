@@ -143,7 +143,7 @@ namespace Kahya
             await LoadProgramsAsync();
             bool stillThere = _programs.Any(p => p.Name == app.Name && p.Version == app.Version);
             Log(stillThere
-                ? "   " + T("{0} hâlâ listede — kaldırıcı iptal edilmiş ya da arka planda sürüyor olabilir. Bitince 'Yenile'ye bas.", app.Name)
+                ? "   " + T("{0} hâlâ yüklü görünüyor; kaldırıcı bitince Yenile'ye bas.", app.Name)
                 : "   ✔ " + T("{0} kaldırıldı", app.Name));
             if (!stillThere)
                 await CleanLeftoversAsync(app);

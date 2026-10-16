@@ -148,8 +148,8 @@ namespace Kahya.Core
                 var drives = string.Join(", ", bitlocker.Select(v => v.Drive));
                 bool keys = bitlocker.All(v => v.Keys.Count > 0);
                 Add("\uE72E", T("BitLocker ile şifreli diskler: {0}", drives),
-                    keys ? T("Kurtarma anahtarları yedeğe eklenecek. Format sonrası bu diskler açılmazsa o anahtar sorulur.")
-                         : T("Kurtarma anahtarını okumak için Kahya'yı yönetici olarak aç; ya da account.microsoft.com/devices/recoverykey adresinden bak."),
+                    keys ? T("Kurtarma anahtarları yedeğe eklenecek.")
+                         : T("Anahtarı okumak için Kahya'yı yönetici olarak aç."),
                     keys);
             }
 
@@ -157,21 +157,21 @@ namespace Kahya.Core
             if (browsers.Count > 0)
             {
                 Add("\uE8D7", T("Tarayıcı şifreleri ({0})", string.Join(", ", browsers.Select(b => b.Name))),
-                    T("Yedeğe girmez. Tarayıcıda hesabınla eşitlendiğinden emin ol; eşitlemiyorsan aşağıdan şifre sayfasını aç, Dışa aktar ile kaydet. Dosyadaki şifreler açık metindir: USB'de tut, formattan sonra içe aktarınca sil."));
+                    T("Yedeğe girmez. Eşitlenmiyorsa dışa aktar; dosyayı içe aktarınca sil."));
                 foreach (var b in browsers.Where(b => b.Exe != null))
                     list.Last().Actions.Add(new CheckAction { Label = T("{0} şifreleri", b.Name), Exe = b.Exe, Args = b.PasswordPage });
             }
 
             if (Exists(@"%LOCALAPPDATA%\Microsoft\OneDrive\OneDrive.exe") || Process.GetProcessesByName("OneDrive").Length > 0)
-                Add("\uE753", T("OneDrive"), T("Simgede yeşil tik olana kadar bekle: henüz yüklenmemiş dosyalar formatta kaybolur."));
+                Add("\uE753", T("OneDrive"), T("Simgede yeşil tik olana kadar bekle."));
 
             Add("\uE8D4", T("İki adımlı doğrulama"),
-                T("Kodlar telefonundaysa (Google Authenticator, Microsoft Authenticator) sorun yok. Bilgisayardaki bir uygulamadaysa (Authy, WinAuth…) önce telefona taşı."));
+                T("Kodlar bilgisayardaki bir uygulamadaysa önce telefona taşı."));
 
             if (Exists(@"%ProgramFiles%\Microsoft Office\root") || Exists(@"%ProgramFiles(x86)%\Microsoft Office"))
-                Add("\uE8A5", T("Microsoft Office"), T("Microsoft hesabına bağlıysa format sonrası aynı hesapla girmen yeter; değilse ürün anahtarını bul."));
+                Add("\uE8A5", T("Microsoft Office"), T("Microsoft hesabına bağlı değilse ürün anahtarını bul."));
             if (Exists(@"%ProgramFiles%\Adobe") || Exists(@"%CommonProgramFiles%\Adobe\OOBE"))
-                Add("\uE8A5", T("Adobe"), T("Adobe uygulamalarında Yardım › Oturumu kapat: etkinleştirme sınırına takılmazsın."));
+                Add("\uE8A5", T("Adobe"), T("Yardım › Oturumu kapat; etkinleştirme sınırına takılmazsın."));
 
             var launchers = new List<string>();
             if (Exists(@"%ProgramFiles(x86)%\Steam")) launchers.Add("Steam");
@@ -182,9 +182,9 @@ namespace Kahya.Core
             if (Exists(@"%ProgramFiles%\EA Games") || Exists(@"%ProgramFiles%\Electronic Arts")) launchers.Add("EA");
             if (launchers.Count > 0)
                 Add("\uE7FC", T("Oyun ve sohbet hesapları ({0})", string.Join(", ", launchers)),
-                    T("Şifrelerini biliyor musun? Format sonrası yeniden giriş yapman gerekecek; şifre yöneticin yoksa şimdi not al."));
+                    T("Format sonrası yeniden gireceksin; şifrelerini bildiğinden emin ol."));
 
-            Add("\uE88E", T("Format USB'si"), T("Yedeğin olduğu USB'yi format USB'si yapma: içindeki her şey silinir. En az 8 GB'lık ayrı bir USB kullan."));
+            Add("\uE88E", T("Format USB'si"), T("Yedeğin olduğu USB'yi kullanma; en az 8 GB ayrı bir USB."));
             return list;
         }
 

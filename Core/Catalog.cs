@@ -319,7 +319,7 @@ namespace Kahya.Core
             items.Add(new CleanItem
             {
                 Id = "cleanmgr", Group = T(GDeep), Name = T("Windows Disk Temizleme (cleanmgr)"),
-                Description = T("Eski güncellemeler, Windows.old ve yükseltme artıkları. Windows.old silinirse eski sürüme dönülemez."),
+                Description = T("Eski güncellemeler ve Windows.old; silinince geri dönülemez."),
                 Recommended = true,
                 Action = DiskCleanup.Run,
             });
@@ -340,7 +340,7 @@ namespace Kahya.Core
             items.Add(new CleanItem
             {
                 Id = "dism_resetbase", Group = T(GDeep), Name = T("Eski güncellemeleri kalıcı sil (DISM /ResetBase)"),
-                Description = T("Bileşen deposu temizliğinden daha fazla yer açar ama kurulu güncellemeler artık kaldırılamaz. 10-30 dakika sürer."),
+                Description = T("Daha çok yer açar; güncellemeler artık kaldırılamaz. 10-30 dk."),
                 Recommended = false,
                 Action = ctx =>
                 {

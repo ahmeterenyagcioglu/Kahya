@@ -107,7 +107,7 @@ namespace Kahya
             if (_hintShown) return;
             _hintShown = true;
             _onClick = null;
-            Notify("Kahya", T("Kahya bildirim alanında çalışmaya devam ediyor. Tamamen kapatmak için simgeye sağ tıkla › Çıkış."));
+            Notify("Kahya", T("Kahya bildirim alanında çalışıyor. Kapatmak için: sağ tık › Çıkış."));
         }
 
         public static void Notify(string title, string text, bool warning = false) =>

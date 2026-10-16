@@ -39,7 +39,7 @@ namespace Kahya
 
         void PrivacyUndo_Click(object sender, RoutedEventArgs e)
         {
-            if (!Confirm(T("Gizlilik sekmesinde yaptığın bütün değişiklikler, Kahya'dan önceki hallerine döndürülecek. Devam edilsin mi?")))
+            if (!Confirm(T("Bütün değişiklikler Kahya'dan önceki haline dönsün mü?")))
                 return;
             bool explorer = _privacy.Any(t => t.IsApplied && t.RestartsExplorer);
             try
@@ -55,7 +55,7 @@ namespace Kahya
             LoadPrivacy();
             UpdateHeader();
             if (explorer &&
-                Confirm(T("Bazı değişikliklerin hemen görünmesi için Gezgin'in yeniden başlatılması gerekiyor (açık Gezgin pencereleri kapanır). Şimdi yeniden başlatılsın mı?")))
+                Confirm(T("Görünmesi için Gezgin yeniden başlatılsın mı? Açık Gezgin pencereleri kapanır.")))
                 RestartExplorer_Click(null, null);
         }
 
@@ -68,7 +68,7 @@ namespace Kahya
                 Privacy.Apply(t, t.IsApplied);
                 Log(t.IsApplied ? "🛡 " + T("Uygulandı: {0}", t.Name) : "↩ " + T("Windows varsayılanına döndü: {0}", t.Name));
                 if (t.RestartsExplorer)
-                    Log("   " + T("Başlat menüsü / Gezgin'de görmek için 'Gezgin'i yeniden başlat'a bas ya da oturumu kapatıp aç."));
+                    Log("   " + T("Görmek için 'Gezgin'i yeniden başlat'a bas."));
             }
             catch (Exception ex)
             {
@@ -105,7 +105,7 @@ namespace Kahya
             foreach (var t in todo)
                 t.IsApplied = true; // PropertyChanged uygular ve kaydeder
             if (todo.Any(t => t.RestartsExplorer) &&
-                Confirm(T("Bazı değişikliklerin hemen görünmesi için Gezgin'in yeniden başlatılması gerekiyor (açık Gezgin pencereleri kapanır). Şimdi yeniden başlatılsın mı?")))
+                Confirm(T("Görünmesi için Gezgin yeniden başlatılsın mı? Açık Gezgin pencereleri kapanır.")))
                 RestartExplorer_Click(null, null);
         }
 

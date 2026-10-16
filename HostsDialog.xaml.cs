@@ -27,7 +27,7 @@ namespace Kahya
             // Hiç bilmediği yönlendirmeler, kötü amaçlı yazılımın bıraktığı bir iz olabilir.
             if (active > 0)
             {
-                WarningText.Text = T("Bu dosyada {0} etkin satır var. Senin ya da kurduğun bir programın (ör. reklam engelleyici) eklemediği satırlar varsa, bilinen sitelere girişi başka yere yönlendiriyor olabilir; silmek güvenlidir.", active);
+                WarningText.Text = T("{0} etkin satır var. Senin eklemediğin satırları silmek güvenlidir.", active);
                 WarningText.Visibility = Visibility.Visible;
             }
             UpdateCount();

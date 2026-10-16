@@ -175,7 +175,7 @@ namespace Kahya
             int warn = _extensions.Count(x => x.Warning);
             ExtEmpty.Text = T("Chromium tabanlı tarayıcılarda eklenti bulunamadı.");
             ExtEmpty.Visibility = _extensions.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-            ExtInfo.Text = T("{0} eklenti · {1} tanesi gözden geçirilmeli (turuncu). Kaldırmak için tarayıcıda eklentiler sayfasını aç (ör. chrome://extensions).",
+            ExtInfo.Text = T("{0} eklenti · {1} tanesine bak (turuncu)",
                              _extensions.Count, warn);
         }
 

@@ -63,7 +63,7 @@ namespace Kahya
                 return true;
             }
             Log("! " + T("winget kurulamadı."));
-            if (Confirm(T("winget kurulamadı. Microsoft Store'daki 'Uygulama Yükleyici' sayfası açılsın mı? Oradan 'Al' ya da 'Güncelleştir' deyip Kahya'ya geri dönebilirsin.")))
+            if (Confirm(T("winget kurulamadı. Store'daki 'Uygulama Yükleyici' sayfası açılsın mı?")))
                 try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("ms-windows-store://pdp/?productid=9NBLGGH4NNS1") { UseShellExecute = true }); } catch { }
             _wingetDeclined = true;
             return false;

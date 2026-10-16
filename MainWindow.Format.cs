@@ -63,7 +63,7 @@ namespace Kahya
             var sys = Path.GetPathRoot(Environment.GetFolderPath(Environment.SpecialFolder.Windows));
             bool onSystem = _backupTarget.StartsWith(sys, StringComparison.OrdinalIgnoreCase);
             BackupTargetHint.Text = onSystem
-                ? "⚠ " + T("Bu klasör C: diskinde: format atınca yedek de silinir! USB belleğe ya da başka bir diske kaydet, ya da yedeği sonra oraya kopyala.")
+                ? "⚠ " + T("C: diskinde: formatta yedek de silinir. USB ya da başka disk seç.")
                 : T("Yedek bir klasöre kaydedilir: Kahya-Yedek-{0}-tarih.kahya paketi ve yanında Kahya.exe", Environment.MachineName);
             BackupTargetHint.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, onSystem ? "Warn" : "Muted");
         }
@@ -150,7 +150,7 @@ namespace Kahya
                 BitLockerRow.Visibility = _bitlocker.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
                 bool keys = _bitlocker.All(v => v.Keys.Count > 0);
                 BitLockerInfo.Text = T("Şifreli: {0}", string.Join(", ", _bitlocker.Select(v => v.Drive))) + " · " +
-                    (keys ? T("Format sonrası bu diskler açılmazsa sorulan 48 haneli anahtar. Ayrıca telefonuna ya da kâğıda not al.")
+                    (keys ? T("Disk açılmazsa sorulan 48 haneli anahtar; ayrıca not al.")
                           : T("Anahtarı okumak için Kahya'yı yönetici olarak aç."));
             }
             catch (Exception ex) { Log("! " + T("Format öncesi kontrol yapılamadı: {0}", ex.Message)); }
@@ -552,7 +552,7 @@ namespace Kahya
                 {
                     foreach (var pr in problems.Take(10)) Log("   ✖ " + pr);
                     Log("! " + T("Doğrulamada {0} sorun bulundu.", problems.Count));
-                    Info(T("Yedek doğrulanırken {0} dosyada sorun bulundu (ayrıntılar işlem kaydında). Diskte ya da USB'de sorun olabilir; yedeği başka bir yere almayı dene.", problems.Count));
+                    Info(T("Doğrulamada {0} dosyada sorun çıktı. Yedeği başka bir diske almayı dene.", problems.Count));
                 }
                 Log(T("Yedek tamamlandı: {0}", zip));
             }

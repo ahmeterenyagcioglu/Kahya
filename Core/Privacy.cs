@@ -86,7 +86,7 @@ namespace Kahya.Core
             var list = new List<PrivacyTweak>
             {
                 Tweak("ad_id", "Reklam kimliğini kapat",
-                    "Uygulamalar sana özel reklam göstermek için reklam kimliğini kullanamaz.", true, false,
+                    "Uygulamalar sana özel reklam gösteremez.", true, false,
                     new RegSetting(U, @"Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo", "Enabled", 0, 1)),
 
                 Tweak("start_suggestions", "Başlat menüsündeki önerileri ve reklamları kapat",
@@ -96,12 +96,12 @@ namespace Kahya.Core
                     new RegSetting(U, Adv, "Start_IrisRecommendations", 0, null)),
 
                 Tweak("lockscreen", "Kilit ekranındaki ipuçlarını ve reklamları kapat",
-                    "Kilit ekranında 'eğlenceli bilgiler, ipuçları' ve tanıtımlar gösterilmez. Arka plan resmi değişmez.", true, false,
+                    "Kilit ekranında ipucu ve tanıtım çıkmaz.", true, false,
                     new RegSetting(U, Cdm, "RotatingLockScreenOverlayEnabled", 0, 1),
                     new RegSetting(U, Cdm, "SubscribedContent-338387Enabled", 0, 1)),
 
                 Tweak("tips", "Windows ipucu bildirimlerini kapat",
-                    "'Windows'u kullanırken ipuçları al' bildirimleri ve 'Cihazını ayarlamayı bitirelim' ekranı kapanır.", true, false,
+                    "İpucu bildirimleri ve \"kurulumu bitirelim\" ekranı kapanır.", true, false,
                     new RegSetting(U, Cdm, "SubscribedContent-338389Enabled", 0, 1),
                     new RegSetting(U, Cdm, "SoftLandingEnabled", 0, 1),
                     new RegSetting(U, @"Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement", "ScoobeSystemSettingEnabled", 0, null)),
@@ -113,21 +113,21 @@ namespace Kahya.Core
                     new RegSetting(U, Cdm, "SubscribedContent-353696Enabled", 0, 1)),
 
                 Tweak("auto_apps", "Önerilen uygulamaların kendiliğinden yüklenmesini engelle",
-                    "Windows'un Candy Crush gibi tanıtım uygulamalarını sessizce yüklemesini durdurur.", true, false,
+                    "Candy Crush gibi uygulamalar kendiliğinden yüklenmez.", true, false,
                     new RegSetting(U, Cdm, "SilentInstalledAppsEnabled", 0, 1),
                     new RegSetting(U, Cdm, "PreInstalledAppsEnabled", 0, 1),
                     new RegSetting(U, Cdm, "OemPreInstalledAppsEnabled", 0, 1)),
 
                 Tweak("web_search", "Başlat aramasındaki Bing web sonuçlarını kapat",
-                    "Başlat'ta arama yapınca sadece bilgisayardaki sonuçlar gösterilir, internet sonuçları gelmez.", true, true,
+                    "Başlat araması sadece bilgisayarda arar.", true, true,
                     new RegSetting(U, @"Software\Policies\Microsoft\Windows\Explorer", "DisableSearchBoxSuggestions", 1, null)),
 
                 Tweak("explorer_ads", "Gezgin'deki OneDrive / Microsoft 365 bildirimlerini kapat",
-                    "Dosya Gezgini'nin üstünde çıkan senkronizasyon sağlayıcısı tanıtımları gizlenir.", true, true,
+                    "Gezgin'in üstündeki tanıtımlar gizlenir.", true, true,
                     new RegSetting(U, Adv, "ShowSyncProviderNotifications", 0, null)),
 
                 Tweak("tailored", "Kişiye özel deneyimleri kapat",
-                    "Microsoft tanılama verilerini kişiselleştirilmiş ipucu ve reklam için kullanamaz.", true, false,
+                    "Tanılama verileri reklam için kullanılmaz.", true, false,
                     new RegSetting(U, @"Software\Microsoft\Windows\CurrentVersion\Privacy", "TailoredExperiencesWithDiagnosticDataEnabled", 0, 1)),
 
                 Tweak("feedback", "Geri bildirim isteklerini kapat",
@@ -135,11 +135,11 @@ namespace Kahya.Core
                     new RegSetting(U, @"Software\Microsoft\Siuf\Rules", "NumberOfSIUFInPeriod", 0, null)),
 
                 Tweak("telemetry", "Tanılama verilerini 'yalnızca gerekli' seviyesine indir",
-                    "Grup ilkesiyle uygulanır; Ayarlar'da 'kuruluşunuz tarafından yönetiliyor' yazısı görünebilir. Bu normaldir.", false, false,
+                    "Ayarlar'da \"kuruluşunuz yönetiyor\" yazısı çıkabilir, normal.", false, false,
                     new RegSetting(M, @"SOFTWARE\Policies\Microsoft\Windows\DataCollection", "AllowTelemetry", 1, null)),
 
                 Tweak("activity", "Etkinlik geçmişini kapat",
-                    "Windows açtığın uygulama ve dosyaların geçmişini toplamaz. Grup ilkesiyle uygulanır.", false, false,
+                    "Açtığın uygulama ve dosyaların geçmişi tutulmaz.", false, false,
                     new RegSetting(M, @"SOFTWARE\Policies\Microsoft\Windows\System", "PublishUserActivities", 0, null),
                     new RegSetting(M, @"SOFTWARE\Policies\Microsoft\Windows\System", "UploadUserActivities", 0, null)),
             };
@@ -147,33 +147,33 @@ namespace Kahya.Core
             bool win11 = PreFormat.IsWindows11();
             if (win11)
                 list.Add(Tweak("recall", "Recall'u kapat",
-                    "Copilot+ bilgisayarlarda ekranın düzenli görüntüsünü alıp aranabilir yapan Recall kapanır, görüntü kaydedilmez. Diğer bilgisayarlarda etkisi yoktur.", false, false,
+                    "Copilot+ bilgisayarlarda ekran görüntüsü kaydedilmez.", false, false,
                     new RegSetting(U, @"Software\Policies\Microsoft\Windows\WindowsAI", "DisableAIDataAnalysis", 1, null)));
 
             section = SWindows;
             list.Add(Tweak("file_ext", "Dosya uzantılarını göster",
-                "Gezgin'de dosya adları uzantısıyla görünür (belge.pdf). 'fatura.pdf.exe' gibi sahte dosyaları fark etmek kolaylaşır.", false, true,
+                "belge.pdf gibi; sahte dosyalar kolay fark edilir.", false, true,
                 new RegSetting(U, Adv, "HideFileExt", 0, 1)));
             list.Add(Tweak("hidden_files", "Gizli dosyaları göster",
-                "Gezgin gizli dosya ve klasörleri soluk olarak gösterir (ör. AppData). Windows'un korunan sistem dosyaları yine gizli kalır.", false, true,
+                "AppData gibi gizli klasörler soluk görünür.", false, true,
                 new RegSetting(U, Adv, "Hidden", 1, 2)));
             list.Add(Tweak("this_pc", "Gezgin 'Bu bilgisayar'da açılsın",
-                "Gezgin, son kullanılanlar yerine diskleri gösteren 'Bu bilgisayar' ile açılır.", false, false,
+                "Gezgin son kullanılanlar yerine disklerle açılır.", false, false,
                 new RegSetting(U, Adv, "LaunchTo", 1, null)));
             if (win11)
             {
                 list.Add(Tweak("classic_menu", "Klasik sağ tık menüsü",
-                    "Sağ tıklayınca 'Daha fazla seçenek göster'e basmadan, bütün seçenekleri içeren eski menü açılır.", false, true,
+                    "Sağ tık hemen bütün seçenekleri gösterir.", false, true,
                     new RegSetting(U, @"Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32", "", 1, null)));
                 list.Add(Tweak("copilot", "Copilot düğmesini ve kısayolunu kapat",
-                    "Görev çubuğundaki Copilot düğmesi ve Win+C kısayolu kapanır. Copilot uygulaması kuruluysa Uygulamalar › Gereksiz Windows uygulamaları'ndan kaldırılabilir.", false, true,
+                    "Görev çubuğu düğmesi ve Win+C kapanır.", false, true,
                     new RegSetting(U, @"Software\Policies\Microsoft\Windows\WindowsCopilot", "TurnOffWindowsCopilot", 1, null),
                     new RegSetting(U, Adv, "ShowCopilotButton", 0, null)));
                 list.Add(Tweak("widgets", "Pencere Öğeleri'ni (hava durumu, haberler) kapat",
-                    "Görev çubuğunun solundaki hava durumu ve haber paneli kapanır. Grup ilkesiyle uygulanır.", false, true,
+                    "Görev çubuğundaki hava durumu ve haber paneli kapanır.", false, true,
                     new RegSetting(M, @"SOFTWARE\Policies\Microsoft\Dsh", "AllowNewsAndInterests", 0, null)));
                 list.Add(Tweak("end_task", "Görev çubuğunda 'Görevi sonlandır'",
-                    "Görev çubuğunda bir uygulamaya sağ tıklayınca 'Görevi sonlandır' çıkar; donan programı Görev Yöneticisi'ni açmadan kapatırsın.", false, false,
+                    "Donan programı görev çubuğundan sağ tıkla kapat.", false, false,
                     new RegSetting(U, Adv + @"\TaskbarDeveloperSettings", "TaskbarEndTask", 1, null)));
             }
 

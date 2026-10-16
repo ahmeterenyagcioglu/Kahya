@@ -210,7 +210,7 @@ namespace Kahya
                 _startupOn = on;
                 _tStartup.Title = T("Açılışta başlayanlar");
                 _tStartup.Set(on.ToString(), T("uygulama Windows açılırken başlıyor"), on > 8 ? "warn" : "good");
-                _tStartup.Tooltip = on > 8 ? T("Ne kadar çok uygulama açılışta başlarsa bilgisayar o kadar geç açılır. Kullanmadıklarını kapatabilirsin.") : null;
+                _tStartup.Tooltip = on > 8 ? T("Çok uygulama açılışı yavaşlatır; kullanmadıklarını kapat.") : null;
             }
             catch
             {
@@ -251,7 +251,7 @@ namespace Kahya
             {
                 if (!Elevation.IsAdmin)
                     _tStartup.Tooltip = (_tStartup.Tooltip != null ? _tStartup.Tooltip + "\n\n" : "") +
-                        T("Açılış süresini görmek için Kahya'yı bir kez yönetici olarak aç: Windows bu ölçümleri sadece yöneticiye gösterir. Sonra hep görünür (otomatik bakım da günceller).");
+                        T("Görmek için Kahya'yı bir kez yönetici olarak aç.");
                 return;
             }
 

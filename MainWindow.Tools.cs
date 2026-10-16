@@ -193,7 +193,7 @@ namespace Kahya
                 var ctx = new CleanContext(_ => { }, default);
                 var disks = await Task.Run(() => SystemCare.DiskHealth(ctx));
                 DiskHealthList.ItemsSource = disks;
-                DiskHealthNote.Text = T("Diskler sağlık bilgisi vermiyor. Sanal makinede, USB kutusunda ya da RAID denetleyicisinin arkasındaki disklerde bu normaldir.");
+                DiskHealthNote.Text = T("Diskler sağlık bilgisi vermiyor (sanal makine, USB kutusu, RAID).");
                 DiskHealthNote.Visibility = disks.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
             }
             catch (Exception ex)
@@ -290,7 +290,7 @@ namespace Kahya
                 Info(summary + "\n\n" + T("Temizliğe gerek yok ✔"));
                 return;
             }
-            if (!Confirm(summary + "\n\n" + T("Temizlik öneriliyor. Temizlik sekmesinde 'Bileşen deposu temizliği' seçilsin mi? Temizliği oradan başlatırsın.")))
+            if (!Confirm(summary + "\n\n" + T("Temizlik öneriliyor. Temizlik'te seçili gelsin mi?")))
                 return;
             var item = _items.FirstOrDefault(i => i.Id == "dism");
             if (item == null) return;
@@ -490,7 +490,7 @@ namespace Kahya
         {
             var selected = _restorePoints.Where(p => p.IsChecked).ToList();
             var text = _restorePoints.Count == 0
-                ? T("Geri yükleme noktası yok. Sistem Koruması kapalı olabilir; 'Yeni nokta oluştur' açmayı teklif eder.")
+                ? T("Geri yükleme noktası yok.")
                 : T("{0} nokta", _restorePoints.Count);
             if (_shadow != null && _shadow.Used > 0)
                 text += " · " + T("kullanılan {0}", Format.Bytes(_shadow.Used));

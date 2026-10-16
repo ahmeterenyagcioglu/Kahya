@@ -468,7 +468,7 @@ namespace Kahya
                 {
                     var exe = Process.GetCurrentProcess().MainModule.FileName;
                     if (Scheduler.Create(exe, Settings.ScheduleMode, Settings.ScheduleDay, Settings.ScheduleHour))
-                        Log(T("Otomatik bakım: {0}. Bilgisayar o saatte kapalıysa ilk açılışta yapılır; bitince bildirim gösterilir.",
+                        Log(T("Otomatik bakım: {0}.",
                               Scheduler.Describe(Settings.ScheduleMode, Settings.ScheduleDay, Settings.ScheduleHour)));
                     else
                         Log("! " + T("Görev oluşturulamadı."));
@@ -878,7 +878,7 @@ namespace Kahya
             Log(failed > 0 ? T("Güncelleme bitti: {0} güncellendi, {1} başarısız", ok, failed) : T("Güncelleme bitti: {0} güncellendi", ok));
             UpdateSelectionInfo();
             if (failed > 0)
-                UpdatesSelection.Text = T("{0} uygulama güncellenemedi — nedeni satırında yazıyor, 'Ayrıntı' ile winget çıktısını görebilirsin.", failed);
+                UpdatesSelection.Text = T("{0} uygulama güncellenemedi; nedeni satırında.", failed);
             TotalText.Text = $"{ok}/{selected.Count}";
             TotalCaption.Text = T("uygulama güncellendi");
         }

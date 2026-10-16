@@ -514,7 +514,7 @@ namespace Kahya
                 _diskResult.LargestFiles.Remove(row.File);
             });
             _ = Task.Run(() => DiskCache.Save(_diskResult));
-            Log(T("{0} dosya Geri Dönüşüm Kutusu'na taşındı ({1}). Yer, Geri Dönüşüm Kutusu boşaltılınca açılır.", ok, Format.Bytes(freed)));
+            Log(T("{0} dosya Geri Dönüşüm Kutusu'na taşındı ({1}).", ok, Format.Bytes(freed)));
             ShowDisk();
         }
 
@@ -638,7 +638,7 @@ namespace Kahya
             DupList.ItemsSource = _dupGroups;
             if (_dupGroups == null)
             {
-                DiskEmpty.Text = T("İçeriği birebir aynı dosyaları (1 MB ve üstü) bulur. Silinecekleri sen seçersin; Geri Dönüşüm Kutusu'na gider.");
+                DiskEmpty.Text = T("Birebir aynı dosyaları bulur (1 MB+); sildiklerin Geri Dönüşüm'e gider.");
                 DiskEmpty.Visibility = Visibility.Visible;
             }
             else if (_dupGroups.Count == 0)
@@ -707,7 +707,7 @@ namespace Kahya
                 f.Group.Files.Remove(f);
             });
             _dupGroups = _dupGroups.Where(g => g.Files.Count > 1).ToList();
-            Log(T("{0} kopya dosya Geri Dönüşüm Kutusu'na taşındı ({1}). Yer, Geri Dönüşüm Kutusu boşaltılınca açılır.", ok, Format.Bytes(freed)));
+            Log(T("{0} kopya Geri Dönüşüm Kutusu'na taşındı ({1}).", ok, Format.Bytes(freed)));
             ShowDuplicates();
         }
 
@@ -785,7 +785,7 @@ namespace Kahya
         {
             var selected = _emptyFolders?.Where(f => f.IsChecked).ToList();
             if (selected == null || selected.Count == 0) return;
-            if (!Confirm(T("{0} boş klasör silinecek. İçlerinde dosya olmadığı silmeden hemen önce tekrar kontrol edilir. Devam edilsin mi?", selected.Count)))
+            if (!Confirm(T("{0} boş klasör silinsin mi?", selected.Count)))
                 return;
 
             int ok = 0;
@@ -859,7 +859,7 @@ namespace Kahya
             RenderList.ItemsSource = _renders;
             if (_renders == null)
             {
-                DiskEmpty.Text = T("Premiere Pro, Lightroom Classic ve DaVinci Resolve'un render önizlemelerini bulur. Bitmiş projelerinkini silmek güvenlidir: program gerekince yeniden render alır. Projelere ve kaynak dosyalara dokunulmaz.");
+                DiskEmpty.Text = T("Premiere, Lightroom ve Resolve önizlemeleri; gerekince yeniden oluşur.");
                 DiskEmpty.Visibility = Visibility.Visible;
             }
             else if (_renders.Count == 0)

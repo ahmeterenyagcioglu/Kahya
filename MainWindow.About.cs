@@ -147,7 +147,7 @@ namespace Kahya
                 SaveSettings();
                 UpdateCacheAlertButtons();
                 if (gb > 0 && !Settings.TrayEnabled)
-                    Info(T("Uyarılar Kahya bildirim alanında çalışırken gelir. Üstteki 'Kapatınca bildirim alanında çalışmaya devam et'i de aç."));
+                    Info(T("Uyarılar için üstteki bildirim alanı ayarını da aç."));
             }
         }
 

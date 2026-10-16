@@ -185,7 +185,7 @@ namespace Kahya
             AdminBanner.Visibility = Elevation.IsAdmin ? Visibility.Collapsed : Visibility.Visible;
             if (App.JustInstalled)
             {
-                InstalledText.Text = T("Kahya bu bilgisayara kopyalandı ({0}); Başlat menüsünde ve masaüstünde kısayolu var. Geri yükleme bitince USB'yi çıkarabilirsin.", SelfInstall.InstallDir);
+                InstalledText.Text = T("Kahya bu bilgisayara kopyalandı; bitince USB'yi çıkarabilirsin.", SelfInstall.InstallDir);
                 InstalledBanner.Visibility = Visibility.Visible;
             }
             AdminNote.Text = Elevation.IsAdmin ? T("Yönetici olarak çalışıyor ✓") : T("Normal kullanıcı olarak çalışıyor; sürücüler kurulamaz.");
@@ -806,7 +806,7 @@ namespace Kahya
                         Detail = g.Details + (string.IsNullOrEmpty(g.Status) ? "" : " · " + g.Status) });
             }
             list.Add(new GpuVm { Title = T("Windows Update"), Icon = "", IconColor = (Brush)FindResource("AccentText"), Url = "ms-settings:windowsupdate", ButtonText = T("Aç"),
-                Detail = T("Format sonrası eksik sürücüler ve güvenlik güncellemeleri buradan gelir; bir kez çalıştırmak iyi olur.") });
+                Detail = T("Eksik sürücüler ve güvenlik güncellemeleri buradan gelir.") });
             GpuList.ItemsSource = list;
             GpuNote.Text = gpus.Count == 0 ? T("Ekran kartı bulunamadı.") : _online ? "" : T("İnternet olmadığı için en yeni sürüm kontrol edilemedi.");
             _steps[PGpu].Detail = list.Count(x => x.IconColor == warn) > 0 ? T("dikkat") : T("tamam");
