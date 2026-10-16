@@ -158,7 +158,7 @@ namespace Kahya.Core
         /// Klasördeki fontları bu kullanıcıya kurar (yönetici gerekmez, Windows'un "Kur" seçeneğiyle aynı yer).
         /// Zaten kurulu olanlar atlanır. (kurulan, atlanan) döndürür.
         /// </summary>
-        public static (int installed, int skipped) RestoreFonts(string folder, CleanContext ctx)
+        public static (int installed, int skipped) RestoreFonts(string folder, CleanContext ctx, ICollection<string> only = null)
         {
             var names = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase); // dosya → kayıt adı
             var manifest = System.IO.Path.Combine(folder, FontManifest);
@@ -179,6 +179,7 @@ namespace Kahya.Core
                     var ext = System.IO.Path.GetExtension(file).ToLowerInvariant();
                     if (ext != ".ttf" && ext != ".otf" && ext != ".ttc" && ext != ".fon") continue;
                     var name = System.IO.Path.GetFileName(file);
+                    if (only != null && !only.Contains(name, StringComparer.OrdinalIgnoreCase)) continue;
                     long size = new FileInfo(file).Length;
                     bool Same(string dir) { var p = System.IO.Path.Combine(dir, name); return File.Exists(p) && new FileInfo(p).Length == size; }
                     if (Same(WindowsFonts) || Same(UserFontsDir)) { skipped++; continue; }
@@ -221,6 +222,9 @@ namespace Kahya.Core
         };
 
         /// <summary>Simgeyi bu bilgisayardaki yola çevirir; karşılığı yoksa (ör. Steam kurulu değil) null.</summary>
+        /// <summary>Simgeli yolun ({APPDATA}\…) bu bilgisayardaki karşılığı; yoksa null.</summary>
+        public static string ResolvePath(string tokenized) => Expand(tokenized);
+
         static string Expand(string tokenized)
         {
             foreach (var (token, path) in Tokens)
@@ -259,7 +263,7 @@ namespace Kahya.Core
         }
 
         /// <summary>Yedekteki yeri: {APPDATA}\Adobe\Common\LUTs → APPDATA\Adobe\Common\LUTs.</summary>
-        static string BackupRelative(string tokenized) => tokenized.Replace("{", "").Replace("}", "");
+        public static string BackupRelative(string tokenized) => tokenized.Replace("{", "").Replace("}", "");
 
         sealed class SettingsDef
         {
@@ -382,7 +386,7 @@ namespace Kahya.Core
         /// Yedekteki ayarları eski yerlerine kopyalar. Var olan daha yeni dosyaların üzerine yazmaz (/XO).
         /// Programı açık olanlar atlanır. Geri yüklenen klasör sayısını döndürür.
         /// </summary>
-        public static int RestoreAppSettings(string folder, CleanContext ctx)
+        public static int RestoreAppSettings(string folder, CleanContext ctx, ICollection<string> onlyIds = null)
         {
             var manifest = System.IO.Path.Combine(folder, SettingsManifest);
             if (!File.Exists(manifest))
@@ -395,6 +399,7 @@ namespace Kahya.Core
                 var c = line.Split('\t');
                 if (line.StartsWith("#") || c.Length != 3) continue;
                 string id = c[0].Trim(), name = c[1].Trim(), tokenized = c[2].Trim();
+                if (onlyIds != null && !onlyIds.Contains(id, StringComparer.OrdinalIgnoreCase)) continue;
                 var source = System.IO.Path.Combine(folder, BackupRelative(tokenized));
                 if (!Directory.Exists(source)) continue;
 
@@ -424,6 +429,11 @@ namespace Kahya.Core
             }
             return ok;
         }
+
+        /// <summary>ayarlar.txt satırları: (kimlik, ad, simgeli klasör). Açıklama ve bozuk satırlar atlanır.</summary>
+        public static List<(string id, string name, string folder)> ReadSettingsManifest(IEnumerable<string> lines) =>
+            lines.Where(l => !l.StartsWith("#")).Select(l => l.Split('\t')).Where(c => c.Length == 3)
+                 .Select(c => (c[0].Trim(), c[1].Trim(), c[2].Trim())).ToList();
 
         // ───────────── tarayıcı yer imleri ─────────────
 

@@ -65,14 +65,25 @@ namespace Kahya.Core
         /// <summary>Windows'la gelen Store bileşenleri, çalışma ortamı paketleri vb.: listede kalabalık eder, yeniden kurulması gerekmez.</summary>
         static bool IsNoise(ProgramEntry p)
         {
+            if (IsDependency(p)) return true;
             if (p.Installable) return false;
             if (p.Id.StartsWith("MSIX\\Microsoft.", StringComparison.OrdinalIgnoreCase)) return true;
             if (p.Id.StartsWith("MSIX\\MicrosoftWindows.", StringComparison.OrdinalIgnoreCase)) return true;
-            if (p.Id.StartsWith("MSIX\\windows.", StringComparison.OrdinalIgnoreCase)) return true;
-            // Başka programların kendi kurduğu bağımlılıklar: ayrıca kurmaya gerek yok.
-            return Regex.IsMatch(p.Name,
-                @"^(Microsoft (Edge|Update Health Tools|Visual C\+\+ \d{4}|\.NET (SDK|Runtime|Host)|ASP\.NET|Windows Application Compatibility|Visual Studio Installer)|" +
-                @"Windows (SDK|Software Development Kit)|Update for |vs_|WinAppRuntime|IIS \d|Rockstar Games SDK)", RegexOptions.IgnoreCase);
+            return p.Id.StartsWith("MSIX\\windows.", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Başka programların kendi kurduğu bileşenler (Visual C++, .NET çalışma ortamları, WebView2…) ve Windows'la gelenler:
+        /// winget'te olsalar da ayrıca kurmaya gerek yok, onları isteyen program kurulurken kendisi getirir.
+        /// </summary>
+        public static bool IsDependency(ProgramEntry p)
+        {
+            if (Regex.IsMatch(p.Id ?? "", @"^Microsoft\.(VCRedist|DotNet|WindowsAppRuntime|UI\.Xaml|VCLibs|GameInput|WebDeploy|msodbcsql|OLEDB|CLRTypesSQLServer|Edge|EdgeWebView2Runtime|AppInstaller|NetNative|WindowsDesktopRuntime|AspNetCore)",
+                    RegexOptions.IgnoreCase))
+                return true;
+            return Regex.IsMatch(p.Name ?? "",
+                @"^(Microsoft (Edge|Update Health Tools|Visual C\+\+|\.NET|ASP\.NET|Windows Desktop Runtime|Windows Application Compatibility|Visual Studio Installer|GameInput|Web Deploy|ODBC Driver|OLE DB Driver|System CLR Types)|" +
+                @"Microsoft\.UI\.Xaml|Microsoft\.VCLibs|Windows (SDK|Software Development Kit|App Runtime)|Update for |vs_|WinAppRuntime|IIS \d|Rockstar Games SDK)", RegexOptions.IgnoreCase);
         }
 
         public static void Save(string path, List<ProgramEntry> list)

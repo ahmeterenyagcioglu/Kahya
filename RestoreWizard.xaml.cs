@@ -15,8 +15,9 @@ using static Kahya.Core.Lang;
 namespace Kahya
 {
     /// <summary>
-    /// Format sonrası asistanı: yedeği seç → internet (yoksa ağ sürücüsü ve Wi-Fi) → neler geri yüklensin → ekran kartı → geri yükle.
-    /// Adımlar <see cref="RestoreRunner"/>'da; bu pencere sadece sorar ve gösterir.
+    /// Format sonrası asistanı: yedeği seç → internet ve Wi-Fi (yoksa ağ sürücüsü) → neler geri yüklensin → ekran kartı → geri yükle.
+    /// Durum <see cref="RestoreState"/>'e yazılır: pencere ya da Kahya kapanırsa sonra kaldığı yerden sürer.
+    /// Adımların kendisi <see cref="RestoreRunner"/>'da; bu pencere sadece sorar ve gösterir.
     /// </summary>
     public partial class RestoreWizard : Window
     {
@@ -48,34 +49,53 @@ namespace Kahya
             public string Path { get; set; }
             public string Title { get; set; }
             public string Size { get; set; }
+            public string Icon { get; set; }
             bool _selected;
             public bool Selected { get => _selected; set { _selected = value; Notify(nameof(Selected)); } }
         }
 
-        public sealed class ChoiceVm : Vm
+        /// <summary>Bir kategorinin içindeki tek öğe (sürücü paketi, font, program, oyun…).</summary>
+        public sealed class ItemVm : Vm
         {
-            public string Kind { get; set; }
+            public CategoryVm Category { get; set; }
             public string Key { get; set; }
-            public string Icon { get; set; }
             public string Title { get; set; }
-            string _detail;
+            public long Size { get; set; } = -1;
+            public ProgramEntry Program { get; set; }
+            string _detail = "";
             public string Detail { get => _detail; set { _detail = value; Notify(nameof(Detail)); } }
             bool _checked = true;
             public bool IsChecked { get => _checked; set { _checked = value; Notify(nameof(IsChecked)); } }
-            public bool IsEnabled { get; set; } = true;
+            bool _enabled = true;
+            public bool IsEnabled { get => _enabled; set { _enabled = value; Notify(nameof(IsEnabled)); } }
+            /// <summary>Önceki oturumda geri yüklendi (kaldığı yerden devam): işaretlenemez.</summary>
+            public void MarkDone() { IsChecked = false; IsEnabled = false; Detail = "✓ " + T("yapıldı"); }
+            public string StateKey => Category.Kind + "|" + Key;
         }
 
-        public sealed class ProgramVm : Vm
+        public sealed class CategoryVm : Vm
         {
-            public ProgramEntry Entry { get; set; }
-            bool _installed;
-            /// <summary>Bu bilgisayarda zaten kurulu (işareti kaldırılır, adın yanında yazar).</summary>
-            public bool Installed { get => _installed; set { _installed = value; Notify(nameof(Title)); } }
-            public string Title => _installed ? Entry.Name + " · " + T("kurulu") : Entry.Name;
-            string _detail;
-            public string Detail { get => _detail; set { _detail = value; Notify(nameof(Detail)); } }
-            bool _checked = true;
-            public bool IsChecked { get => _checked; set { _checked = value; Notify(nameof(IsChecked)); } }
+            public string Kind { get; set; }
+            public string Icon { get; set; }
+            public string Title { get; set; }
+            /// <summary>Seçim sayısının yanına eklenen sabit not.</summary>
+            public string Note { get; set; }
+            public bool IsEnabled { get; set; } = true;
+            public List<ItemVm> Items { get; } = new List<ItemVm>();
+            bool _expanded;
+            public bool Expanded { get => _expanded; set { _expanded = value; Notify(nameof(Expanded), nameof(ExpandText)); } }
+            public string ExpandText => _expanded ? T("Gizle ▴") : T("Seç ▾");
+            public bool IsChecked => Items.Any(i => i.IsChecked);
+            public string Detail
+            {
+                get
+                {
+                    var on = Items.Where(i => i.IsChecked).ToList();
+                    long size = on.Where(i => i.Size > 0).Sum(i => i.Size);
+                    return T("{0} / {1} seçili", on.Count, Items.Count) + (size > 0 ? " · " + Format.Bytes(size) : "") + (string.IsNullOrEmpty(Note) ? "" : " · " + Note);
+                }
+            }
+            public void Refresh() => Notify(nameof(IsChecked), nameof(Detail));
         }
 
         public sealed class GpuVm
@@ -93,19 +113,21 @@ namespace Kahya
 
         readonly ObservableCollection<StepVm> _steps = new ObservableCollection<StepVm>();
         readonly ObservableCollection<FoundVm> _found = new ObservableCollection<FoundVm>();
-        readonly List<ChoiceVm> _choices = new List<ChoiceVm>();
-        List<ProgramVm> _programs = new List<ProgramVm>();
+        readonly List<CategoryVm> _categories = new List<CategoryVm>();
+        readonly List<ItemVm> _wifi = new List<ItemVm>();
         readonly FrameworkElement[] _pages;
         readonly Action<string> _restartAsAdmin;
         readonly string _initialPath;
+        readonly CategoryVm _wifiCategory = new CategoryVm { Kind = "wifi" };
 
         BackupSource _src;
+        RestoreState _state, _pending;
         int _page;
-        bool _running, _finished, _online;
+        bool _running, _finished, _online, _built;
         CancellationTokenSource _cts;
         RestoreResult _result;
 
-        /// <param name="initialPath">Açılışta seçili gelecek yedek (çift tıklanan dosya ya da yönetici olarak yeniden başlatılınca).</param>
+        /// <param name="initialPath">Açılışta seçili gelecek yedek (Kahya'nın yanındaki ya da yönetici olarak yeniden başlatılınca).</param>
         /// <param name="restartAsAdmin">Kahya'yı verilen ek argümanlarla yönetici olarak yeniden başlatır.</param>
         public RestoreWizard(string initialPath, Action<string> restartAsAdmin)
         {
@@ -122,16 +144,35 @@ namespace Kahya
                 _steps.Add(new StepVm { Title = T(t), Number = n++ });
             StepList.ItemsSource = _steps;
             FoundList.ItemsSource = _found;
-            ChoiceList.ItemsSource = _choices;
+            CategoryList.ItemsSource = _categories;
+            WifiList.ItemsSource = _wifi;
 
             AdminBanner.Visibility = Elevation.IsAdmin ? Visibility.Collapsed : Visibility.Visible;
             AdminNote.Text = Elevation.IsAdmin ? T("Yönetici olarak çalışıyor ✓") : T("Normal kullanıcı olarak çalışıyor; sürücüler kurulamaz.");
 
-            Loaded += async (s, e) => await FindBackupsAsync();
+            _pending = RestoreState.Load();
+            if (_pending != null)
+            {
+                ResumeText.Text = (_pending.Done.Count > 0
+                                      ? T("{0} tarihinde yarıda kalan bir geri yükleme var ({1} adım bitmişti).", _pending.Saved.ToString("dd.MM HH:mm"), _pending.Done.Count)
+                                      : T("{0} tarihinde yarıda bırakılan bir geri yükleme var.", _pending.Saved.ToString("dd.MM HH:mm"))) +
+                                  "\n" + System.IO.Path.GetFileName(_pending.Backup);
+                ResumeBanner.Visibility = Visibility.Visible;
+            }
+
+            Loaded += async (s, e) =>
+            {
+                await FindBackupsAsync();
+                // Yönetici olarak yeniden başlatılınca aynı yedekle açılır: sormadan kaldığı yerden sürer.
+                if (_pending != null && _initialPath != null && SamePath(_initialPath, _pending.Backup))
+                    await ResumeAsync();
+            };
             Closing += Wizard_Closing;
             Closed += (s, e) => _src?.Dispose();
             ShowPage(0);
         }
+
+        static bool SamePath(string a, string b) => string.Equals(System.IO.Path.GetFullPath(a), System.IO.Path.GetFullPath(b), StringComparison.OrdinalIgnoreCase);
 
         void ShowPage(int page)
         {
@@ -142,9 +183,24 @@ namespace Kahya
                 _steps[i].State = i < page ? 2 : i == page ? 1 : 0;
             }
             BackBtn.Visibility = page > 0 && page < 4 ? Visibility.Visible : Visibility.Collapsed;
-            NextBtn.Content = page == 3 ? T("Geri yüklemeyi başlat") : page == 4 ? T("Kapat") : T("İleri");
+            NextBtn.Content = page == 3 ? (_state?.Done.Count > 0 ? T("Kalanlarla devam et") : T("Geri yüklemeyi başlat")) : page == 4 ? T("Kapat") : T("İleri");
             NextBtn.IsEnabled = page != 0 || _src != null;
             if (page == 4) NextBtn.IsEnabled = _finished;
+            SaveState();
+        }
+
+        /// <summary>Hangi yedek, hangi sayfa, neler seçili: Kahya kapanırsa buradan devam edilir.</summary>
+        void SaveState()
+        {
+            if (_state == null || _src == null || _page == 0 || _finished) return;
+            _state.Backup = _src.Path;
+            _state.Page = _page;
+            if (_built)
+            {
+                _state.Selected.Clear();
+                foreach (var i in _categories.SelectMany(c => c.Items).Where(i => i.IsChecked)) _state.Selected.Add(i.StateKey);
+            }
+            _state.Save();
         }
 
         // ───────────── 1. yedek ─────────────
@@ -156,19 +212,19 @@ namespace Kahya
                 found.Insert(0, _initialPath);
             foreach (var f in found) _found.Add(MakeFound(f));
             FoundText.Text = found.Count == 0 ? T("Takılı disklerde yedek bulunamadı") : T("Bulunan yedekler ({0})", found.Count);
-            var first = _found.FirstOrDefault(f => _initialPath != null && f.Path.Equals(_initialPath, StringComparison.OrdinalIgnoreCase)) ?? _found.FirstOrDefault();
-            if (first != null) await SelectAsync(first);
+            var first = _found.FirstOrDefault(f => _initialPath != null && SamePath(f.Path, _initialPath)) ?? _found.FirstOrDefault();
+            if (first != null && _src == null) await SelectAsync(first);
         }
 
         static FoundVm MakeFound(string path)
         {
-            long size = 0;
             bool legacy = path.EndsWith(BackupManifest.Extension, StringComparison.OrdinalIgnoreCase);
+            long size = 0;
             try { size = !legacy && File.Exists(path) ? new FileInfo(path).Length : 0; } catch { }
             var name = legacy
-                ? Path.GetFileName(Path.GetDirectoryName(path)) + " " + T("(eski biçim)")
-                : Path.GetFileNameWithoutExtension(path);
-            return new FoundVm { Path = path, Title = name, Size = size > 0 ? Format.Bytes(size) : "" };
+                ? System.IO.Path.GetFileName(System.IO.Path.GetDirectoryName(path)) + " " + T("(eski biçim)")
+                : System.IO.Path.GetFileNameWithoutExtension(path);
+            return new FoundVm { Path = path, Title = name, Size = size > 0 ? Format.Bytes(size) : "", Icon = legacy ? "" : "" };
         }
 
         async void Found_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -184,18 +240,26 @@ namespace Kahya
                 Filter = T("Kahya yedeği") + " (*.zip;*.kahya)|*.zip;*.kahya",
             };
             if (dialog.ShowDialog(this) != true) return;
-            var f = _found.FirstOrDefault(x => x.Path.Equals(dialog.FileName, StringComparison.OrdinalIgnoreCase));
-            if (f == null) { f = MakeFound(dialog.FileName); _found.Insert(0, f); }
-            await SelectAsync(f);
+            await SelectAsync(FindOrAdd(dialog.FileName));
+        }
+
+        FoundVm FindOrAdd(string path)
+        {
+            var f = _found.FirstOrDefault(x => SamePath(x.Path, path));
+            if (f == null) { f = MakeFound(path); _found.Insert(0, f); }
+            return f;
         }
 
         async Task SelectAsync(FoundVm f)
         {
+            if (_running) return;
             foreach (var x in _found) x.Selected = x == f;
+            if (_src != null && SamePath(_src.Path, f.Path)) return;
             _src?.Dispose();
             _src = null;
-            _choices.Clear();
-            _programs.Clear();
+            _built = false;
+            _categories.Clear();
+            _wifi.Clear();
             NextBtn.IsEnabled = false;
             BackupInfo.Text = T("Okunuyor…");
             try
@@ -223,14 +287,88 @@ namespace Kahya
 
         void RestartAdmin_Click(object sender, RoutedEventArgs e)
         {
-            var path = _found.FirstOrDefault(f => f.Selected)?.Path;
+            var path = _src?.Path ?? _found.FirstOrDefault(f => f.Selected)?.Path;
+            if (path != null)
+            {
+                // Yeniden başlayınca kaldığı yerden sürsün.
+                if (_state == null) _state = new RestoreState { Backup = path, Page = Math.Max(_page, 1) };
+                else SaveState();
+                _state.Save();
+            }
             _restartAsAdmin("--wizard" + (path != null ? $" \"{path}\"" : ""));
         }
 
-        // ───────────── 2. internet ─────────────
+        // ───────────── kaldığı yerden devam ─────────────
+
+        async void Resume_Click(object sender, RoutedEventArgs e) => await ResumeAsync();
+
+        async Task ResumeAsync()
+        {
+            var saved = _pending;
+            if (saved == null) return;
+            ResumeBanner.Visibility = Visibility.Collapsed;
+            _pending = null;
+            await SelectAsync(FindOrAdd(saved.Backup));
+            if (_src == null) return;
+            _state = saved;
+            // İnternet adımı atlanıyor; programlar ve ekran kartı için bağlantı yine de bilinmeli.
+            _online = await Task.Run(() => RestoreRunner.IsOnline());
+            _steps[1].Detail = _online ? T("bağlı") : T("bağlı değil");
+            BuildChoices();
+            // Kaydedilen seçimler; bitmiş olanlar "yapıldı" olarak kilitlenir.
+            if (saved.Selected.Count > 0)
+                foreach (var i in _categories.SelectMany(c => c.Items).Where(i => i.IsEnabled))
+                    i.IsChecked = saved.Selected.Contains(i.StateKey);
+            ApplyDone();
+            UpdateChoiceInfo();
+            int page = Math.Min(Math.Max(saved.Page, 1), 3); // geri yükleme sırasında kaldıysa: başlatmadan önceki adım
+            ShowPage(page);
+            if (page == 1) await CheckNetAsync();
+            if (page == 3) await CheckGpuAsync();
+        }
+
+        void ApplyDone()
+        {
+            if (_state == null) return;
+            foreach (var c in _categories)
+            {
+                foreach (var i in c.Items)
+                {
+                    bool done = c.Kind == "program" ? _state.Done.Contains(RestoreRunner.Unit.Program(i.Key))
+                              : c.Kind == "folder" ? _state.Done.Contains(RestoreRunner.Unit.Folder(i.Key))
+                              : _state.Done.Contains(CategoryUnit(c.Kind));
+                    if (done) i.MarkDone();
+                }
+                c.Refresh();
+            }
+        }
+
+        static string CategoryUnit(string kind) =>
+            kind == "drivers" ? RestoreRunner.Unit.Drivers : kind == "fonts" ? RestoreRunner.Unit.Fonts :
+            kind == "settings" ? RestoreRunner.Unit.Settings : kind == "games" ? RestoreRunner.Unit.Games : kind;
+
+        // ───────────── 2. internet ve Wi-Fi ─────────────
+
+        void BuildWifi()
+        {
+            if (_wifi.Count > 0 || _src == null) return;
+            var ctx = new CleanContext(_ => { }, CancellationToken.None);
+            foreach (var (name, size) in _src.Files(_src.Manifest.Wifi, ctx).Where(f => f.name.EndsWith(".xml", StringComparison.OrdinalIgnoreCase)))
+                _wifi.Add(new ItemVm { Category = _wifiCategory, Key = name, Title = System.IO.Path.GetFileNameWithoutExtension(name) });
+            WifiList.Items.Refresh();
+            WifiCard.Visibility = _wifi.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            UpdateWifiInfo();
+        }
+
+        void UpdateWifiInfo()
+        {
+            WifiSub.Text = T("{0} / {1} seçili · şifreleriyle eklenir; kapsama alanındaysa Windows kendisi bağlanır.", _wifi.Count(w => w.IsChecked), _wifi.Count);
+            WifiAddBtn.IsEnabled = _wifi.Any(w => w.IsChecked);
+        }
 
         async Task CheckNetAsync()
         {
+            BuildWifi();
             NetTitle.Text = T("Kontrol ediliyor…");
             NetSub.Text = "";
             NetRetryBtn.IsEnabled = false;
@@ -241,23 +379,13 @@ namespace Kahya
             NetTitle.Text = _online ? T("İnternet var ✔") : T("İnternet bağlantısı yok");
             NetSub.Text = _online ? T("Programlar kurulabilir, ekran kartı sürücüsü kontrol edilebilir.") : T("Ağ kartının sürücüsü eksik olabilir ya da Wi-Fi'ye bağlanılmamış.");
             _steps[1].Detail = _online ? T("bağlı") : T("bağlı değil");
-            NetFixPanel.Visibility = _online ? Visibility.Collapsed : Visibility.Visible;
-            if (_online) return;
 
-            var nets = RestoreRunner.NetworkDrivers(_src);
+            // Sürücü seçeneği yalnız internet yokken çıkar.
+            var nets = _online ? new List<string>() : RestoreRunner.NetworkDrivers(_src);
+            NetDriverCard.Visibility = !_online ? Visibility.Visible : Visibility.Collapsed;
             NetDriverSub.Text = nets.Count == 0 ? T("Yedekte ağ kartı sürücüsü yok.")
-                : string.Join(", ", nets.Select(DriverTitle)) + (Elevation.IsAdmin ? "" : "\n" + T("Kurmak için Kahya'yı yönetici olarak yeniden başlat (1. adımda)."));
+                : string.Join(", ", nets.Select(DriverName)) + (Elevation.IsAdmin ? "" : "\n" + T("Kurmak için Kahya'yı yönetici olarak yeniden başlat (1. adımda)."));
             NetDriverBtn.IsEnabled = nets.Count > 0 && Elevation.IsAdmin;
-            bool wifi = _src.Has(_src.Manifest.Wifi);
-            NetWifiSub.Text = wifi ? T("Yedekteki ağlar şifreleriyle eklenir; kapsama alanındaysa Windows kendisi bağlanır.") : T("Yedekte Wi-Fi ağı yok.");
-            NetWifiBtn.IsEnabled = wifi;
-        }
-
-        /// <summary>"NET - Intel(R) Wi-Fi 6 AX201 160MHz - 22.250.1.2" → "Intel(R) Wi-Fi 6 AX201 160MHz"</summary>
-        static string DriverTitle(string folder)
-        {
-            var parts = folder.Split(new[] { " - " }, StringSplitOptions.None);
-            return parts.Length >= 3 ? string.Join(" - ", parts.Skip(1).Take(parts.Length - 2)) : folder;
         }
 
         async void NetRetry_Click(object sender, RoutedEventArgs e) => await CheckNetAsync();
@@ -268,130 +396,228 @@ namespace Kahya
             await NetActionAsync(T("Ağ sürücüleri kuruluyor…"), ctx => RestoreRunner.InstallDrivers(_src, nets, ctx));
         }
 
-        async void NetWifi_Click(object sender, RoutedEventArgs e) =>
-            await NetActionAsync(T("Wi-Fi ağları ekleniyor…"), ctx => FormatBackup.RestoreWifi(_src.Local(_src.Manifest.Wifi, ctx), ctx));
+        async void WifiAdd_Click(object sender, RoutedEventArgs e)
+        {
+            var picked = _wifi.Where(w => w.IsChecked).ToList();
+            await NetActionAsync(T("Wi-Fi ağları ekleniyor…"), ctx =>
+            {
+                int ok = 0;
+                foreach (var w in picked)
+                {
+                    var file = _src.Local(_src.Manifest.Wifi + "\\" + w.Key, ctx);
+                    bool added = FormatBackup.AddWifiProfile(file, ctx);
+                    Dispatcher.Invoke(() => { if (added) w.MarkDone(); else w.Detail = "✖"; });
+                    if (added) ok++;
+                }
+                return ok;
+            });
+            UpdateWifiInfo();
+        }
 
         async Task NetActionAsync(string caption, Func<CleanContext, int> work)
         {
-            NetDriverBtn.IsEnabled = NetWifiBtn.IsEnabled = NetRetryBtn.IsEnabled = NextBtn.IsEnabled = false;
+            NetDriverBtn.IsEnabled = WifiAddBtn.IsEnabled = NetRetryBtn.IsEnabled = NextBtn.IsEnabled = BackBtn.IsEnabled = false;
             NetTitle.Text = caption;
             NetSub.Text = "";
             var lines = new List<string>();
             var ctx = new CleanContext(l => { lock (lines) lines.Add(l); }, CancellationToken.None);
             try { await Task.Run(() => work(ctx)); }
             catch (Exception ex) { lock (lines) lines.Add(ex.Message); }
-            // Sürücünün yüklenmesi ve Wi-Fi'ye bağlanılması birkaç saniye sürer.
-            NetTitle.Text = T("Bağlantı bekleniyor…");
-            for (int i = 0; i < 6 && !_online; i++)
+            if (!_online)
             {
-                await Task.Delay(2500);
-                _online = await Task.Run(() => RestoreRunner.IsOnline());
+                // Sürücünün yüklenmesi ve Wi-Fi'ye bağlanılması birkaç saniye sürer.
+                NetTitle.Text = T("Bağlantı bekleniyor…");
+                for (int i = 0; i < 6 && !_online; i++)
+                {
+                    await Task.Delay(2500);
+                    _online = await Task.Run(() => RestoreRunner.IsOnline());
+                }
             }
-            NextBtn.IsEnabled = true;
+            NextBtn.IsEnabled = BackBtn.IsEnabled = true;
             await CheckNetAsync();
+            UpdateWifiInfo();
             if (!_online)
                 lock (lines) NetSub.Text = string.Join("\n", lines.Where(l => l.Contains("✖") || l.StartsWith("!")).Take(4).DefaultIfEmpty(T("Hâlâ bağlantı yok. Wi-Fi simgesinden ağa elle bağlanmayı dene.")));
         }
 
         // ───────────── 3. seçim ─────────────
 
+        /// <summary>Sürücü sınıfının anlaşılır adı (yedekteki klasör adı "SINIF - Aygıt - Sürüm").</summary>
+        static string DriverClass(string cls)
+        {
+            switch ((cls ?? "").ToUpperInvariant())
+            {
+                case "NET": return T("Ağ");
+                case "MEDIA": case "AUDIOPROCESSINGOBJECT": case "AUDIOENDPOINT": return T("Ses");
+                case "BLUETOOTH": return "Bluetooth";
+                case "CAMERA": case "IMAGE": return T("Kamera");
+                case "DISPLAY": return T("Ekran kartı");
+                case "SYSTEM": return T("Sistem");
+                case "HIDCLASS": case "KEYBOARD": case "MOUSE": return T("Giriş aygıtı");
+                case "BIOMETRIC": return T("Parmak izi / yüz");
+                case "USB": return "USB";
+                case "HDC": case "SCSIADAPTER": return T("Depolama");
+                default: return cls;
+            }
+        }
+
+        /// <summary>"NET - Intel(R) Wi-Fi 6 AX201 160MHz - 22.250.1.2" → "Intel(R) Wi-Fi 6 AX201 160MHz"</summary>
+        static string DriverName(string folder)
+        {
+            var parts = folder.Split(new[] { " - " }, StringSplitOptions.None);
+            return parts.Length >= 3 ? string.Join(" - ", parts.Skip(1).Take(parts.Length - 2)) : folder;
+        }
+
+        int _dependencies, _manualPrograms;
+
         void BuildChoices()
         {
-            if (_choices.Count > 0 || _programs.Count > 0) return;
+            if (_built || _src == null) return;
+            _built = true;
             var m = _src.Manifest;
-            string Size(string rel) { var s = _src.Size(rel); return s > 0 ? " · " + Format.Bytes(s) : ""; }
-            void Add(string kind, string key, string icon, string title, string detail, bool enabled = true) =>
-                _choices.Add(new ChoiceVm { Kind = kind, Key = key, Icon = icon, Title = title, Detail = detail, IsEnabled = enabled, IsChecked = enabled });
+            var ctx = new CleanContext(_ => { }, CancellationToken.None);
+            CategoryVm Cat(string kind, string icon, string title, string note = null, bool enabled = true)
+            {
+                var c = new CategoryVm { Kind = kind, Icon = icon, Title = title, Note = note, IsEnabled = enabled };
+                _categories.Add(c);
+                return c;
+            }
+            void Item(CategoryVm c, string key, string title, long size, bool on = true, ProgramEntry program = null) =>
+                c.Items.Add(new ItemVm { Category = c, Key = key, Title = title, Size = size, Program = program, IsChecked = on && c.IsEnabled, IsEnabled = c.IsEnabled,
+                                         Detail = size > 0 ? Format.Bytes(size) : "" });
 
             var drivers = _src.SubFolders(m.Drivers);
             if (drivers.Count > 0)
-                Add("drivers", null, "", T("Sürücüler"),
-                    T("{0} sürücü paketi (ağ, ses, Bluetooth…)", drivers.Count) + Size(m.Drivers) + (Elevation.IsAdmin ? "" : " · " + T("yönetici olarak açılınca kurulabilir")),
-                    Elevation.IsAdmin);
-            if (_src.Has(m.Wifi)) Add("wifi", null, "", T("Wi-Fi ağları"), T("Kayıtlı ağlar ve şifreleri"));
-            if (_src.Has(m.Fonts)) Add("fonts", null, "", T("Fontlar"), T("Sonradan kurduğun fontlar") + Size(m.Fonts));
-            foreach (var f in m.Folders)
-                if (_src.Has(f.Value) && FormatBackup.KnownFolderPath(f.Key) != null)
-                    Add("folder", f.Key, "", T(RestoreRunner.FolderTitle(f.Key)), T("Kişisel klasör") + Size(f.Value));
-            if (_src.Has(m.Settings)) Add("settings", null, "", T("Program ayarları"), T("Ön ayarlar, kısayollar, sahneler · programlardan sonra yüklenir") + Size(m.Settings));
-            if (_src.Has(m.Games)) Add("games", null, "", T("Oyun kayıtları"), T("Minecraft dünyaları ve modları, Steam ve diğer oyunların kayıtları") + Size(m.Games));
-            ChoiceList.Items.Refresh();
+            {
+                var c = Cat("drivers", "", T("Sürücüler"), Elevation.IsAdmin ? null : T("yönetici olarak açılınca kurulabilir"), Elevation.IsAdmin);
+                foreach (var d in drivers)
+                {
+                    var cls = d.Split(new[] { " - " }, StringSplitOptions.None)[0];
+                    Item(c, d, DriverClass(cls) + " · " + DriverName(d), _src.Size(m.Drivers + "\\" + d));
+                }
+            }
 
-            // Programlar: sadece winget ile kurulabilenler seçilebilir; diğerleri bilgi olarak sayılır.
+            var fonts = _src.Files(m.Fonts, ctx).Where(f => !f.name.Equals(FormatExtras.FontManifest, StringComparison.OrdinalIgnoreCase)).ToList();
+            if (fonts.Count > 0)
+            {
+                // fontlar.txt: kayıt adı → dosya; görünen ad oradan.
+                var names = _src.ReadLines(m.Fonts + "\\" + FormatExtras.FontManifest, ctx).Where(l => !l.StartsWith("#")).Select(l => l.Split('\t')).Where(x => x.Length == 2)
+                    .GroupBy(x => x[1].Trim(), StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.First()[0].Replace(" (TrueType)", "").Replace(" (OpenType)", "").Trim(), StringComparer.OrdinalIgnoreCase);
+                var c = Cat("fonts", "", T("Fontlar"));
+                foreach (var (name, size) in fonts.OrderBy(f => names.TryGetValue(f.name, out var n) ? n : f.name, StringComparer.CurrentCultureIgnoreCase))
+                    Item(c, name, names.TryGetValue(name, out var n) ? n : System.IO.Path.GetFileNameWithoutExtension(name), size);
+            }
+
+            var folders = m.Folders.Where(f => _src.Has(f.Value) && FormatBackup.KnownFolderPath(f.Key) != null).ToList();
+            if (folders.Count > 0)
+            {
+                var c = Cat("folder", "", T("Kişisel klasörler"));
+                foreach (var f in folders) Item(c, f.Key, T(RestoreRunner.FolderTitle(f.Key)), _src.Size(f.Value));
+            }
+
+            // Programlar: başka programların getirdiği bileşenler (Visual C++, .NET…) listelenmez; winget'te olmayanlar sayılır.
             List<ProgramEntry> all = null;
             if (m.Programs != null)
-                try { all = Core.ProgramList.Load(_src.Local(m.Programs, new CleanContext(_ => { }, CancellationToken.None))); } catch { }
-            _programs = (all ?? new List<ProgramEntry>()).Where(p => p.Installable).OrderBy(p => p.Name, StringComparer.CurrentCultureIgnoreCase)
-                .Select(p => new ProgramVm { Entry = p, Detail = p.Source == "msstore" ? T("Microsoft Store") : p.Id }).ToList();
-            ProgramList.ItemsSource = _programs;
-            ProgramsCard.Visibility = _programs.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-            int manual = (all?.Count ?? 0) - _programs.Count;
-            _manualPrograms = manual;
-            UpdateProgramsInfo();
-            if (_programs.Count > 0 && _online) _ = MarkInstalledAsync();
+                try { all = Core.ProgramList.Load(_src.Local(m.Programs, ctx)); } catch { }
+            all = all ?? new List<ProgramEntry>();
+            _dependencies = all.Count(Core.ProgramList.IsDependency);
+            var programs = all.Where(p => p.Installable && !Core.ProgramList.IsDependency(p)).OrderBy(p => p.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
+            _manualPrograms = all.Count(p => !p.Installable && !Core.ProgramList.IsDependency(p));
+            if (programs.Count > 0)
+            {
+                var c = Cat("program", "", T("Programlar"), ProgramNote());
+                foreach (var p in programs) Item(c, p.Id, p.Name, -1, true, p);
+                foreach (var i in c.Items) i.Detail = i.Program.Source == "msstore" ? T("Microsoft Store") : "";
+            }
+
+            var settings = RestoreRunner.SettingsItems(_src, m.Settings, ctx);
+            if (settings.Count > 0)
+            {
+                var c = Cat("settings", "", T("Program ayarları"), T("programlardan sonra yüklenir"));
+                foreach (var (id, name, size) in settings) Item(c, id, name, size);
+            }
+
+            var games = RestoreRunner.SettingsItems(_src, m.Games, ctx);
+            if (games.Count > 0)
+            {
+                var c = Cat("games", "", T("Oyun kayıtları"));
+                foreach (var (id, name, size) in games) Item(c, id, name, size);
+            }
+
+            CategoryList.Items.Refresh();
+            ApplyDone();
+            UpdateChoiceInfo();
+            if (programs.Count > 0 && _online) _ = MarkInstalledAsync();
         }
 
-        int _manualPrograms;
+        string ProgramNote() =>
+            T("winget ile en yeni sürümü kurulur") +
+            (_manualPrograms > 0 ? " · " + T("{0} tanesi winget'te yok, elle kurulmalı", _manualPrograms) : "") +
+            (_dependencies > 0 ? " · " + T("{0} bileşen gizlendi (programlar kendisi kurar)", _dependencies) : "") +
+            (_online ? "" : " · " + T("internet gerekir"));
 
-        /// <summary>Zaten kurulu olanların işareti kaldırılır (winget varsa; birkaç saniye sürer).</summary>
+        /// <summary>Zaten kurulu programların işareti kaldırılır (winget varsa; birkaç saniye sürer).</summary>
         async Task MarkInstalledAsync()
         {
-            ProgramsSub.Text = T("Hangi programların zaten kurulu olduğuna bakılıyor…");
+            var cat = _categories.FirstOrDefault(c => c.Kind == "program");
+            if (cat == null) return;
+            cat.Note = T("hangilerinin zaten kurulu olduğuna bakılıyor…");
+            cat.Refresh();
             var ids = await Task.Run(() =>
             {
                 try { return Winget.IsInstalled() ? Winget.InstalledIds(new CleanContext(_ => { }, CancellationToken.None)) : null; }
                 catch { return null; }
             });
             if (ids != null)
-                foreach (var p in _programs.Where(p => ids.Contains(p.Entry.Id)))
+                foreach (var i in cat.Items.Where(i => i.IsEnabled && ids.Contains(i.Key)))
                 {
-                    p.IsChecked = false;
-                    p.Installed = true;
+                    i.IsChecked = false;
+                    i.Detail = T("zaten kurulu");
                 }
-            UpdateProgramsInfo();
+            cat.Note = ProgramNote();
+            cat.Refresh();
+            UpdateChoiceInfo();
         }
 
-        void UpdateProgramsInfo()
+        void UpdateChoiceInfo()
         {
-            int on = _programs.Count(p => p.IsChecked);
-            ProgramsBox.IsChecked = on > 0;
-            ProgramsSub.Text = T("{0} / {1} seçili · winget ile en yeni sürümü kurulur", on, _programs.Count) +
-                               (_manualPrograms > 0 ? " · " + T("{0} tanesi winget'te yok, elle kurulmalı", _manualPrograms) : "") +
-                               (_online ? "" : " · " + T("internet gerekir"));
-            _steps[2].Detail = T("{0} seçili", _choices.Count(c => c.IsChecked) + (on > 0 ? 1 : 0));
+            foreach (var c in _categories) c.Refresh();
+            _steps[2].Detail = T("{0} seçili", _categories.Sum(c => c.Items.Count(i => i.IsChecked)));
         }
 
-        void ProgramsBox_Click(object sender, RoutedEventArgs e)
+        void Category_Click(object sender, RoutedEventArgs e)
         {
-            bool on = ProgramsBox.IsChecked == true;
-            foreach (var p in _programs) p.IsChecked = on && !p.Installed;
-            UpdateProgramsInfo();
+            if (!((sender as FrameworkElement)?.DataContext is CategoryVm c)) return;
+            bool on = !c.IsChecked;
+            foreach (var i in c.Items.Where(i => i.IsEnabled))
+                i.IsChecked = on && i.Detail != T("zaten kurulu");
+            UpdateChoiceInfo();
         }
 
-        void Program_Click(object sender, RoutedEventArgs e) => UpdateProgramsInfo();
-
-        void ProgramsExpand_Click(object sender, RoutedEventArgs e)
+        void Item_Click(object sender, RoutedEventArgs e)
         {
-            bool show = ProgramList.Visibility != Visibility.Visible;
-            ProgramList.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
-            ProgramsExpandBtn.Content = show ? T("Listeyi gizle ▴") : T("Listeyi göster ▾");
+            if ((sender as FrameworkElement)?.DataContext is ItemVm i && i.Category == _wifiCategory) UpdateWifiInfo();
+            else UpdateChoiceInfo();
         }
 
-        RestoreOptions Options()
+        void Expand_Click(object sender, RoutedEventArgs e)
         {
-            var m = _src.Manifest;
-            bool On(string kind) => _choices.Any(c => c.Kind == kind && c.IsChecked && c.IsEnabled);
-            return new RestoreOptions
-            {
-                DriverFolders = On("drivers") ? _src.SubFolders(m.Drivers) : new List<string>(),
-                Wifi = On("wifi"),
-                Fonts = On("fonts"),
-                Settings = On("settings"),
-                Games = On("games"),
-                FolderKeys = _choices.Where(c => c.Kind == "folder" && c.IsChecked).Select(c => c.Key).ToList(),
-                Programs = _programs.Where(p => p.IsChecked).Select(p => p.Entry).ToList(),
-            };
+            if ((sender as FrameworkElement)?.DataContext is CategoryVm c) c.Expanded = !c.Expanded;
         }
+
+        List<string> Picked(string kind) =>
+            _categories.Where(c => c.Kind == kind).SelectMany(c => c.Items).Where(i => i.IsChecked && i.IsEnabled).Select(i => i.Key).ToList();
+
+        RestoreOptions Options() => new RestoreOptions
+        {
+            DriverFolders = Picked("drivers"),
+            FontFiles = Picked("fonts"),
+            FolderKeys = Picked("folder"),
+            Programs = _categories.Where(c => c.Kind == "program").SelectMany(c => c.Items).Where(i => i.IsChecked && i.IsEnabled).Select(i => i.Program).ToList(),
+            SettingsIds = Picked("settings"),
+            GameIds = Picked("games"),
+            Done = _state != null ? new HashSet<string>(_state.Done, StringComparer.OrdinalIgnoreCase) : new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+        };
 
         // ───────────── 4. ekran kartı ─────────────
 
@@ -457,30 +683,40 @@ namespace Kahya
             var log = new System.Text.StringBuilder();
             void Append(string line)
             {
-                log.AppendLine(line);
+                lock (log) log.AppendLine(line);
                 Dispatcher.BeginInvoke(new Action(() => { RunLog.AppendText(line + "\n"); RunLog.ScrollToEnd(); }));
             }
             var ctx = new CleanContext(Append, _cts.Token) { Progress = s => Dispatcher.BeginInvoke(new Action(() => RunStatus.Text = s)) };
             Append(T("Yedekten geri yükleme: {0} · {1:dd.MM.yyyy HH:mm}", _src.Manifest.Computer ?? "?", _src.Manifest.Date));
+            if (options.Done.Count > 0) Append(T("Kaldığı yerden devam ediliyor ({0} adım önceden bitmişti).", options.Done.Count));
 
+            // Biten her birim hemen kaydedilir: kapatılırsa kalan yerden sürer.
+            void Done(string unit)
+            {
+                lock (_state) { _state.Done.Add(unit); _state.Page = 4; _state.Save(); }
+            }
+
+            bool cancelled = false;
             try
             {
                 _result = await Task.Run(() => RestoreRunner.Run(_src, options, ctx,
-                    title => Dispatcher.BeginInvoke(new Action(() => { RunStatus.Text = title; _steps[4].Detail = title; }))));
+                    title => Dispatcher.BeginInvoke(new Action(() => { RunStatus.Text = title; _steps[4].Detail = title; })), Done));
                 RunTitle.Text = _result.Failed == 0 ? T("Bitti ✔") : T("Bitti, {0} adımda sorun var", _result.Failed);
                 RunSub.Text = _result.Failed == 0 ? T("Her şey geri yüklendi.") : T("Sorunlu adımların ayrıntıları aşağıda. Diğerleri tamamlandı.");
                 Append(T("Geri yükleme bitti: {0} adım tamam, {1} adımda sorun var.", _result.Ok, _result.Failed));
             }
             catch (OperationCanceledException)
             {
-                RunTitle.Text = T("İptal edildi");
-                RunSub.Text = T("O ana kadar yapılanlar kaldı.");
-                Append(T("Geri yükleme iptal edildi."));
+                cancelled = true;
+                RunTitle.Text = T("Durduruldu");
+                RunSub.Text = T("O ana kadar yapılanlar kaldı. Asistanı yeniden açınca kaldığı yerden devam eder.");
+                Append(T("Geri yükleme durduruldu."));
             }
             catch (Exception ex)
             {
+                cancelled = true;
                 RunTitle.Text = T("Geri yükleme yarıda kaldı");
-                RunSub.Text = ex.Message;
+                RunSub.Text = ex.Message + " " + T("Asistanı yeniden açınca kaldığı yerden devam eder.");
                 Append("! " + ex.Message);
             }
             finally
@@ -492,8 +728,10 @@ namespace Kahya
                 CancelBtn.Visibility = Visibility.Collapsed;
                 NextBtn.IsEnabled = true;
                 _steps[4].State = 2;
-                SaveLog(log.ToString());
+                lock (log) SaveLog(log.ToString());
             }
+            // Bitti: bir dahaki açılışta "devam et" sorulmasın. Durdurulduysa kayıt kalır.
+            if (!cancelled) RestoreState.Clear();
 
             BookmarksBtn.Visibility = _result?.Bookmarks != null ? Visibility.Visible : Visibility.Collapsed;
             RebootBtn.Visibility = _result?.Reboot == true ? Visibility.Visible : Visibility.Collapsed;
@@ -508,7 +746,7 @@ namespace Kahya
             try
             {
                 Directory.CreateDirectory(Settings.Folder);
-                File.WriteAllText(Path.Combine(Settings.Folder, "last-restore.log"), text, System.Text.Encoding.UTF8);
+                File.WriteAllText(System.IO.Path.Combine(Settings.Folder, "last-restore.log"), text, System.Text.Encoding.UTF8);
             }
             catch { }
         }
@@ -533,6 +771,13 @@ namespace Kahya
             {
                 case 0:
                     if (_src == null) return;
+                    // Yeni bir geri yükleme başlıyor (ya da aynı yedekle devam): durum bu yedeğe bağlanır.
+                    if (_state == null || !SamePath(_state.Backup ?? "", _src.Path))
+                    {
+                        _state = new RestoreState { Backup = _src.Path };
+                        ResumeBanner.Visibility = Visibility.Collapsed;
+                        _pending = null;
+                    }
                     ShowPage(1);
                     await CheckNetAsync();
                     break;
@@ -542,7 +787,7 @@ namespace Kahya
                     break;
                 case 2:
                     var o = Options();
-                    if (o.DriverFolders.Count == 0 && !o.Wifi && !o.Fonts && !o.Settings && !o.Games && o.FolderKeys.Count == 0 && o.Programs.Count == 0)
+                    if (o.DriverFolders.Count == 0 && o.FontFiles.Count == 0 && o.FolderKeys.Count == 0 && o.Programs.Count == 0 && o.SettingsIds.Count == 0 && o.GameIds.Count == 0)
                     {
                         MessageBox.Show(this, T("Önce geri yüklenecek en az bir şey seç."), "Kahya", MessageBoxButton.OK, MessageBoxImage.Information);
                         return;
@@ -567,14 +812,15 @@ namespace Kahya
 
         void Cancel_Click(object sender, RoutedEventArgs e)
         {
-            if (_running) { _cts?.Cancel(); CancelBtn.IsEnabled = false; RunStatus.Text = T("İptal ediliyor…"); }
+            if (_running) { _cts?.Cancel(); CancelBtn.IsEnabled = false; RunStatus.Text = T("Durduruluyor…"); }
             else Close();
         }
 
         void Wizard_Closing(object sender, CancelEventArgs e)
         {
+            SaveState();
             if (!_running) return;
-            if (MessageBox.Show(this, T("Geri yükleme sürüyor. İptal edip kapatılsın mı?"), "Kahya", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+            if (MessageBox.Show(this, T("Geri yükleme sürüyor. Durdurup kapatılsın mı? Sonra kaldığı yerden devam edebilirsin."), "Kahya", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
             {
                 e.Cancel = true;
                 return;

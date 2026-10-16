@@ -69,19 +69,25 @@ Format atmadan önce tek ekrandan yedek:
   My Games ve Unity oyunları. Oyunun kendisi yedeklenmez, sadece senin kayıtların. Bilinen yerlere bakılır; kaydını
   bambaşka bir yerde tutan oyunlar kaçabilir (Steam Cloud'u olanlar zaten güvende).
 
-Hiçbir şey sorulmaz: yedek tek bir dosya olur, `Kahya-Yedek-BILGISAYARADI-tarih.zip`. `Kahya.exe` de içindedir ve ZIP'i
-Windows ek program olmadan açar. Yedeğin ne içerdiği arşivin açıklamasına yazılır; Kahya yedeği açmadan tanır.
+Hiçbir şey sorulmaz. Sonuç bir klasördür: içinde yedeğin tamamı tek bir ZIP (`Kahya-Yedek-BILGISAYARADI-tarih.zip`) ve
+yanında `Kahya.exe`. ZIP'i Windows ek program olmadan açar; yedeğin ne içerdiği arşivin açıklamasına yazılır, Kahya yedeği
+açmadan tanır. Wi-Fi ve Ethernet kartının sürücüleri sorulmadan her zaman yedeklenir: format sonrası internetsiz
+kalırsan ilk onlar lazım. Belgeler gibi seçili bir klasörün içinde kalan oyun ve ayar klasörleri iki kez kopyalanmaz.
 
 ### 🧭 Format sonrası asistanı
-Format sonrası arşivdeki `Kahya.exe`'yi aç, **Format yardımcısı › Asistanı başlat** de. Kurulum sihirbazı gibi adım adım ilerler:
+Format sonrası yedek klasöründeki `Kahya.exe`'yi aç, **Format yardımcısı › Asistanı başlat** de. Kurulum sihirbazı gibi
+adım adım ilerler:
 
-1. **Yedek:** USB bellek ya da ikinci diskteki yedeği kendisi bulur.
-2. **İnternet:** bağlantı yoksa yedekteki ağ kartı sürücüsünü kurar ve Wi-Fi ağlarını şifreleriyle ekler.
-3. **Seçim:** neyin geri yükleneceğini seçersin; programlar tek tek seçilebilir, zaten kurulu olanlar kendiliğinden atlanır.
+1. **Yedek:** yanındaki ya da USB bellek / ikinci diskteki yedeği kendisi bulur.
+2. **İnternet ve Wi-Fi:** kayıtlı Wi-Fi ağlarını şifreleriyle ekler (istediklerini seçersin); internet yoksa yedekteki ağ
+   kartı sürücüsünü kurmayı teklif eder.
+3. **Seçim:** her kategoriyi açıp içindekileri tek tek seçersin: sürücü paketleri, fontlar, kişisel klasörler, programlar,
+   program ayarları, oyunlar. Zaten kurulu programlar kendiliğinden atlanır; Visual C++, .NET gibi bileşenler listelenmez.
 4. **Ekran kartı:** Windows'un genel sürücüsü mü kullanılıyor, yeni sürücü var mı bakar; üreticinin sayfasını açar.
-5. **Geri yükleme:** sürücüler, Wi-Fi, fontlar, kişisel klasörler, programlar (winget ile en yeni sürümü), program ayarları
-   ve oyun kayıtları sırayla. Var olan daha yeni dosyaların üzerine yazılmaz.
+5. **Geri yükleme:** seçilenler sırayla. Var olan daha yeni dosyaların üzerine yazılmaz.
 
+**Kaldığı yerden devam eder:** asistanı kapatırsan, Kahya'yı yeniden başlatırsan ya da bilgisayar kapanırsa hangi adımda
+kaldığın, neleri seçtiğin ve neyin bittiği kaydedilir; bir sonraki açılışta asistan kendisi açılır ve kalanlarla sürer.
 Sürücüler için yönetici izni gerekir; asistan tek tıkla yönetici olarak yeniden başlar ve kaldığı yerden açılır.
 Eski sürümlerin klasör yedekleri (`.kahya`) de açılır.
 

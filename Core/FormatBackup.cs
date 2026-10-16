@@ -318,14 +318,12 @@ namespace Kahya.Core
         }
 
         /// <summary>Klasördeki Wi-Fi profillerini ekler. Eklenen sayısını döndürür.</summary>
-        public static int RestoreWifi(string folder, CleanContext ctx)
-        {
-            int ok = 0;
-            foreach (var file in Directory.GetFiles(folder, "*.xml", SearchOption.AllDirectories))
-                if (ProcessRunner.Run("netsh.exe", $"wlan add profile filename=\"{file}\" user=current", ctx, logOutput: true) == 0)
-                    ok++;
-            return ok;
-        }
+        public static int RestoreWifi(string folder, CleanContext ctx) =>
+            Directory.GetFiles(folder, "*.xml", SearchOption.AllDirectories).Count(f => AddWifiProfile(f, ctx));
+
+        /// <summary>Tek bir Wi-Fi profilini (netsh'in dışa aktardığı XML) ekler. Eklendiyse true.</summary>
+        public static bool AddWifiProfile(string file, CleanContext ctx) =>
+            File.Exists(file) && ProcessRunner.Run("netsh.exe", $"wlan add profile filename=\"{file}\" user=current", ctx, logOutput: true) == 0;
 
         // ───────────── Windows ürün anahtarı ─────────────
 
@@ -462,15 +460,29 @@ namespace Kahya.Core
 
         // ───────────── yardımcılar ─────────────
 
+        /// <summary>
+        /// Klasörün toplam boyutu. Erişilemeyen alt klasörler atlanır (eskiden ilkinde sayım dururdu: Belgeler'deki
+        /// "Müziğim" gibi eski bağlantılar yüzünden 992 MB'lık klasör 13 MB görünüyordu). Bağlantıların (junction)
+        /// içine girilmez; yedekleme (robocopy /XJ) de girmez.
+        /// </summary>
         public static long FolderSize(string folder)
         {
             long total = 0;
-            try
+            var stack = new Stack<DirectoryInfo>();
+            try { stack.Push(new DirectoryInfo(folder)); } catch { return 0; }
+            while (stack.Count > 0)
             {
-                foreach (var f in new DirectoryInfo(folder).EnumerateFiles("*", SearchOption.AllDirectories))
-                    try { total += f.Length; } catch { }
+                var dir = stack.Pop();
+                try
+                {
+                    foreach (var entry in dir.EnumerateFileSystemInfos())
+                    {
+                        if (entry is FileInfo f) { try { total += f.Length; } catch { } }
+                        else if (entry is DirectoryInfo d && (d.Attributes & FileAttributes.ReparsePoint) == 0) stack.Push(d);
+                    }
+                }
+                catch { }
             }
-            catch { }
             return total;
         }
 

@@ -69,7 +69,8 @@ namespace Kahya
                 MigrateLegacyTask();
                 RefreshScheduleText();
                 // Format sonrası asistanı taramaları beklemeden açılır (ayrı penceredir).
-                if (App.StartWizard)
+                // Yarıda kalmış bir geri yükleme varsa da açılır (asistan "kaldığın yerden devam et" der).
+                if (App.StartWizard || RestoreState.Load() != null)
                     OpenRestoreWizard(App.StartRestore);
                 _ = CheckAppUpdateAsync(silent: true);
                 _ = CheckGpuAsync(silent: true);

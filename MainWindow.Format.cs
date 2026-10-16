@@ -250,9 +250,11 @@ namespace Kahya
 
         void UpdateBackupSummary()
         {
-            var drivers = _backupDrivers.Where(d => d.IsChecked).ToList();
+            var drivers = _backupDrivers.Where(d => d.IsChecked || IsNetworkDriver(d)).ToList();
+            int nets = _backupDrivers.Count(IsNetworkDriver);
             BackupDriverInfo.Text = _backupDrivers.Count == 0 ? T("Üçüncü parti sürücü bulunamadı.")
-                : T("{0} sürücü paketi · {1} seçili ({2})", _backupDrivers.Count, drivers.Count, Format.Bytes(drivers.Sum(d => d.Size)));
+                : T("{0} sürücü paketi · {1} seçili ({2})", _backupDrivers.Count, drivers.Count, Format.Bytes(drivers.Sum(d => d.Size))) +
+                  (nets > 0 ? " · " + T("ağ kartı sürücüleri ({0}) her zaman yedeklenir", nets) : "");
             var folders = _backupFolders.Where(f => f.IsChecked).ToList();
             long total = drivers.Sum(d => d.Size) + folders.Where(f => f.Size > 0).Sum(f => f.Size) + ExtrasSize();
             int risky = _backupFolders.Count(f => f.NeedsAttention && !f.IsChecked);
@@ -260,8 +262,9 @@ namespace Kahya
                                  (risky > 0 ? " · " + T("{0} kişisel klasör C: diskinde ve seçili değil", risky) : "");
         }
 
+        // Seçili kişisel klasörlerin içinde kalanlar iki kez sayılmaz (yedeğe de iki kez girmez).
         long ExtrasSize() => _backupFonts.Where(f => f.IsChecked).Sum(f => f.Size) +
-                             _backupSettings.Concat(_backupGames).Where(s => s.IsChecked).Sum(s => s.Size);
+                             SkipCovered(_backupSettings.Concat(_backupGames).Where(s => s.IsChecked), _backupFolders.Where(f => f.IsChecked).ToList()).Sum(s => s.Size);
 
         void BackupTarget_Click(object sender, RoutedEventArgs e)
         {
@@ -290,12 +293,13 @@ namespace Kahya
 
         async void BackupStart_Click(object sender, RoutedEventArgs e)
         {
-            var drivers = _backupDrivers.Where(d => d.IsChecked).ToList();
+            // Ağ kartı (Wi-Fi/Ethernet) sürücüleri sorulmadan hep alınır: format sonrası internetsiz kalınırsa ilk onlar lazım.
+            var drivers = _backupDrivers.Where(d => d.IsChecked || IsNetworkDriver(d)).ToList();
             var folders = _backupFolders.Where(f => f.IsChecked).ToList();
             var programs = _backupApps.Where(a => a.IsChecked).Select(a => a.Entry).ToList();
             var fonts = _backupFonts.Where(f => f.IsChecked).ToList();
-            var settings = _backupSettings.Where(s => s.IsChecked).ToList();
-            var games = _backupGames.Where(s => s.IsChecked).ToList();
+            var settings = SkipCovered(_backupSettings.Where(s => s.IsChecked), folders);
+            var games = SkipCovered(_backupGames.Where(s => s.IsChecked), folders);
             bool apps = programs.Count > 0 || !_backupAppsLoaded, wifi = BackupWifiBox.IsChecked == true, key = BackupKeyBox.IsChecked == true;
             bool bookmarks = BackupBookmarksBox.IsChecked == true && BackupBookmarksBox.IsEnabled;
             if (!apps && !wifi && !key && !bookmarks && drivers.Count == 0 && folders.Count == 0 && fonts.Count == 0 && settings.Count == 0 && games.Count == 0)
@@ -322,10 +326,12 @@ namespace Kahya
             }
             catch { }
 
-            // Her şey önce gizli bir geçici klasöre kopyalanır, sonra tek bir ZIP olur ve klasör silinir.
+            // Sonuç: Kahya-Yedek-…\ klasöründe yedeğin ZIP'i ve yanında Kahya.exe (format sonrası önce o açılır).
+            // Her şey önce o klasörde gizli bir geçici klasöre kopyalanır, sonra ZIP olur ve geçici klasör silinir.
             var name = FormatBackup.Safe($"Kahya-Yedek-{Environment.MachineName}-{DateTime.Now:yyyy-MM-dd_HHmm}");
-            var zip = Path.Combine(_backupTarget, name + ".zip");
-            var folder = Path.Combine(_backupTarget, ".kahya-gecici-" + name);
+            var output = Path.Combine(_backupTarget, name);
+            var zip = Path.Combine(output, name + ".zip");
+            var folder = Path.Combine(output, ".gecici");
             var token = SetBusy(T("yedekleniyor…"));
             ShowLog(true);
             Log("──────────\n" + T("Format yedeği başladı: {0}", zip));
@@ -336,6 +342,8 @@ namespace Kahya
                 var ctx = Context(token);
                 Directory.CreateDirectory(folder);
                 try { new DirectoryInfo(folder).Attributes |= FileAttributes.Hidden; } catch { }
+                int nets = drivers.Count(d => IsNetworkDriver(d) && !d.IsChecked);
+                if (nets > 0) Log("   " + T("{0} ağ kartı sürücüsü de eklendi (format sonrası internet için).", nets));
 
                 if (apps)
                 {
@@ -428,13 +436,13 @@ namespace Kahya
                     Log(ok ? "   ✔ " + f.Name : "   ✖ " + T("{0} tam kopyalanamadı (bazı dosyalar kullanımda olabilir).", f.Name));
                 }
 
-                // Format sonrası Kahya'yı indirmeye gerek kalmasın: arşivin içinde dursun (ZIP'i Windows kendisi açar).
+                // Format sonrası Kahya'yı indirmeye gerek kalmasın: ZIP'in yanında dursun, açınca yedeği hemen bulur.
                 try
                 {
-                    File.Copy(Process.GetCurrentProcess().MainModule.FileName, Path.Combine(folder, "Kahya.exe"), true);
-                    done.Add(T("Kahya (format sonrası arşivden çıkarıp açabilirsin)"));
+                    File.Copy(Process.GetCurrentProcess().MainModule.FileName, Path.Combine(output, "Kahya.exe"), true);
+                    done.Add(T("Kahya.exe (yedeğin yanında; format sonrası onu aç)"));
                 }
-                catch (Exception ex) { Log("   ! " + T("Kahya.exe yedeğe kopyalanamadı: {0}", ex.Message)); }
+                catch (Exception ex) { Log("   ! " + T("Kahya.exe yedeğin yanına kopyalanamadı: {0}", ex.Message)); }
 
                 // Yedeğin ne içerdiği: arşivin açıklamasına (Kahya buradan okur) ve içine de bir kopyası.
                 var text = manifest.ToText(ReadMe(done));
@@ -454,26 +462,54 @@ namespace Kahya
             catch (OperationCanceledException)
             {
                 Log(T("Yedekleme iptal edildi."));
-                await Task.Run(() => { FormatBackup.ForceDelete(zip); });
+                await Task.Run(() => FormatBackup.ForceDelete(output));
                 return;
             }
             catch (Exception ex)
             {
                 Log("! " + T("Yedekleme hatası: {0}", ex.Message));
-                await Task.Run(() => { FormatBackup.ForceDelete(zip); });
+                await Task.Run(() => FormatBackup.ForceDelete(output));
                 Info(T("Yedekleme yarıda kaldı:\n{0}", ex.Message));
                 return;
             }
             finally
             {
                 // Geçici kopyalar her durumda silinir (asıllar zaten bilgisayarda).
-                await Task.Run(() => { if (!FormatBackup.ForceDelete(folder)) Log("! " + T("Geçici klasör silinemedi: {0}", folder)); });
+                await Task.Run(() => { if (Directory.Exists(folder) && !FormatBackup.ForceDelete(folder)) Log("! " + T("Geçici klasör silinemedi: {0}", folder)); });
                 ApplyBusy(false);
             }
 
-            if (Confirm(T("Yedek hazır:\n{0}\n\n{1}\n\nFormat sonrası: bu ZIP'in içindeki Kahya.exe'yi aç › Format yardımcısı › Format sonrası asistanı. Yedeği kendisi bulur ve her şeyi adım adım geri yükler.\n\nDosyanın yeri açılsın mı?",
-                    zip, string.Join("\n", done.Select(d => "• " + d)))))
-                try { Process.Start("explorer.exe", $"/select,\"{zip}\""); } catch { }
+            if (Confirm(T("Yedek hazır:\n{0}\n\n{1}\n\nFormat sonrası: bu klasördeki Kahya.exe'yi aç; Format sonrası asistanı yedeği bulup her şeyi adım adım geri yükler.\n\nKlasör açılsın mı?",
+                    output, string.Join("\n", done.Select(d => "• " + d)))))
+                try { Process.Start(new ProcessStartInfo(output) { UseShellExecute = true }); } catch { }
+        }
+
+        /// <summary>Ağ kartı (Wi-Fi/Ethernet) sürücüsü mü? Bunlar format sonrası internet için şart, hep yedeklenir.</summary>
+        static bool IsNetworkDriver(DriverBackupItem d) => string.Equals(d.ClassName, "NET", StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// Seçili bir kişisel klasörün içinde kalan ayar/oyun klasörleri (Belgeler › Rockstar Games gibi) zaten o klasörle
+        /// yedeklenir; iki kez kopyalanmasın diye çıkarılır. Hepsi kapsanan öğe hiç alınmaz.
+        /// </summary>
+        static List<AppSettingsItem> SkipCovered(IEnumerable<AppSettingsItem> items, List<PersonalFolder> folders)
+        {
+            var roots = folders.Select(f => f.Path.TrimEnd('\\') + "\\").ToList();
+            bool Covered(string tokenized)
+            {
+                var path = FormatExtras.ResolvePath(tokenized);
+                return path != null && roots.Any(r => (path.TrimEnd('\\') + "\\").StartsWith(r, StringComparison.OrdinalIgnoreCase));
+            }
+            var result = new List<AppSettingsItem>();
+            foreach (var item in items)
+            {
+                var keep = item.Folders.Where(f => !Covered(f)).ToList();
+                if (keep.Count == item.Folders.Count) { result.Add(item); continue; }
+                if (keep.Count == 0) continue;
+                var copy = new AppSettingsItem { Id = item.Id, Name = item.Name, Description = item.Description, Exclude = item.Exclude, IsGame = item.IsGame, Size = item.Size };
+                copy.Folders.AddRange(keep);
+                result.Add(copy);
+            }
+            return result;
         }
 
         static string ReadMe(List<string> done)
@@ -484,166 +520,17 @@ namespace Kahya
             sb.AppendLine(T("İçindekiler:"));
             foreach (var d in done) sb.AppendLine("  • " + d);
             sb.AppendLine();
-            sb.AppendLine(T("Format sonrası en kolayı: bu arşivdeki Kahya.exe'yi çıkarıp aç › Format yardımcısı › Format sonrası asistanı. Yedeği kendisi bulur, internet yoksa önce ağ sürücüsünü ve Wi-Fi'yi kurar, sonra seçtiklerini sırayla geri yükler."));
+            sb.AppendLine(T("Format sonrası en kolayı: bu arşivin yanındaki Kahya.exe'yi aç; Format sonrası asistanı yedeği kendisi bulur, internet yoksa önce ağ sürücüsünü ve Wi-Fi'yi kurar, sonra seçtiklerini sırayla geri yükler."));
             sb.AppendLine();
             sb.AppendLine(T("Kahya olmadan elle yapmak istersen önce arşivi bir klasöre çıkar:"));
-            sb.AppendLine(T("  1. Önce sürücüleri kur (özellikle Wi-Fi/Ethernet): Kahya › Format yardımcısı › Sürücüler › Seç… ('suruculer' klasörü)."));
-            sb.AppendLine(T("     Kahya yoksa: yönetici komut isteminde  pnputil /add-driver \"suruculer\\*.inf\" /subdirs /install"));
-            sb.AppendLine(T("  2. Wi-Fi ağları: Kahya › Format yardımcısı › Wi-Fi ağları › Seç… ('wifi' klasörü). Şifreler wifi-sifreleri.txt içinde de yazılı."));
-            sb.AppendLine(T("  3. Programlar: Kahya › Uygulamalar › Program kur › Listeden yükle… (programlar.txt). Hepsinin en yeni sürümü kurulur."));
+            sb.AppendLine(T("  1. Sürücüler (özellikle Wi-Fi/Ethernet): yönetici komut isteminde  pnputil /add-driver \"suruculer\\*.inf\" /subdirs /install"));
+            sb.AppendLine(T("  2. Wi-Fi ağları: şifreler wifi\\wifi-sifreleri.txt içinde yazılı."));
+            sb.AppendLine(T("  3. Programlar: programlar.txt içinde listeli; winget'te olanlar: winget install --id <kimlik>."));
             sb.AppendLine(T("  4. Kişisel dosyalar 'klasorler' içinde; istediğin yere geri kopyala."));
-            sb.AppendLine(T("  5. Fontlar: Kahya › Format yardımcısı › Fontlar › Seç… ('fontlar' klasörü). Kahya yoksa: dosyalara sağ tık › Yükle."));
-            sb.AppendLine(T("  6. Program ayarları: programları kurduktan sonra Kahya › Format yardımcısı › Program ayarları › Seç… ('ayarlar' klasörü)."));
+            sb.AppendLine(T("  5. Fontlar: 'fontlar' klasöründeki dosyalara sağ tık › Yükle."));
+            sb.AppendLine(T("  6. Program ayarları ve oyun kayıtları: 'ayarlar' ve 'oyunlar' klasörlerinde; içlerindeki ayarlar.txt hangisinin nereye gideceğini yazar."));
             sb.AppendLine(T("  7. Yer imleri: tarayıcıda Ayarlar › Yer imlerini içe aktar › HTML dosyası ('yer-imleri' klasörü)."));
-            sb.AppendLine(T("     Firefox: Yer imleri › Yer imlerini yönet › İçe aktar ve yedekle › Geri yükle › Dosya seç (.jsonlz4)."));
-            sb.AppendLine(T("  8. Oyun kayıtları ve Minecraft: oyunları kurduktan sonra Kahya › Format yardımcısı › Oyun kayıtları › Seç… ('oyunlar' klasörü)."));
             return sb.ToString();
-        }
-
-        // ───────────── geri yükle ─────────────
-
-        void RestoreApps_Click(object sender, RoutedEventArgs e)
-        {
-            Tabs.SelectedItem = AppsTab;
-            InstallMode_Click(null, null);
-            ProgramListLoad_Click(null, null);
-        }
-
-        async void RestoreWifi_Click(object sender, RoutedEventArgs e)
-        {
-            var folder = PickFolder(T("Yedekteki 'wifi' klasörünü seç"));
-            if (folder == null) return;
-            var token = SetBusy(T("Wi-Fi ağları ekleniyor…"));
-            ShowLog(true);
-            try
-            {
-                int n = await Task.Run(() => FormatBackup.RestoreWifi(folder, Context(token)));
-                Log(T("{0} Wi-Fi ağı eklendi.", n));
-            }
-            catch (Exception ex)
-            {
-                Log("! " + ex.Message);
-            }
-            finally
-            {
-                ApplyBusy(false);
-            }
-        }
-
-        async void RestoreDrivers_Click(object sender, RoutedEventArgs e)
-        {
-            if (!RequireAdmin()) return;
-            var dialog = new Microsoft.Win32.OpenFileDialog
-            {
-                Title = T("Sürücü yedeğini seç (.zip / .7z) — klasör için 'İptal'e bas"),
-                Filter = T("Sürücü yedeği") + " (*.zip;*.7z)|*.zip;*.7z",
-            };
-            string source = dialog.ShowDialog(this) == true ? dialog.FileName : PickFolder(T("Sürücü yedeği klasörünü seç ('suruculer')"));
-            if (source == null) return;
-
-            var token = SetBusy(T("sürücüler kuruluyor…"));
-            ShowLog(true);
-            Log("──────────\n" + T("Sürücüler kuruluyor: {0}", source));
-            try
-            {
-                var ctx = Context(token);
-                var folder = await Task.Run(() => FormatBackup.Extract(source, ctx));
-                int code = await Task.Run(() => FormatBackup.RestoreDrivers(folder, ctx));
-                Log(code == 0 || code == 3010
-                    ? "✔ " + T("Sürücüler kuruldu.") + (code == 3010 ? " " + T("Bitirmek için bilgisayarı yeniden başlat.") : "")
-                    : "! " + T("pnputil {0} koduyla bitti — bazı sürücüler kurulmamış olabilir, ayrıntılar yukarıda.", code));
-            }
-            catch (OperationCanceledException) { }
-            catch (Exception ex)
-            {
-                Log("! " + ex.Message);
-            }
-            finally
-            {
-                ApplyBusy(false);
-            }
-        }
-
-        async void RestoreFonts_Click(object sender, RoutedEventArgs e)
-        {
-            var folder = PickFolder(T("Yedekteki 'fontlar' klasörünü seç"));
-            if (folder == null) return;
-            var token = SetBusy(T("fontlar kuruluyor…"));
-            ShowLog(true);
-            try
-            {
-                var (installed, skipped) = await Task.Run(() => FormatExtras.RestoreFonts(folder, Context(token)));
-                Log("✔ " + T("{0} font kuruldu", installed) + (skipped > 0 ? ", " + T("{0} tanesi zaten kuruluydu", skipped) : "") + ".");
-            }
-            catch (OperationCanceledException) { }
-            catch (Exception ex)
-            {
-                Log("! " + ex.Message);
-            }
-            finally
-            {
-                ApplyBusy(false);
-            }
-        }
-
-        async void RestoreSettings_Click(object sender, RoutedEventArgs e)
-        {
-            if (!Confirm(T("Yedekteki program ayarları (ön ayarlar, kısayollar, sahneler) eski yerlerine kopyalanacak. Önce programları kurmuş olman gerekir; açık olanlar atlanır.\n\nDevam edilsin mi?")))
-                return;
-            var folder = PickFolder(T("Yedekteki 'ayarlar' klasörünü seç"));
-            if (folder == null) return;
-            var token = SetBusy(T("ayarlar geri yükleniyor…"));
-            ShowLog(true);
-            try
-            {
-                int n = await Task.Run(() => FormatExtras.RestoreAppSettings(folder, Context(token)));
-                Log(T("{0} ayar klasörü geri yüklendi.", n));
-            }
-            catch (OperationCanceledException) { }
-            catch (Exception ex)
-            {
-                Log("! " + ex.Message);
-                Info(ex.Message);
-            }
-            finally
-            {
-                ApplyBusy(false);
-            }
-        }
-
-        async void RestoreGames_Click(object sender, RoutedEventArgs e)
-        {
-            var folder = PickFolder(T("Yedekteki 'oyunlar' klasörünü seç"));
-            if (folder == null) return;
-            var token = SetBusy(T("oyun kayıtları geri yükleniyor…"));
-            ShowLog(true);
-            try
-            {
-                int n = await Task.Run(() => FormatExtras.RestoreAppSettings(folder, Context(token)));
-                Log(T("{0} oyun klasörü geri yüklendi.", n));
-            }
-            catch (OperationCanceledException) { }
-            catch (Exception ex)
-            {
-                Log("! " + ex.Message);
-                Info(ex.Message);
-            }
-            finally
-            {
-                ApplyBusy(false);
-            }
-        }
-
-        void RestoreBookmarks_Click(object sender, RoutedEventArgs e) =>
-            Info(T("Yedekteki 'yer-imleri' klasöründe her tarayıcı profili için bir HTML dosyası var.\n\n" +
-                   "Chrome / Edge / Brave: Ayarlar › Yer imlerini ve ayarları içe aktar › Yer imleri HTML dosyası.\n" +
-                   "Firefox: Yer imleri › Yer imlerini yönet › İçe aktar ve yedekle › HTML'den içe aktar.\n\n" +
-                   "Firefox yedeği (.jsonlz4) için: İçe aktar ve yedekle › Geri yükle › Dosya seç."));
-
-        static string PickFolder(string description)
-        {
-            using (var dialog = new System.Windows.Forms.FolderBrowserDialog { Description = description, ShowNewFolderButton = false })
-                return dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK ? dialog.SelectedPath : null;
         }
     }
 }

@@ -96,6 +96,34 @@ namespace Kahya.Core
             return Directory.Exists(dir) ? Directory.GetDirectories(dir).Select(System.IO.Path.GetFileName).OrderBy(n => n).ToList() : new List<string>();
         }
 
+        /// <summary>Bir klasörün doğrudan içindeki dosyalar (ad, boyut). Eski sıkıştırılmış biçimde arşiv açılır.</summary>
+        public List<(string name, long size)> Files(string relative, CleanContext ctx)
+        {
+            if (string.IsNullOrEmpty(relative)) return new List<(string, long)>();
+            if (IsZip)
+            {
+                var prefix = BackupArchive.Prefix(relative);
+                return _entries.Where(e => e.name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) && e.name.IndexOf('/', prefix.Length) < 0 && e.name.Length > prefix.Length)
+                    .Select(e => (e.name.Substring(prefix.Length), e.size)).OrderBy(e => e.Item1).ToList();
+            }
+            var dir = Local(relative, ctx);
+            return Directory.Exists(dir)
+                ? Directory.GetFiles(dir).Select(f => (System.IO.Path.GetFileName(f), new FileInfo(f).Length)).OrderBy(f => f.Item1).ToList()
+                : new List<(string, long)>();
+        }
+
+        /// <summary>Yedekteki küçük bir metin dosyasının satırları (ayarlar.txt, fontlar.txt…); yoksa boş.</summary>
+        public string[] ReadLines(string relativeFile, CleanContext ctx)
+        {
+            try
+            {
+                if (!Has(relativeFile)) return new string[0];
+                var path = Local(relativeFile, ctx);
+                return File.Exists(path) ? File.ReadAllLines(path) : new string[0];
+            }
+            catch { return new string[0]; }
+        }
+
         /// <summary>
         /// Yedekteki yolun bu bilgisayardaki yerini döndürür; ZIP'teyse önce geçici klasöre çıkarır.
         /// Eski biçimde sürücüler .zip/.7z ise onlar da açılır.

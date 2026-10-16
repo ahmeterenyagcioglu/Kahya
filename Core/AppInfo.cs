@@ -39,7 +39,7 @@ namespace Kahya.Core
             new ReleaseNote
             {
                 Version = "1.4.0", Date = T("16 Ekim 2026"),
-                Notes = T("• Format sonrası asistanı: yedeği kendisi bulur; internet yoksa önce ağ sürücüsünü ve Wi-Fi ağlarını kurar; neyin geri yükleneceğini (programları tek tek) seçtirir; ekran kartı sürücüsüne bakar; sonra her şeyi sırayla geri yükler\n• Format yedeği artık tek bir ZIP dosyası: soru yok, Kahya.exe de içinde, Windows ek program olmadan açar\n• Zaten kurulu programlar asistanda kendiliğinden atlanır"),
+                Notes = T("• Format sonrası asistanı: yedeği kendisi bulur; Wi-Fi ağlarını ekler, internet yoksa önce ağ sürücüsünü kurar; her kategoride neyin geri yükleneceğini tek tek seçtirir; ekran kartı sürücüsüne bakar; sonra seçilenleri sırayla geri yükler\n• Asistan kapanırsa ya da Kahya yeniden başlarsa kaldığı yerden devam eder\n• Format yedeği artık bir ZIP ve yanında Kahya.exe: soru yok, ZIP'i Windows ek program olmadan açar\n• Ağ kartı (Wi-Fi/Ethernet) sürücüleri her zaman yedeklenir\n• Belgeler gibi klasörlerin boyutu yanlış hesaplanıyordu; düzeldi. Klasörlerin içinde kalan oyun/ayar klasörleri artık iki kez yedeklenmiyor\n• Visual C++, .NET gibi bileşenler program listesine girmiyor; zaten kurulu programlar asistanda kendiliğinden atlanır"),
             },
             new ReleaseNote
             {

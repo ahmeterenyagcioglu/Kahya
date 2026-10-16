@@ -22,7 +22,8 @@ namespace Kahya.Core
         {
             ".jpg", ".jpeg", ".png", ".gif", ".webp", ".heic", ".avif", ".mp4", ".mkv", ".mov", ".avi", ".webm", ".m4v",
             ".mp3", ".m4a", ".aac", ".ogg", ".opus", ".flac", ".zip", ".7z", ".rar", ".gz", ".xz", ".bz2", ".zst", ".cab",
-            ".jar", ".docx", ".xlsx", ".pptx", ".pdf", ".msi", ".iso", ".nupkg", ".apk", ".mca", ".dds",
+            ".jar", ".docx", ".xlsx", ".pptx", ".pdf", ".msi", ".iso", ".nupkg", ".apk",
+            // .mca (Minecraft dünyaları) burada değil: içleri sıkıştırılmış olsa da 4 KB'lık boşluklarla dolu, epey küçülür.
         };
 
         /// <summary>Klasörün içeriğini ZIP'e koyar (klasörün kendisi değil). Okunamayan dosyalar kayda yazılır ve atlanır.</summary>
@@ -34,7 +35,9 @@ namespace Kahya.Core
             int lastPercent = -1;
 
             if (File.Exists(zipPath)) File.Delete(zipPath);
-            using (var zip = ZipFile.Open(zipPath, ZipArchiveMode.Create, new UTF8Encoding(false)))
+            // Kodlama verilmez: .NET Framework ancak öyle Türkçe adları UTF-8 yazıp "UTF-8" işaretini koyar
+            // (kodlama elle verilirse işaret konmaz, 7-Zip ve Gezgin "Masaüstü"nü bozuk gösterir).
+            using (var zip = ZipFile.Open(zipPath, ZipArchiveMode.Create))
             {
                 foreach (var file in files)
                 {

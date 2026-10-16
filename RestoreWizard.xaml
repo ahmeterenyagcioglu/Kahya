@@ -1,12 +1,13 @@
 <Window x:Class="Kahya.RestoreWizard"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Format sonrası asistanı" Width="900" Height="660" MinWidth="760" MinHeight="560"
+        Title="Format sonrası asistanı" Width="920" Height="680" MinWidth="780" MinHeight="580"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource Bg}" Foreground="{DynamicResource Text}"
         FontFamily="Segoe UI" FontSize="13" UseLayoutRounding="True" TextOptions.TextFormattingMode="Display">
 
     <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolVis"/>
         <Style x:Key="WizRow" TargetType="Border">
             <Setter Property="Background" Value="{DynamicResource Card}"/>
             <Setter Property="CornerRadius" Value="10"/>
@@ -47,6 +48,18 @@
             <Setter Property="Foreground" Value="{DynamicResource Muted}"/>
             <Setter Property="Margin" Value="2,14,0,8"/>
         </Style>
+
+        <!-- Bir kategorinin içindeki öğe: tek sütun, ad solda, boyut/not sağda -->
+        <DataTemplate x:Key="ItemRow">
+            <DockPanel Margin="0,1" Background="Transparent">
+                <TextBlock DockPanel.Dock="Right" Text="{Binding Detail}" Foreground="{DynamicResource Muted}" FontSize="12"
+                           VerticalAlignment="Center" Margin="12,0,0,0"/>
+                <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}" IsEnabled="{Binding IsEnabled}" Click="Item_Click"
+                          VerticalAlignment="Center" Padding="8,3,0,3">
+                    <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis"/>
+                </CheckBox>
+            </DockPanel>
+        </DataTemplate>
     </Window.Resources>
 
     <Grid>
@@ -103,6 +116,15 @@
                         <TextBlock Text="Yedeği seç" Style="{StaticResource PageTitle}"/>
                         <TextBlock Style="{StaticResource PageSub}"
                                    Text="Format öncesi Kahya ile aldığın yedek (Kahya-Yedek-….zip). USB bellek ya da ikinci disk takılıysa Kahya kendisi bulur."/>
+                        <Border x:Name="ResumeBanner" Background="{DynamicResource AccentSoft}" CornerRadius="10" Padding="14,10" Margin="0,0,0,10" Visibility="Collapsed">
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" Content="Kaldığın yerden devam et" Style="{StaticResource AccentBtn}" Margin="10,0,0,0"
+                                        VerticalAlignment="Center" Click="Resume_Click"/>
+                                <TextBlock Text="&#xE768;" FontFamily="{StaticResource Icons}" FontSize="16" Foreground="{DynamicResource AccentText}"
+                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBlock x:Name="ResumeText" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </DockPanel>
+                        </Border>
                         <Border x:Name="AdminBanner" Background="{DynamicResource AccentSoft}" CornerRadius="10" Padding="14,10" Margin="0,0,0,12">
                             <DockPanel>
                                 <Button DockPanel.Dock="Right" Content="Yönetici olarak yeniden başlat" Style="{StaticResource SmallBtn}" Margin="10,0,0,0"
@@ -125,7 +147,7 @@
                                 <DataTemplate>
                                     <Border x:Name="b" Style="{StaticResource WizRow}" Cursor="Hand" MouseLeftButtonUp="Found_Click" BorderThickness="2" BorderBrush="Transparent">
                                         <DockPanel>
-                                            <TextBlock Style="{StaticResource RowIcon}" Text="&#xE8B7;"/>
+                                            <TextBlock Style="{StaticResource RowIcon}" Text="{Binding Icon}"/>
                                             <TextBlock DockPanel.Dock="Right" Text="{Binding Size}" Foreground="{DynamicResource Muted}" VerticalAlignment="Center"/>
                                             <StackPanel>
                                                 <TextBlock Text="{Binding Title}" Style="{StaticResource RowTitle}"/>
@@ -145,104 +167,83 @@
                 </DockPanel>
 
                 <!-- ═════ 2. İnternet ═════ -->
-                <StackPanel x:Name="PageNet" Visibility="Collapsed">
-                    <TextBlock Text="İnternet bağlantısı" Style="{StaticResource PageTitle}"/>
-                    <TextBlock Style="{StaticResource PageSub}"
-                               Text="Programları kurmak ve ekran kartı sürücüsüne bakmak için internet gerekiyor. Yoksa önce ağ kartının sürücüsünü ve Wi-Fi ağlarını yedekten kuralım."/>
-                    <Border Style="{StaticResource WizRow}">
-                        <DockPanel>
-                            <Button x:Name="NetRetryBtn" DockPanel.Dock="Right" Content="Tekrar dene" Style="{StaticResource SmallBtn}" Margin="10,0,0,0"
-                                    VerticalAlignment="Center" Click="NetRetry_Click"/>
-                            <TextBlock x:Name="NetIcon" Style="{StaticResource RowIcon}" Text="&#xE701;"/>
-                            <StackPanel VerticalAlignment="Center">
-                                <TextBlock x:Name="NetTitle" Text="Kontrol ediliyor…" Style="{StaticResource RowTitle}"/>
-                                <TextBlock x:Name="NetSub" Style="{StaticResource RowSub}"/>
-                            </StackPanel>
-                        </DockPanel>
-                    </Border>
-                    <StackPanel x:Name="NetFixPanel" Visibility="Collapsed">
-                        <TextBlock Text="BAĞLANMAK İÇİN" Style="{StaticResource Section}"/>
+                <DockPanel x:Name="PageNet" Visibility="Collapsed">
+                    <StackPanel DockPanel.Dock="Top">
+                        <TextBlock Text="İnternet ve Wi-Fi" Style="{StaticResource PageTitle}"/>
+                        <TextBlock Style="{StaticResource PageSub}"
+                                   Text="Programları kurmak ve ekran kartı sürücüsüne bakmak için internet gerekiyor. Wi-Fi ağlarını buradan şifreleriyle ekleyebilirsin; internet yoksa önce ağ kartının sürücüsünü kuralım."/>
                         <Border Style="{StaticResource WizRow}">
                             <DockPanel>
-                                <Button x:Name="NetDriverBtn" DockPanel.Dock="Right" Content="Kur" Style="{StaticResource SmallBtn}" Margin="10,0,0,0"
+                                <Button x:Name="NetRetryBtn" DockPanel.Dock="Right" Content="Tekrar dene" Style="{StaticResource SmallBtn}" Margin="10,0,0,0"
+                                        VerticalAlignment="Center" Click="NetRetry_Click"/>
+                                <TextBlock x:Name="NetIcon" Style="{StaticResource RowIcon}" Text="&#xE701;"/>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock x:Name="NetTitle" Text="Kontrol ediliyor…" Style="{StaticResource RowTitle}"/>
+                                    <TextBlock x:Name="NetSub" Style="{StaticResource RowSub}"/>
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
+                        <Border x:Name="NetDriverCard" Style="{StaticResource WizRow}" Visibility="Collapsed">
+                            <DockPanel>
+                                <Button x:Name="NetDriverBtn" DockPanel.Dock="Right" Content="Sürücüyü kur" Style="{StaticResource AccentBtn}" Margin="10,0,0,0"
                                         VerticalAlignment="Center" Click="NetDriver_Click"/>
                                 <TextBlock Style="{StaticResource RowIcon}" Text="&#xE839;"/>
                                 <StackPanel VerticalAlignment="Center">
-                                    <TextBlock Text="Ağ kartı sürücüleri" Style="{StaticResource RowTitle}"/>
+                                    <TextBlock Text="Ağ kartı sürücüsü" Style="{StaticResource RowTitle}"/>
                                     <TextBlock x:Name="NetDriverSub" Style="{StaticResource RowSub}"/>
                                 </StackPanel>
                             </DockPanel>
                         </Border>
-                        <Border Style="{StaticResource WizRow}">
-                            <DockPanel>
-                                <Button x:Name="NetWifiBtn" DockPanel.Dock="Right" Content="Ekle" Style="{StaticResource SmallBtn}" Margin="10,0,0,0"
-                                        VerticalAlignment="Center" Click="NetWifi_Click"/>
+                    </StackPanel>
+                    <Border x:Name="WifiCard" Style="{StaticResource WizRow}" Margin="0">
+                        <DockPanel>
+                            <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+                                <Button x:Name="WifiAddBtn" DockPanel.Dock="Right" Content="Seçilenleri ekle" Style="{StaticResource SmallBtn}" Margin="10,0,0,0"
+                                        VerticalAlignment="Center" Click="WifiAdd_Click"/>
                                 <TextBlock Style="{StaticResource RowIcon}" Text="&#xE701;"/>
                                 <StackPanel VerticalAlignment="Center">
                                     <TextBlock Text="Kayıtlı Wi-Fi ağları" Style="{StaticResource RowTitle}"/>
-                                    <TextBlock x:Name="NetWifiSub" Style="{StaticResource RowSub}"/>
+                                    <TextBlock x:Name="WifiSub" Style="{StaticResource RowSub}"/>
                                 </StackPanel>
                             </DockPanel>
-                        </Border>
-                        <TextBlock Style="{StaticResource RowSub}" Margin="2,8,0,0"
-                                   Text="İnternet olmadan da devam edebilirsin; programlar ve ekran kartı kontrolü bağlantı gelince yapılır."/>
-                    </StackPanel>
-                </StackPanel>
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="34,0,0,0">
+                                <ItemsControl x:Name="WifiList" ItemTemplate="{StaticResource ItemRow}"/>
+                            </ScrollViewer>
+                        </DockPanel>
+                    </Border>
+                </DockPanel>
 
                 <!-- ═════ 3. Seçim ═════ -->
                 <DockPanel x:Name="PageChoose" Visibility="Collapsed">
                     <StackPanel DockPanel.Dock="Top">
                         <TextBlock Text="Neler geri yüklensin?" Style="{StaticResource PageTitle}"/>
                         <TextBlock Style="{StaticResource PageSub}"
-                                   Text="Hepsi seçili gelir; istemediklerinin işaretini kaldır. Var olan dosyaların daha yenisi varsa üzerine yazılmaz."/>
+                                   Text="Her kategoriyi açıp içindekileri tek tek seçebilirsin. Var olan dosyaların daha yenisi varsa üzerine yazılmaz."/>
                     </StackPanel>
                     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,6,0">
-                        <StackPanel>
-                            <ItemsControl x:Name="ChoiceList">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Style="{StaticResource WizRow}">
+                        <ItemsControl x:Name="CategoryList">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource WizRow}">
+                                        <StackPanel>
                                             <DockPanel>
-                                                <CheckBox DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding IsChecked, Mode=TwoWay}"
-                                                          IsEnabled="{Binding IsEnabled}" VerticalAlignment="Center"/>
+                                                <CheckBox DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding IsChecked, Mode=OneWay}"
+                                                          IsEnabled="{Binding IsEnabled}" VerticalAlignment="Center" Click="Category_Click"/>
+                                                <Button DockPanel.Dock="Right" Content="{Binding ExpandText}" Style="{StaticResource GhostBtn}"
+                                                        Margin="0,0,10,0" VerticalAlignment="Center" Click="Expand_Click"/>
                                                 <TextBlock Style="{StaticResource RowIcon}" Text="{Binding Icon}"/>
                                                 <StackPanel VerticalAlignment="Center" Margin="0,0,12,0">
                                                     <TextBlock Text="{Binding Title}" Style="{StaticResource RowTitle}"/>
                                                     <TextBlock Text="{Binding Detail}" Style="{StaticResource RowSub}"/>
                                                 </StackPanel>
                                             </DockPanel>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-
-                            <Border x:Name="ProgramsCard" Style="{StaticResource WizRow}">
-                                <StackPanel>
-                                    <DockPanel>
-                                        <CheckBox x:Name="ProgramsBox" DockPanel.Dock="Right" Style="{StaticResource Switch}" VerticalAlignment="Center" Click="ProgramsBox_Click"/>
-                                        <Button x:Name="ProgramsExpandBtn" DockPanel.Dock="Right" Content="Listeyi göster ▾" Style="{StaticResource GhostBtn}"
-                                                Margin="0,0,10,0" VerticalAlignment="Center" Click="ProgramsExpand_Click"/>
-                                        <TextBlock Style="{StaticResource RowIcon}" Text="&#xE71D;"/>
-                                        <StackPanel VerticalAlignment="Center">
-                                            <TextBlock Text="Programlar" Style="{StaticResource RowTitle}"/>
-                                            <TextBlock x:Name="ProgramsSub" Style="{StaticResource RowSub}"/>
+                                            <ItemsControl ItemsSource="{Binding Items}" ItemTemplate="{StaticResource ItemRow}" Margin="34,10,0,0"
+                                                          Visibility="{Binding Expanded, Converter={StaticResource BoolVis}}"/>
                                         </StackPanel>
-                                    </DockPanel>
-                                    <ItemsControl x:Name="ProgramList" Visibility="Collapsed" Margin="34,10,0,0">
-                                        <ItemsControl.ItemsPanel>
-                                            <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
-                                        </ItemsControl.ItemsPanel>
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}" Width="250" Margin="0,3" Click="Program_Click" ToolTip="{Binding Detail}">
-                                                    <TextBlock Text="{Binding Title}" FontSize="12.5" TextTrimming="CharacterEllipsis"/>
-                                                </CheckBox>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </StackPanel>
-                            </Border>
-                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </ScrollViewer>
                 </DockPanel>
 
@@ -275,7 +276,7 @@
                 <DockPanel x:Name="PageRun" Visibility="Collapsed">
                     <StackPanel DockPanel.Dock="Top">
                         <TextBlock x:Name="RunTitle" Text="Geri yükleniyor" Style="{StaticResource PageTitle}"/>
-                        <TextBlock x:Name="RunSub" Style="{StaticResource PageSub}" Text="Bilgisayarı kullanmaya devam edebilirsin."/>
+                        <TextBlock x:Name="RunSub" Style="{StaticResource PageSub}" Text="Bilgisayarı kullanmaya devam edebilirsin. Kapatırsan sonra kaldığı yerden devam eder."/>
                         <ProgressBar x:Name="RunProgress" Height="4" IsIndeterminate="True" Margin="0,0,0,8"
                                      Background="{DynamicResource Row}" Foreground="{DynamicResource Accent}" BorderThickness="0"/>
                         <TextBlock x:Name="RunStatus" Style="{StaticResource RowSub}" Margin="0,0,0,10"/>
