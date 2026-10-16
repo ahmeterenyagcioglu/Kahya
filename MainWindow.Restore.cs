@@ -19,6 +19,8 @@ namespace Kahya
 
         void RestoreFromBackup_Click(object sender, RoutedEventArgs e) => OpenRestoreWizard(null);
 
+        async void BrowseBackup_Click(object sender, RoutedEventArgs e) => await BackupBrowser.OpenAsync(this);
+
         /// <summary>Asistanı açar (açıksa öne getirir). <paramref name="path"/>: seçili gelecek yedek.</summary>
         public void OpenRestoreWizard(string path)
         {

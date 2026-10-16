@@ -284,6 +284,52 @@ namespace Kahya.Core
             return count;
         }
 
+        /// <summary>
+        /// Arşivdeki bir dosyayı ya da klasörü (altındakilerle) <paramref name="destFolder"/>'ın içine, yedekteki üst
+        /// klasörleri olmadan çıkarır: "klasorler/Belgeler/rapor.txt" → destFolder\rapor.txt. Var olan dosyanın üzerine
+        /// yazmaz; adının sonuna " (2)" ekler. Çıkarılan dosya sayısını döndürür.
+        /// </summary>
+        public static int ExtractItem(string zipPath, string relative, string destFolder, CleanContext ctx)
+        {
+            var name = relative.TrimEnd('/');
+            var parent = name.Contains('/') ? name.Substring(0, name.LastIndexOf('/') + 1) : "";
+            var root = Path.GetFullPath(destFolder).TrimEnd('\\') + "\\";
+            int count = 0;
+            using (var zip = ZipFile.Open(zipPath, ZipArchiveMode.Read, new UTF8Encoding(false)))
+            {
+                foreach (var e in zip.Entries)
+                {
+                    ctx.Token.ThrowIfCancellationRequested();
+                    if (!(e.FullName.Equals(name, StringComparison.OrdinalIgnoreCase) || e.FullName.StartsWith(name + "/", StringComparison.OrdinalIgnoreCase)))
+                        continue;
+                    var plain = Path.GetFullPath(Path.Combine(root, e.FullName.Substring(parent.Length).Replace('/', '\\')));
+                    if (!plain.StartsWith(root, StringComparison.OrdinalIgnoreCase)) continue;
+                    if (e.FullName.EndsWith("/")) { Directory.CreateDirectory(LongPath.Of(plain)); continue; }
+                    var target = LongPath.Of(FreeName(plain));
+                    Directory.CreateDirectory(Path.GetDirectoryName(target));
+                    e.ExtractToFile(target, false);
+                    var attributes = (FileAttributes)e.ExternalAttributes & KeptAttributes;
+                    if (attributes != 0) File.SetAttributes(target, File.GetAttributes(target) | attributes);
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        /// <summary>Dosya varsa "ad (2).uzantı", "ad (3).uzantı"… ilk boş adı verir.</summary>
+        static string FreeName(string path)
+        {
+            if (!File.Exists(LongPath.Of(path))) return path;
+            var dir = Path.GetDirectoryName(path);
+            var stem = Path.GetFileNameWithoutExtension(path);
+            var ext = Path.GetExtension(path);
+            for (int i = 2; ; i++)
+            {
+                var candidate = Path.Combine(dir, $"{stem} ({i}){ext}");
+                if (!File.Exists(LongPath.Of(candidate))) return candidate;
+            }
+        }
+
         /// <summary>Arşivdeki girdi adları ve boyutları (bir kez okunur, sonra sorgulanır).</summary>
         public static List<(string name, long size)> List(string zipPath)
         {

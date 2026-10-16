@@ -1842,4 +1842,23 @@
   <t tr="{0} açılamadı: {1}">Couldn't open {0}: {1}</t>
   <t tr="{0}: {1} · verilerini hemen yedekle (tıkla: Format yardımcısı)">{0}: {1} · back up your data now (click: Reinstall helper)</t>
   <t tr="Kahya - disk uyarısı">Kahya - disk warning</t>
+  <t tr="Yedeğe göz at">Browse backup</t>
+  <t tr="Yedekten tek bir dosyayı ya da klasörü geri al (asistan olmadan)">Restore a single file or folder from a backup (without the assistant)</t>
+  <t tr="Bir dosyayı ya da klasörü seçip istediğin yere çıkar. Yedek değişmez; var olan dosyaların üzerine yazılmaz.">Select a file or folder and extract it wherever you like. The backup doesn't change; existing files aren't overwritten.</t>
+  <t tr="Üst klasör">Up one folder</t>
+  <t tr="Bütün yedekte ara…">Search the whole backup…</t>
+  <t tr="Seçilenleri çıkar…">Extract selected…</t>
+  <t tr="Göz atılacak Kahya yedeğini seç">Choose the Kahya backup to browse</t>
+  <t tr="Bu eski biçimde bir yedek (klasör). İçindeki dosyaları Gezgin'de doğrudan açıp kopyalayabilirsin.">This is an old-format backup (a folder). You can open and copy its files directly in File Explorer.</t>
+  <t tr="Yedek açılamadı: {0}">Couldn't open the backup: {0}</t>
+  <t tr="Yedeğin kökü">Backup root</t>
+  <t tr="Bu klasör boş.">This folder is empty.</t>
+  <t tr="Arama: {0}">Search: {0}</t>
+  <t tr="Bulunamadı.">Nothing found.</t>
+  <t tr="Çıkarmak için seç; klasöre girmek için çift tıkla.">Select to extract; double-click to open a folder.</t>
+  <t tr="{0} öğe seçili · {1}">{0} items selected · {1}</t>
+  <t tr="Seçilenler nereye çıkarılsın?">Where should the selected items go?</t>
+  <t tr="Çıkarılıyor…">Extracting…</t>
+  <t tr="{0} dosya çıkarıldı, bazıları çıkarılamadı:\n\n{1}">{0} files extracted, some couldn't be:\n\n{1}</t>
+  <t tr="{0} dosya çıkarıldı:\n{1}\n\nKlasör açılsın mı?">{0} files extracted:\n{1}\n\nOpen the folder?</t>
 </language>
