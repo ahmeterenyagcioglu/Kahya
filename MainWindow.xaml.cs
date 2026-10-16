@@ -32,6 +32,7 @@ namespace Kahya
             InitializeComponent();
             Lang.TranslateTree(this);
             SourceInitialized += (s, e) => TitleBar.Apply(this);
+            FitToWorkArea();
 
             _engine = new CleanEngine(Log);
             _items = Catalog.Build().Where(i => i.IsAvailable()).ToList();
@@ -99,6 +100,22 @@ namespace Kahya
                     Tray.HiddenHint();
                 }
             };
+        }
+
+        /// <summary>
+        /// 1366×768 ya da %125 ölçekli küçük ekranlarda 1180×800'lük pencere ekrandan büyük kalır, CenterScreen de
+        /// görev çubuğunu hesaba katmaz: başlık çubuğu üstten taşar, pencere tutulup taşınamaz. Çalışma alanına sığdırılır.
+        /// </summary>
+        void FitToWorkArea()
+        {
+            var work = SystemParameters.WorkArea;
+            MinWidth = Math.Min(MinWidth, work.Width);
+            MinHeight = Math.Min(MinHeight, work.Height);
+            Width = Math.Min(Width, work.Width);
+            Height = Math.Min(Height, work.Height);
+            WindowStartupLocation = WindowStartupLocation.Manual;
+            Left = work.Left + (work.Width - Width) / 2;
+            Top = work.Top + (work.Height - Height) / 2;
         }
 
         // ───────────── ortak: kayıt, durum çubuğu, meşgul durumu ─────────────
@@ -335,6 +352,19 @@ namespace Kahya
             while (d != null && !(d is T))
                 d = System.Windows.Media.VisualTreeHelper.GetParent(d);
             return d as T;
+        }
+
+        /// <summary>DataContext'i <paramref name="data"/> olan ilk öğeyi görsel ağaçta bulur (ör. listede kaydırıp göstermek için).</summary>
+        static FrameworkElement FindByData(DependencyObject root, object data)
+        {
+            for (int i = 0; i < System.Windows.Media.VisualTreeHelper.GetChildrenCount(root); i++)
+            {
+                var child = System.Windows.Media.VisualTreeHelper.GetChild(root, i);
+                if (child is FrameworkElement fe && ReferenceEquals(fe.DataContext, data)) return fe;
+                var found = FindByData(child, data);
+                if (found != null) return found;
+            }
+            return null;
         }
 
         bool Confirm(string message, MessageBoxImage icon = MessageBoxImage.Question) =>

@@ -189,7 +189,7 @@ namespace Kahya
                 var disks = await Task.Run(() => SystemCare.DiskHealth(new CleanContext(_ => { }, CancellationToken.None)));
                 var bad = disks.Where(d => !d.Healthy).ToList();
                 if (disks.Count == 0)
-                    _tHealth.Set("—", T("Disk bilgisi okunamadı"), "info");
+                    _tHealth.Set("—", T("Diskler sağlık bilgisi vermiyor"), "info");
                 else if (bad.Count == 0)
                     _tHealth.Set(T("Sağlıklı"), disks.Count == 1 ? disks[0].Name : T("{0} diskin hepsi sağlıklı", disks.Count), "good");
                 else

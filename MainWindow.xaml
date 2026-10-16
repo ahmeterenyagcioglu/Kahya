@@ -1567,6 +1567,7 @@
                                                     </DataTemplate>
                                                 </ItemsControl.ItemTemplate>
                                             </ItemsControl>
+                                            <TextBlock x:Name="DiskHealthNote" Style="{StaticResource Hint}" Visibility="Collapsed"/>
                                         </StackPanel>
                                     </Border>
                                 </StackPanel>

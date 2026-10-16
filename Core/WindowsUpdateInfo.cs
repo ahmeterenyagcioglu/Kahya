@@ -35,7 +35,7 @@ if ($n -gt 0) {
 try {
     $r = $h.Search(""IsInstalled=0 and IsHidden=0 and Type='Software'"")
     foreach ($u in $r.Updates) { 'U' + [char]9 + $u.Title + [char]9 + [int64]$u.MaxDownloadSize }
-} catch { 'E' + [char]9 + $_.Exception.Message }";
+} catch { $e = $_.Exception; while ($e.InnerException) { $e = $e.InnerException }; 'E' + [char]9 + $e.Message + [char]9 + $e.HResult }";
             var status = new WindowsUpdateStatus();
             foreach (var line in PowerShellRunner.Run(script, ctx))
             {
@@ -52,6 +52,9 @@ try {
                 }
                 else if (p[0] == "E" && p.Length >= 2)
                 {
+                    // Hata kodu taşınır ki Format.Error "Exception from HRESULT: 0x…" yerine anlaşılır bir şey yazsın.
+                    if (p.Length >= 3 && int.TryParse(p[2], out var hresult))
+                        throw new System.Runtime.InteropServices.COMException(p[1], hresult);
                     throw new InvalidOperationException(p[1]);
                 }
             }

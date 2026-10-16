@@ -28,7 +28,8 @@ namespace Kahya.Core
             var values = lines
                 .SkipWhile(l => l.IndexOf("(WinSxS)", StringComparison.OrdinalIgnoreCase) < 0)
                 .Skip(1)
-                .Where(l => l.Contains(" : "))
+                // Değer boş olabilir: hiç temizlik yapılmamışsa "Date of Last Cleanup :" iki noktayla biter.
+                .Where(l => System.Text.RegularExpressions.Regex.IsMatch(l, @"\s:(\s|$)"))
                 .Select(l => l.Substring(l.IndexOf(':') + 1).Trim())
                 .ToList();
             if (values.Count < 8) return null;

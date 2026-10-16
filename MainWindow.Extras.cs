@@ -33,7 +33,7 @@ namespace Kahya
             }
             catch (Exception ex)
             {
-                WuText.Text = T("Kontrol edilemedi: {0}", ex.Message);
+                WuText.Text = T("Kontrol edilemedi: {0}", Format.Error(ex));
             }
             finally
             {

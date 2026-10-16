@@ -190,11 +190,16 @@ namespace Kahya
             try
             {
                 var ctx = new CleanContext(_ => { }, default);
-                DiskHealthList.ItemsSource = await Task.Run(() => SystemCare.DiskHealth(ctx));
+                var disks = await Task.Run(() => SystemCare.DiskHealth(ctx));
+                DiskHealthList.ItemsSource = disks;
+                DiskHealthNote.Text = T("Diskler sağlık bilgisi vermiyor. Sanal makinede, USB kutusunda ya da RAID denetleyicisinin arkasındaki disklerde bu normaldir.");
+                DiskHealthNote.Visibility = disks.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
             }
             catch (Exception ex)
             {
                 Log("! " + T("Disk sağlığı okunamadı: {0}", ex.Message));
+                DiskHealthNote.Text = T("Disk sağlığı okunamadı: {0}", ex.Message);
+                DiskHealthNote.Visibility = Visibility.Visible;
             }
         }
 
@@ -292,6 +297,10 @@ namespace Kahya
             var group = _groups.FirstOrDefault(g => g.Items.Contains(item));
             if (group != null) group.IsExpanded = true;
             Tabs.SelectedItem = CleanTab;
+            // Seçilen öğe Derin Temizlik'in en altında; işlem kaydı da ekranın yarısını kaplıyor. Kaydı kapat, öğeyi göster.
+            ShowLog(false);
+            Dispatcher.BeginInvoke(new Action(() => FindByData(List, item)?.BringIntoView()),
+                                   System.Windows.Threading.DispatcherPriority.Loaded);
         }
 
         // ───────────── hazırda bekletme ─────────────

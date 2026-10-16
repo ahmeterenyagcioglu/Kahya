@@ -164,10 +164,20 @@ namespace Kahya.Core
                 if (end > 1)
                     return (cmd.Substring(1, end - 1), cmd.Substring(end + 1).Trim());
             }
-            int exe = cmd.IndexOf(".exe", StringComparison.OrdinalIgnoreCase);
-            if (exe > 0)
-                return (cmd.Substring(0, exe + 4), cmd.Substring(exe + 4).Trim());
             int space = cmd.IndexOf(' ');
+            // "RunDll32 C:\...\Ctor.dll,LaunchSetup "...\setup.exe"", "MsiExec.exe /X{…}", "cmd /c …": ilk kelime yolsuz bir komut.
+            if (space > 0 && cmd.IndexOfAny(new[] { '\\', '/', ':' }, 0, space) < 0)
+                return (cmd.Substring(0, space), cmd.Substring(space + 1).Trim());
+            // Tırnaksız ve boşluklu yol: "C:\Program Files\X\uninst.exe /S". Var olan ilk .exe'ye kadar olan kısım programdır.
+            for (int exe = cmd.IndexOf(".exe", StringComparison.OrdinalIgnoreCase); exe > 0;
+                 exe = cmd.IndexOf(".exe", exe + 4, StringComparison.OrdinalIgnoreCase))
+            {
+                if (File.Exists(cmd.Substring(0, exe + 4)))
+                    return (cmd.Substring(0, exe + 4), cmd.Substring(exe + 4).Trim());
+            }
+            int first = cmd.IndexOf(".exe", StringComparison.OrdinalIgnoreCase);
+            if (first > 0)
+                return (cmd.Substring(0, first + 4), cmd.Substring(first + 4).Trim());
             return space > 0 ? (cmd.Substring(0, space), cmd.Substring(space + 1)) : (cmd, "");
         }
     }

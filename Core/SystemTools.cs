@@ -52,9 +52,19 @@ namespace Kahya.Core
         {
             for (var e = ex; e != null; e = e.InnerException)
                 if (e is System.Net.WebException || e is System.Net.Sockets.SocketException ||
-                    e.GetType().Name == "HttpRequestException" || e is System.TimeoutException)
+                    e.GetType().Name == "HttpRequestException" || e is System.TimeoutException || IsNetworkCode(e.HResult))
                     return T("sunucuya şu an ulaşılamıyor; internetini kontrol edip sonra tekrar dene.");
+            // Windows Update gibi COM bileşenleri "Exception from HRESULT: 0x…" diye İngilizce, anlamsız bir mesaj verir.
+            if (ex is System.Runtime.InteropServices.COMException)
+                return T("Windows bir hata kodu döndürdü (0x{0:X8}).", ex.HResult);
             return ex.Message;
+        }
+
+        /// <summary>WinINet/WinHTTP (0x80072EE0–0x80072F8F) ve Windows Update'in ağ hataları (0x80244xxx).</summary>
+        static bool IsNetworkCode(int hresult)
+        {
+            uint hr = unchecked((uint)hresult);
+            return (hr >= 0x80072EE0 && hr <= 0x80072F8F) || (hr & 0xFFFFF000) == 0x80244000;
         }
     }
 
