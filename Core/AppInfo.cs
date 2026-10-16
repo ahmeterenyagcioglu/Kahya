@@ -38,6 +38,11 @@ namespace Kahya.Core
         {
             new ReleaseNote
             {
+                Version = "1.7.1", Date = T("16 Ekim 2026"),
+                Notes = T("• Format yedeği Masaüstü'ne alınınca kendini de kopyalamaya çalışıp hiç bitmiyordu; düzeldi\n• Çok derin klasörlerdeki (260 karakteri aşan yollar) dosyalar, gizli ve salt okunur dosyaların öznitelikleri ve boş klasörler artık yedeğe girip geri geliyor; yedeğe giremeyen dosya olursa söyleniyor\n• Bazı programlar (ör. InstallShield ile kurulanlar) Uygulamalar'dan kaldırılamıyordu; düzeldi\n• WinSxS analizinin sonucu anlaşılır bir özet penceresinde; temizlik öneriliyorsa Derin Temizlik'te seçili gelir\n• Pencere küçük ekranlarda ve yüksek ölçeklemede ekrana sığıyor\n• Windows Update, disk sağlığı ve ağ hatalarında anlaşılır mesajlar; simgesi olmayan programlara genel simge"),
+            },
+            new ReleaseNote
+            {
                 Version = "1.7.0", Date = T("16 Ekim 2026"),
                 Notes = T("• Program kaldırınca geride kalanlar: kaldırıcının silmediği klasörler ve kayıt defteri anahtarları bulunur, istediklerini silersin. Klasörler Geri Dönüşüm Kutusu'na gider, anahtarlar önce yedeklenir\n• Gizlilik › Windows ayarları: yeni Görünüm ve kullanım bölümü (dosya uzantıları, gizli dosyalar, Gezgin'i Bu bilgisayar'da açma; Windows 11'de klasik sağ tık menüsü, Copilot ve Pencere Öğeleri'ni kapatma, görev çubuğunda Görevi sonlandır) ve Recall'u kapatma\n• Araçlar › WinSxS boyutunu analiz et; Derin Temizlik'te eski güncellemeleri kalıcı silme (DISM /ResetBase)"),
             },
