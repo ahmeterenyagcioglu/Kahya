@@ -47,13 +47,18 @@ namespace Kahya.Core
                 { (@"Control Panel\Mouse", new[] { "MouseSensitivity", "MouseSpeed", "MouseThreshold1", "MouseThreshold2", "DoubleClickSpeed", "SwapMouseButtons" }) } },
             new Group { Id = "keyboard", Name = "Klavye düzenleri ve diller", Keys = new[]
                 { (@"Keyboard Layout\Preload", (string[])null), (@"Keyboard Layout\Substitutes", (string[])null) } },
+            // Kayıt değeri değil: DISM'in dışa aktardığı XML (aşağıda ayrıca ele alınır).
+            new Group { Id = "defaults", Name = "Varsayılan uygulamalar (PDF, video, tarayıcı…)", Keys = new (string, string[])[0] },
         };
+
+        public const string DefaultsFile = "varsayilan-uygulamalar.xml";
+        const string SystemPolicy = @"SOFTWARE\Policies\Microsoft\Windows\System";
+        const string DefaultsPolicy = "DefaultAssociationsConfiguration";
 
         public static string GroupName(string id) => T(Groups.FirstOrDefault(g => g.Id == id)?.Name ?? id);
 
         // ───────────── yedekle ─────────────
 
-        /// <summary>Ayarları klasöre yazar; yazılan grup sayısını döndürür.</summary>
         /// <summary>Kayıtta değer adı yerine anlaşılır ad (bilinenler için).</summary>
         static string ValueTitle(string name)
         {
@@ -66,6 +71,7 @@ namespace Kahya.Core
             }
         }
 
+        /// <summary>Ayarları klasöre yazar; yazılan grup sayısını döndürür.</summary>
         public static int Save(string folder)
         {
             Directory.CreateDirectory(folder);
@@ -98,6 +104,15 @@ namespace Kahya.Core
                     saved.Add("wallpaper");
                 }
                 catch { }
+            // Varsayılan uygulamalar: Windows bunları imzalı tutar, kayıttan kopyalanamaz; DISM dışa aktarır (yönetici).
+            if (Elevation.IsAdmin)
+                try
+                {
+                    var xml = Path.Combine(folder, DefaultsFile);
+                    ProcessRunner.Run("dism.exe", $"/Online /Export-DefaultAppAssociations:\"{xml}\"", new CleanContext(_ => { }, default));
+                    if (System.IO.File.Exists(xml) && new FileInfo(xml).Length > 0) saved.Add("defaults");
+                }
+                catch { }
             System.IO.File.WriteAllText(Path.Combine(folder, File), sb.ToString(), new UTF8Encoding(false));
             return saved.Count;
         }
@@ -117,10 +132,11 @@ namespace Kahya.Core
         // ───────────── geri yükle ─────────────
 
         /// <summary>Yedekteki ayar gruplarının kimlikleri (asistanın seçim listesi için).</summary>
-        public static List<string> GroupsIn(string[] lines, bool hasWallpaper)
+        public static List<string> GroupsIn(string[] lines, bool hasWallpaper, bool hasDefaults = false)
         {
             var ids = lines.Where(l => !l.StartsWith("#")).Select(l => l.Split('\t')).Where(c => c.Length == 5).Select(c => c[0]).ToList();
             if (hasWallpaper) ids.Add("wallpaper");
+            if (hasDefaults) ids.Add("defaults");
             return Groups.Select(g => g.Id).Where(ids.Contains).ToList();
         }
 
@@ -182,6 +198,7 @@ namespace Kahya.Core
                         if (SystemParametersInfo(0x0014 /* SPI_SETDESKWALLPAPER */, 0, dest, 0x01 | 0x02)) written++;
                     }
                 }
+                if (g.Id == "defaults" && ApplyDefaults(Path.Combine(folder, DefaultsFile), ctx)) written++;
                 if (g.Id == "mouse")
                     try
                     {
@@ -199,9 +216,54 @@ namespace Kahya.Core
             // Açık programlar (Gezgin, görev çubuğu) yeni ayarları görsün.
             SendMessageTimeout((IntPtr)0xFFFF, 0x001A /* WM_SETTINGCHANGE */, IntPtr.Zero, "ImmersiveColorSet", 0x0002, 1000, out _);
             SendMessageTimeout((IntPtr)0xFFFF, 0x001A, IntPtr.Zero, "Policy", 0x0002, 1000, out _);
-            if (ids.Contains("taskbar") || ids.Contains("keyboard") || ids.Contains("explorer"))
-                ctx.Log("   " + T("Görev çubuğu, Gezgin ve klavye ayarları oturumu kapatıp açınca tam uygulanır."));
+            if (ids.Contains("taskbar") || ids.Contains("keyboard") || ids.Contains("explorer") || ids.Contains("defaults"))
+                ctx.Log("   " + T("Görev çubuğu, Gezgin, klavye ve varsayılan uygulamalar oturumu kapatıp açınca uygulanır."));
             return ok;
+        }
+
+        /// <summary>
+        /// Varsayılan uygulamaları bir sonraki oturum açılışında uygulatır: Windows'un "varsayılan ilişkilendirme dosyası"
+        /// ilkesi geçici olarak açılır. İlke açık kalırsa her girişte bu seçimler zorlanır; bu yüzden Kahya bir sonraki
+        /// açılışta (<see cref="FinishDefaults"/>) ilkeyi kaldırır. Dosya Data klasörüne kopyalanır (yedeğin geçici
+        /// kopyası silinecek). Programlar önceden kurulmuş olmalı; kurulu olmayanların ilişkilendirmesi atlanır.
+        /// </summary>
+        static bool ApplyDefaults(string xml, CleanContext ctx)
+        {
+            if (!System.IO.File.Exists(xml)) return false;
+            if (!Elevation.IsAdmin)
+            {
+                ctx.Log("   " + T("Varsayılan uygulamalar için Kahya'yı yönetici olarak aç."));
+                return false;
+            }
+            Directory.CreateDirectory(Settings.Folder);
+            var dest = Path.Combine(Settings.Folder, DefaultsFile);
+            System.IO.File.Copy(xml, dest, true);
+            using (var root = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64))
+            using (var k = root.CreateSubKey(SystemPolicy))
+                k.SetValue(DefaultsPolicy, dest, RegistryValueKind.String);
+            System.IO.File.WriteAllText(dest + ".pending", DateTime.Now.ToString("o"));
+            return true;
+        }
+
+        /// <summary>
+        /// Kahya açılırken: ilke, kurulduktan sonra bir oturum açılışı olduysa (Gezgin daha sonra başladıysa) uygulanmıştır;
+        /// kaldırılır ki kullanıcının sonraki seçimleri her girişte ezilmesin.
+        /// </summary>
+        public static void FinishDefaults()
+        {
+            try
+            {
+                var marker = Path.Combine(Settings.Folder, DefaultsFile + ".pending");
+                if (!System.IO.File.Exists(marker)) return;
+                var set = DateTime.Parse(System.IO.File.ReadAllText(marker));
+                var explorer = System.Diagnostics.Process.GetProcessesByName("explorer").Select(p => { try { return p.StartTime; } catch { return DateTime.MinValue; } }).DefaultIfEmpty().Min();
+                if (explorer <= set || !Elevation.IsAdmin) return;
+                using (var root = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64))
+                using (var k = root.OpenSubKey(SystemPolicy, true))
+                    k?.DeleteValue(DefaultsPolicy, false);
+                System.IO.File.Delete(marker);
+            }
+            catch { }
         }
     }
 }

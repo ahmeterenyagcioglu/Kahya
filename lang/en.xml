@@ -2012,4 +2012,7 @@
   <t tr="Kural eklenemedi: {0}">Couldn't add the rule: {0}</t>
   <t tr="İnternete izin verildi: {0}">Internet allowed: {0}</t>
   <t tr="Kural kaldırılamadı: {0}">Couldn't remove the rule: {0}</t>
+  <t tr="Varsayılan uygulamalar (PDF, video, tarayıcı…)">Default apps (PDF, video, browser…)</t>
+  <t tr="Varsayılan uygulamalar için Kahya'yı yönetici olarak aç.">Open Kahya as administrator for default apps.</t>
+  <t tr="Görev çubuğu, Gezgin, klavye ve varsayılan uygulamalar oturumu kapatıp açınca uygulanır.">Taskbar, Explorer, keyboard and default apps apply after signing out and back in.</t>
 </language>

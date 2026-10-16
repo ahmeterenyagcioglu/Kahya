@@ -49,6 +49,7 @@ namespace Kahya
             }
 
             Settings.Read();
+            WindowsSettings.FinishDefaults(); // geri yüklemede geçici açılan ilke uygulandıysa kaldırılır
             // Data\Lang\en.xml: kendi dilini eklemek isteyen için şablon (yeni sürümde yenilenir).
             try { Lang.ExportTemplate(); } catch { }
             Lang.Init(Settings.Language);

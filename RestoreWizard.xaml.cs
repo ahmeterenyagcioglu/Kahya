@@ -593,7 +593,8 @@ namespace Kahya
             {
                 var lines = _src.ReadLines(m.WindowsSettings + "\\" + WindowsSettings.File, ctx);
                 bool wallpaper = _src.Files(m.WindowsSettings, ctx).Any(f => f.name.StartsWith("duvar-kagidi", StringComparison.OrdinalIgnoreCase));
-                var groups = WindowsSettings.GroupsIn(lines, wallpaper);
+                bool defaults = _src.Files(m.WindowsSettings, ctx).Any(f => f.name.Equals(WindowsSettings.DefaultsFile, StringComparison.OrdinalIgnoreCase));
+                var groups = WindowsSettings.GroupsIn(lines, wallpaper, defaults);
                 if (groups.Count > 0)
                 {
                     var c = Cat("winsettings", "\uE771", T("Windows ayarları"), T("görev çubuğu ve klavye oturumu kapatıp açınca tam uygulanır"));
