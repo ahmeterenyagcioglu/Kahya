@@ -367,7 +367,7 @@ namespace Kahya.Core
                 // Sadece üst düzeydeki klasörler hariç tutulur (tam yolla): bir kaynak paketinin kendi 'assets' klasörü kalsın.
                 var exclude = item.Exclude.Length > 0 ? " /XD " + string.Join(" ", item.Exclude.Select(x => "\"" + System.IO.Path.Combine(source, x) + "\"")) : "";
                 int code = ProcessRunner.Run("robocopy.exe",
-                    $"\"{source}\" \"{System.IO.Path.Combine(target, BackupRelative(folder))}\" /E /R:1 /W:1 /XJ /NFL /NDL /NP{exclude}", ctx);
+                    $"\"{source}\" \"{System.IO.Path.Combine(target, BackupRelative(folder))}\" /E /DCOPY:DT /R:1 /W:1 /XJ /NFL /NDL /NP{exclude}", ctx);
                 if (code < 8) manifest.AppendLine(item.Id + "\t" + item.Name + "\t" + folder);
                 else ok = false;
             }

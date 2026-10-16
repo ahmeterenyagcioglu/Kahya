@@ -38,6 +38,11 @@ namespace Kahya.Core
         {
             new ReleaseNote
             {
+                Version = "1.3.1", Date = T("16 Ekim 2026"),
+                Notes = T("• Sıkıştırılan yedekte Masaüstü, Belgeler gibi klasörlerin boş kopyaları geride kalıyordu; artık temizleniyor\n• .kahya yedek dosyalarının kendi simgesi var (belge + Kahya rozeti); Kahya.exe ile karışmıyor"),
+            },
+            new ReleaseNote
+            {
                 Version = "1.3.0", Date = T("16 Ekim 2026"),
                 Notes = T("• Format yedeği bitince tamamı tek bir arşive (7z ya da ZIP) sıkıştırılır; sürücüler, Wi-Fi ve Kahya dışarıda kalır ki format sonrası internet yokken de kurulabilsin\n• Yedeğin içine Kahya.exe de konur: format sonrası indirmeye gerek yok\n• 7-Zip kurulu değilse arşiv Windows'un kendi aracıyla açılır\n• Daha çok oyun: Steam kayıtları, Unreal Engine (Epic) oyunları, Ubisoft Connect ve Rockstar oyunları\n• Font yedeğinde Microsoft Office'in fontları artık listelenmiyor (Office kurulunca geri gelirler)"),
             },

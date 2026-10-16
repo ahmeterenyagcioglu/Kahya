@@ -11,7 +11,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
     <!-- Sadece yayÄ±nlarken yÃ¼kselt: dÃ¼zeltme 1.0.x, yeni Ã¶zellik 1.x.0. Notlar: Core/AppInfo.cs -->
-    <Version>1.3.0</Version>
+    <Version>1.3.1</Version>
     <Product>Kahya</Product>
     <Authors>Ahmet Eren YaÄŸcÄ±oÄŸlu</Authors>
     <Company>Ahmet Eren YaÄŸcÄ±oÄŸlu</Company>
@@ -23,6 +23,8 @@
 
   <ItemGroup>
     <Resource Include="app.ico" />
+    <!-- .kahya yedek dosyalarının simgesi; ilk açılışta Data klasörüne çıkarılıp dosya ilişkilendirmesine verilir. -->
+    <EmbeddedResource Include="kahya-file.ico" LogicalName="kahya-file.ico" />
   </ItemGroup>
 
   <ItemGroup>

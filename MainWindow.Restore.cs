@@ -221,7 +221,7 @@ namespace Kahya
                 if (extracted != null)
                 {
                     var dir = extracted;
-                    await Task.Run(() => { try { Directory.Delete(dir, true); } catch { } });
+                    await Task.Run(() => FormatBackup.ForceDelete(dir));
                     m.Extracted = null;
                 }
                 ApplyBusy(false);
@@ -306,20 +306,41 @@ namespace Kahya
             {
                 var exe = Process.GetCurrentProcess().MainModule.FileName;
                 var command = $"\"{exe}\" --restore \"%1\"";
-                using (var cmd = Registry.CurrentUser.OpenSubKey(@"Software\Classes\Kahya.Backup\shell\open\command"))
-                    if (cmd?.GetValue("") as string == command) return;
+                // Uygulamanınkinden farklı simge (belge + Kahya rozeti): Kahya.exe ile yedek dosyası yan yana karışmasın.
+                var iconFile = Path.Combine(Settings.Folder, "kahya-file.ico");
+                var iconValue = File.Exists(iconFile) || ExtractFileIcon(iconFile) ? $"\"{iconFile}\",0" : $"\"{exe}\",0";
+                using (var type = Registry.CurrentUser.OpenSubKey(@"Software\Classes\Kahya.Backup"))
+                    if (type?.OpenSubKey(@"shell\open\command")?.GetValue("") as string == command &&
+                        type.OpenSubKey("DefaultIcon")?.GetValue("") as string == iconValue)
+                        return;
 
                 using (var ext = Registry.CurrentUser.CreateSubKey(@"Software\Classes" + "\\" + BackupManifest.Extension))
                     ext.SetValue("", "Kahya.Backup");
                 using (var type = Registry.CurrentUser.CreateSubKey(@"Software\Classes\Kahya.Backup"))
                 {
                     type.SetValue("", T("Kahya format yedeği"));
-                    using (var icon = type.CreateSubKey("DefaultIcon")) icon.SetValue("", $"\"{exe}\",0");
+                    using (var icon = type.CreateSubKey("DefaultIcon")) icon.SetValue("", iconValue);
                     using (var cmd = type.CreateSubKey(@"shell\open\command")) cmd.SetValue("", command);
                 }
                 SHChangeNotify(0x08000000 /* SHCNE_ASSOCCHANGED */, 0, IntPtr.Zero, IntPtr.Zero);
             }
             catch { }
+        }
+
+        /// <summary>Exe'ye gömülü .kahya simgesini Data klasörüne yazar (tek dosya program: simge ayrı dağıtılmaz).</summary>
+        static bool ExtractFileIcon(string path)
+        {
+            try
+            {
+                using (var res = typeof(MainWindow).Assembly.GetManifestResourceStream("kahya-file.ico"))
+                {
+                    if (res == null) return false;
+                    Directory.CreateDirectory(Path.GetDirectoryName(path));
+                    using (var file = File.Create(path)) res.CopyTo(file);
+                }
+                return true;
+            }
+            catch { return false; }
         }
 
         [System.Runtime.InteropServices.DllImport("shell32.dll")]

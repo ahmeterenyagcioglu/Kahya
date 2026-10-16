@@ -215,7 +215,7 @@ namespace Kahya.Core
         {
             if (Directory.Exists(path)) return path;
             dir = dir ?? Path.Combine(Path.GetTempPath(), "Kahya-geri-yukleme-" + Path.GetFileNameWithoutExtension(path));
-            if (Directory.Exists(dir)) Directory.Delete(dir, true);
+            if (Directory.Exists(dir)) ForceDelete(dir);
             Directory.CreateDirectory(dir);
             if (path.EndsWith(".7z", StringComparison.OrdinalIgnoreCase))
             {
@@ -280,8 +280,35 @@ namespace Kahya.Core
             }
 
             foreach (var item in items)
-                try { if (File.Exists(item)) File.Delete(item); else Directory.Delete(item, true); } catch { }
+                if (!ForceDelete(item))
+                    ctx.Log("   ! " + T("{0} arşive girdi ama silinemedi; elle silebilirsin.", Path.GetFileName(item)));
             return name;
+        }
+
+        /// <summary>
+        /// Dosya ya da klasörü siler; salt okunur / gizli / sistem işaretli olanlar dahil (Masaüstü, Belgeler gibi özel
+        /// klasörlerin kopyaları salt okunur gelir ve Directory.Delete onları silemez). Bağlantıların hedefine girilmez.
+        /// </summary>
+        public static bool ForceDelete(string path)
+        {
+            try
+            {
+                if (File.Exists(path))
+                {
+                    File.SetAttributes(path, FileAttributes.Normal);
+                    File.Delete(path);
+                    return true;
+                }
+                if (!Directory.Exists(path)) return true;
+                var dir = new DirectoryInfo(path);
+                if ((dir.Attributes & FileAttributes.ReparsePoint) == 0)
+                    foreach (var child in dir.EnumerateFileSystemInfos())
+                        ForceDelete(child.FullName);
+                dir.Attributes = FileAttributes.Directory;
+                dir.Delete(false);
+                return true;
+            }
+            catch { return false; }
         }
 
         // ───────────── Wi-Fi ─────────────
@@ -471,7 +498,7 @@ namespace Kahya.Core
         /// <summary>Klasörü yedeğe kopyalar (robocopy: kilitli dosyada takılmaz, bağlantıları izlemez). Başarılıysa true.</summary>
         public static bool CopyFolder(PersonalFolder f, string target, CleanContext ctx)
         {
-            int code = ProcessRunner.Run("robocopy.exe", $"\"{f.Path}\" \"{Path.Combine(target, BackupName(f))}\" /E /R:1 /W:1 /XJ /NFL /NDL /NP", ctx);
+            int code = ProcessRunner.Run("robocopy.exe", $"\"{f.Path}\" \"{Path.Combine(target, BackupName(f))}\" /E /DCOPY:DT /R:1 /W:1 /XJ /NFL /NDL /NP", ctx);
             return code < 8; // robocopy: 0-7 başarılı
         }
 

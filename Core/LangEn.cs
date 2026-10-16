@@ -739,6 +739,9 @@ namespace Kahya.Core
 
             ["• Format yedeği bitince tamamı tek bir arşive (7z ya da ZIP) sıkıştırılır; sürücüler, Wi-Fi ve Kahya dışarıda kalır ki format sonrası internet yokken de kurulabilsin\n• Yedeğin içine Kahya.exe de konur: format sonrası indirmeye gerek yok\n• 7-Zip kurulu değilse arşiv Windows'un kendi aracıyla açılır\n• Daha çok oyun: Steam kayıtları, Unreal Engine (Epic) oyunları, Ubisoft Connect ve Rockstar oyunları\n• Font yedeğinde Microsoft Office'in fontları artık listelenmiyor (Office kurulunca geri gelirler)"] = "• When the reinstall backup finishes, it's compressed into a single archive (7z or ZIP); drivers, Wi-Fi and Kahya stay outside so they can be installed even without internet\n• Kahya.exe is placed in the backup too: no need to download it after reinstalling\n• If 7-Zip isn't installed, the archive is extracted with Windows' own tool\n• More games: Steam saves, Unreal Engine (Epic) games, Ubisoft Connect and Rockstar games\n• Microsoft Office fonts are no longer listed in the font backup (they come back when Office is installed)",
 
+            ["• Sıkıştırılan yedekte Masaüstü, Belgeler gibi klasörlerin boş kopyaları geride kalıyordu; artık temizleniyor\n• .kahya yedek dosyalarının kendi simgesi var (belge + Kahya rozeti); Kahya.exe ile karışmıyor"] = "• In compressed backups, empty copies of folders like Desktop and Documents were left behind; they're now cleaned up\n• .kahya backup files have their own icon (document + Kahya badge), so they don't get mixed up with Kahya.exe",
+            ["{0} arşive girdi ama silinemedi; elle silebilirsin."] = "{0} was added to the archive but could not be deleted; you can delete it manually.",
+
             // sıkıştırma, yedekteki Kahya, yeni oyun konumları
             ["Sürücüler ({0}/{1})"] = "Drivers ({0}/{1})",
             ["Kahya (format sonrası buradan açabilirsin)"] = "Kahya (open it from here after reinstalling)",
