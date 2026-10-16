@@ -549,7 +549,10 @@ namespace Kahya
                 foreach (var d in drivers)
                 {
                     var cls = d.Split(new[] { " - " }, StringSplitOptions.None)[0];
-                    Item(c, d, DriverClass(cls) + " · " + DriverName(d), _src.Size(m.Drivers + "\\" + d));
+                    // Sanal ağ kartları (Tailscale, VPN, sanal makine): programları kurulunca kendileri gelir; varsayılan seçili değil.
+                    bool virtualNet = RestoreRunner.LooksVirtual(d) || cls == "NET" && m.NetworkDrivers.Count > 0;
+                    Item(c, d, DriverClass(cls) + " · " + DriverName(d), _src.Size(m.Drivers + "\\" + d), !virtualNet);
+                    if (virtualNet) c.Items.Last().Detail = T("sanal ağ kartı (VPN vb.); programı kurulunca gelir");
                 }
             }
 
@@ -577,7 +580,10 @@ namespace Kahya
                 try { all = Core.ProgramList.Load(_src.Local(m.Programs, ctx)); } catch { }
             all = all ?? new List<ProgramEntry>();
             _dependencies = all.Count(Core.ProgramList.IsDependency);
-            var programs = all.Where(p => p.Installable && !Core.ProgramList.IsDependency(p)).OrderBy(p => p.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
+            // Gerekli bileşenlerde olanlar (DirectX, Java…) program listesinde ikinci kez çıkmasın.
+            var essentialIds = new HashSet<string>(AppCatalog.Essentials().Select(e => e.Id), StringComparer.OrdinalIgnoreCase);
+            var programs = all.Where(p => p.Installable && !Core.ProgramList.IsDependency(p) && !essentialIds.Contains(p.Id))
+                              .OrderBy(p => p.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
             _manualList = all.Where(p => !p.Installable && !Core.ProgramList.IsDependency(p)).OrderBy(p => p.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
             _manualPrograms = _manualList.Count;
             // Programlar kendi adımında listelenir (CategoryList'te değil).
@@ -732,7 +738,8 @@ namespace Kahya
             FolderKeys = Picked("folder"),
             // Önce gerekli bileşenler, sonra programlar.
             Programs = new[] { _essentialsCat, _programCat }.Where(c => c != null).SelectMany(c => c.Items)
-                          .Where(i => i.IsChecked && i.IsEnabled).Select(i => i.Program).ToList(),
+                          .Where(i => i.IsChecked && i.IsEnabled).Select(i => i.Program)
+                          .GroupBy(p => p.Id, StringComparer.OrdinalIgnoreCase).Select(g => g.First()).ToList(),
             SettingsIds = Picked("settings"),
             GameIds = Picked("games"),
             Done = _state != null ? new HashSet<string>(_state.Done, StringComparer.OrdinalIgnoreCase) : new HashSet<string>(StringComparer.OrdinalIgnoreCase),

@@ -74,7 +74,8 @@ Hiçbir şey sorulmaz. Sonuç bir klasördür: içinde yedeğin tamamı tek bir 
 ve yanında `Kahya.exe`. Paketin kendi simgesi vardır, çift tıklayınca asistan açılır. İçi düz bir ZIP'tir (`.docx` gibi):
 7-Zip ve WinRAR doğrudan açar, Gezgin'de açmak için uzantıyı `.zip` yapmak yeter. Yedeğin ne içerdiği arşivin
 açıklamasına yazılır, Kahya yedeği açmadan tanır. Wi-Fi ve Ethernet kartının sürücüleri sorulmadan her zaman yedeklenir: format sonrası internetsiz
-kalırsan ilk onlar lazım. Belgeler gibi seçili bir klasörün içinde kalan oyun ve ayar klasörleri iki kez kopyalanmaz.
+kalırsan ilk onlar lazım. Tailscale, VPN ve sanal makine programlarının sanal ağ kartları buna girmez; onları programın
+kendisi kurar. Belgeler gibi seçili bir klasörün içinde kalan oyun ve ayar klasörleri iki kez kopyalanmaz.
 
 ### 🧭 Format sonrası asistanı
 Format sonrası yedek klasöründeki `Kahya.exe`'yi aç, **Format yardımcısı › Asistanı başlat** de. Kurulum sihirbazı gibi

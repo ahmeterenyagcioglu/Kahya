@@ -174,8 +174,30 @@ namespace Kahya.Core
         }
 
         /// <summary>Ağ kartı sürücüleri (yedekte "NET - …" diye başlayan paketler): internetsiz kalınca ilk bunlar kurulur.</summary>
-        public static List<string> NetworkDrivers(BackupSource src) =>
-            src.SubFolders(src.Manifest.Drivers).Where(f => f.StartsWith("NET ", StringComparison.OrdinalIgnoreCase) || f.StartsWith("NET-", StringComparison.OrdinalIgnoreCase)).ToList();
+        /// <remarks>
+        /// Yeni yedeklerde gerçek kartların listesi yedeğin içinde yazılıdır. Eski yedeklerde "NET" sınıfındakilerden
+        /// adı sanal karta benzeyenler (Tailscale, VPN, sanal makine) ayıklanır: onları programın kendisi kurar.
+        /// </remarks>
+        public static List<string> NetworkDrivers(BackupSource src)
+        {
+            var all = src.SubFolders(src.Manifest.Drivers);
+            if (src.Manifest.NetworkDrivers.Count > 0)
+                return all.Where(f => src.Manifest.NetworkDrivers.Contains(f, StringComparer.OrdinalIgnoreCase)).ToList();
+            return all.Where(f => IsNetworkFolder(f) && !LooksVirtual(f)).ToList();
+        }
+
+        static bool IsNetworkFolder(string f) => f.StartsWith("NET ", StringComparison.OrdinalIgnoreCase) || f.StartsWith("NET-", StringComparison.OrdinalIgnoreCase);
+
+        static readonly string[] VirtualAdapters =
+        {
+            "tailscale", "wintun", "wireguard", "tap-windows", "tap adapter", "tap-win", "openvpn", "zerotier", "nordvpn", "nordlynx",
+            "protonvpn", "expressvpn", "surfshark", "mullvad", "hamachi", "radmin", "hyper-v", "virtualbox", "vmware", "npcap",
+            "loopback", "virtual", "vpn", "tunnel", "wan miniport",
+        };
+
+        /// <summary>Sürücü klasörü sanal bir ağ kartına mı ait (adına göre)?</summary>
+        public static bool LooksVirtual(string folder) =>
+            IsNetworkFolder(folder) && VirtualAdapters.Any(v => folder.IndexOf(v, StringComparison.OrdinalIgnoreCase) >= 0);
 
         /// <summary>Listedeki programlardan kurulu olmayanları sırayla kurar (winget yoksa önce onu kurar). Hepsi kurulduysa true.</summary>
         public static bool InstallPrograms(List<ProgramEntry> programs, CleanContext ctx, Action<string> installedId = null)

@@ -47,9 +47,19 @@ namespace Kahya.Core
         public List<string> Devices { get; } = new List<string>();
         public string Folder { get; set; }
         public long Size { get; set; }
+        /// <summary>
+        /// Aygıtlarından biri gerçek bir yuvaya takılı (PCI, USB, SDIO…). Değilse yazılımla oluşturulmuştur: Tailscale,
+        /// WireGuard, Hyper-V, VirtualBox gibi sanal kartlar; onları programın kendisi kurar.
+        /// </summary>
+        public bool Physical { get; set; }
+        /// <summary>Gerçek Wi-Fi/Ethernet kartı: format sonrası internet için şart, hep yedeklenir.</summary>
+        public bool IsPhysicalNetwork => Physical && string.Equals(ClassName, "NET", StringComparison.OrdinalIgnoreCase);
+        /// <summary>Sanal ağ kartı (VPN, sanal makine): varsayılan seçili değil.</summary>
+        public bool IsVirtualNetwork => !Physical && string.Equals(ClassName, "NET", StringComparison.OrdinalIgnoreCase);
 
         public string Title => Devices.Count > 0 ? Devices[0] + (Devices.Count > 1 ? T(" (+{0} aygıt)", Devices.Count - 1) : "") : InfName;
-        public string Details => $"{Provider} · {ClassName} · v{Version}" + (Date.Length > 0 ? " · " + Date : "");
+        public string Details => $"{Provider} · {ClassName} · v{Version}" + (Date.Length > 0 ? " · " + Date : "") +
+                                 (IsVirtualNetwork ? " · " + T("sanal ağ kartı (VPN vb.); programı kurulunca kendisi gelir") : "");
         public string SizeText => Size > 0 ? Format.Bytes(Size) : "";
     }
 
@@ -108,7 +118,7 @@ namespace Kahya.Core
         public static List<DriverBackupItem> Drivers()
         {
             var map = new Dictionary<string, DriverBackupItem>(StringComparer.OrdinalIgnoreCase);
-            using (var s = new ManagementObjectSearcher("SELECT InfName, DeviceName, DriverProviderName, DeviceClass, DriverVersion, DriverDate FROM Win32_PnPSignedDriver"))
+            using (var s = new ManagementObjectSearcher("SELECT InfName, DeviceName, DeviceID, DriverProviderName, DeviceClass, DriverVersion, DriverDate FROM Win32_PnPSignedDriver"))
             using (var items = s.Get())
             {
                 foreach (ManagementBaseObject o in items)
@@ -131,6 +141,10 @@ namespace Kahya.Core
                     }
                     var name = (o["DeviceName"] as string ?? "").Trim();
                     if (name.Length > 0 && !d.Devices.Contains(name)) d.Devices.Add(name);
+                    // ROOT\ ve SWD\ yazılımla oluşturulan aygıtlardır; geri kalanı (PCI\, USB\, SDIO\, HDAUDIO\…) donanım.
+                    var id = o["DeviceID"] as string ?? "";
+                    if (id.Length > 0 && !id.StartsWith("ROOT\\", StringComparison.OrdinalIgnoreCase) && !id.StartsWith("SWD\\", StringComparison.OrdinalIgnoreCase))
+                        d.Physical = true;
                 }
             }
 
@@ -162,6 +176,9 @@ namespace Kahya.Core
             catch { return null; }
         }
 
+        /// <summary>Paketin yedekteki klasör adı: "SINIF - Aygıt - Sürüm" (asistan sınıfı ve adı buradan okur).</summary>
+        public static string FolderName(DriverBackupItem d) => Safe($"{d.ClassName} - {d.Title} - {d.Version}");
+
         /// <summary>Seçilen sürücüleri hedef klasöre kopyalar; her paket kendi alt klasörüne.</summary>
         public static int CopyDrivers(IEnumerable<DriverBackupItem> drivers, string target, CleanContext ctx)
         {
@@ -170,7 +187,7 @@ namespace Kahya.Core
             foreach (var d in drivers)
             {
                 ctx.Token.ThrowIfCancellationRequested();
-                var name = Safe($"{d.ClassName} - {d.Title} - {d.Version}");
+                var name = FolderName(d);
                 try
                 {
                     CopyDirectory(d.Folder, Path.Combine(target, name));

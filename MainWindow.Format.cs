@@ -288,7 +288,7 @@ namespace Kahya
 
 
         void BackupDriversImportant_Click(object sender, RoutedEventArgs e) =>
-            _backupDrivers.ForEach(d => d.IsChecked = ImportantDriverClasses.Contains(d.ClassName));
+            _backupDrivers.ForEach(d => d.IsChecked = ImportantDriverClasses.Contains(d.ClassName) && !d.IsVirtualNetwork);
         void BackupDriversAll_Click(object sender, RoutedEventArgs e) => _backupDrivers.ForEach(d => d.IsChecked = true);
         void BackupDriversNone_Click(object sender, RoutedEventArgs e) => _backupDrivers.ForEach(d => d.IsChecked = false);
 
@@ -423,6 +423,8 @@ namespace Kahya
                     Log(T("   {0} sürücü paketi kopyalanıyor…", drivers.Count));
                     int ok = await Task.Run(() => FormatBackup.CopyDrivers(drivers, target, ctx));
                     if (ok > 0) manifest.Drivers = T("suruculer");
+                    // Asistan "internet yoksa kur" için hangilerinin gerçek ağ kartı olduğunu buradan bilir.
+                    manifest.NetworkDrivers.AddRange(drivers.Where(IsNetworkDriver).Select(FormatBackup.FolderName));
                     done.Add(T("Sürücüler ({0}/{1})", ok, drivers.Count));
                     Log("   ✔ " + done.Last());
                 }
@@ -488,7 +490,8 @@ namespace Kahya
         }
 
         /// <summary>Ağ kartı (Wi-Fi/Ethernet) sürücüsü mü? Bunlar format sonrası internet için şart, hep yedeklenir.</summary>
-        static bool IsNetworkDriver(DriverBackupItem d) => string.Equals(d.ClassName, "NET", StringComparison.OrdinalIgnoreCase);
+        /// <remarks>Sadece gerçek kartlar; Tailscale, VPN, sanal makine kartları değil (onları programları kurar).</remarks>
+        static bool IsNetworkDriver(DriverBackupItem d) => d.IsPhysicalNetwork;
 
         /// <summary>
         /// Seçili bir kişisel klasörün içinde kalan ayar/oyun klasörleri (Belgeler › Rockstar Games gibi) zaten o klasörle

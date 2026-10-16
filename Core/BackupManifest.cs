@@ -26,6 +26,9 @@ namespace Kahya.Core
         /// <summary>Yedeğin sıkıştırılmış kısmı (yedek.7z / yedek.zip); sürücüler ve Wi-Fi bunun dışında durur.</summary>
         public string Archive;
 
+        /// <summary>Sürücüler klasöründeki gerçek Wi-Fi/Ethernet kartı paketleri (sanal VPN kartları değil). Eski yedeklerde boş.</summary>
+        public List<string> NetworkDrivers = new List<string>();
+
         /// <summary>Kişisel klasörler: anahtar (Desktop, Documents…) → yedekteki yol.</summary>
         public Dictionary<string, string> Folders = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
@@ -75,6 +78,7 @@ namespace Kahya.Core
             W("Games", Games);
             W("Bookmarks", Bookmarks);
             W("Archive", Archive);
+            if (NetworkDrivers.Count > 0) W("NetworkDrivers", string.Join("|", NetworkDrivers));
             if (Folders.Count > 0)
             {
                 sb.AppendLine();
@@ -123,6 +127,7 @@ namespace Kahya.Core
                         case "Games": m.Games = value; break;
                         case "Bookmarks": m.Bookmarks = value; break;
                         case "Archive": m.Archive = value; break;
+                        case "NetworkDrivers": m.NetworkDrivers.AddRange(value.Split('|').Where(x => x.Length > 0)); break;
                     }
                 }
             }
