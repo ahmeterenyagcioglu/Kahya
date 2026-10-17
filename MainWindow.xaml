@@ -2198,6 +2198,63 @@
                     </ScrollViewer>
                 </TabItem>
 
+                <TabItem x:Name="PermTab">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,8,0">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource Hint}" TextWrapping="Wrap" Margin="2,0,0,12"
+                                       Text="Windows hangi uygulamanın kamerayı, mikrofonu ve konumu ne zaman kullandığını kaydeder. Masaüstü programlarının izni tek tek değil, hep birlikte açılıp kapanır."/>
+                            <ItemsControl x:Name="PermList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource ToolCard}">
+                                            <StackPanel>
+                                                <DockPanel Margin="0,0,0,8">
+                                                    <CheckBox DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding Allowed, Mode=OneWay}"
+                                                              Click="PermMain_Click" VerticalAlignment="Center" ToolTip="{Binding MainTip}"/>
+                                                    <TextBlock Style="{StaticResource CardIcon}" Text="{Binding Icon}"/>
+                                                    <StackPanel VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Title}" Style="{StaticResource CardTitle}"/>
+                                                        <TextBlock Text="{Binding Summary}" Style="{StaticResource Hint}" Margin="0,2,0,0"/>
+                                                    </StackPanel>
+                                                </DockPanel>
+                                                <Border Background="{DynamicResource Row}" CornerRadius="8" Padding="12,8" Margin="0,0,0,6">
+                                                    <DockPanel>
+                                                        <CheckBox DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding DesktopAllowed, Mode=OneWay}"
+                                                                  Click="PermDesktop_Click" VerticalAlignment="Center" IsEnabled="{Binding Allowed}"/>
+                                                        <TextBlock Text="Masaüstü programları erişebilir" VerticalAlignment="Center"/>
+                                                    </DockPanel>
+                                                </Border>
+                                                <ItemsControl ItemsSource="{Binding Records}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <DockPanel Margin="12,6,12,6">
+                                                                <CheckBox x:Name="sw" DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding IsAllowed, Mode=OneWay}"
+                                                                          Click="PermApp_Click" VerticalAlignment="Center" Visibility="Collapsed"/>
+                                                                <TextBlock x:Name="last" DockPanel.Dock="Right" Text="{Binding LastText}" Foreground="{DynamicResource Muted}"
+                                                                           FontSize="12" VerticalAlignment="Center" Margin="12,0,12,0"/>
+                                                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip="{Binding Path}"/>
+                                                            </DockPanel>
+                                                            <DataTemplate.Triggers>
+                                                                <DataTrigger Binding="{Binding CanToggle}" Value="True">
+                                                                    <Setter TargetName="sw" Property="Visibility" Value="Visible"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding InUse}" Value="True">
+                                                                    <Setter TargetName="last" Property="Foreground" Value="{DynamicResource Warn}"/>
+                                                                    <Setter TargetName="last" Property="FontWeight" Value="SemiBold"/>
+                                                                </DataTrigger>
+                                                            </DataTemplate.Triggers>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
                 <TabItem x:Name="PowerTab">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,8,0">
                         <StackPanel>
@@ -2916,6 +2973,36 @@
                                             <TextBlock x:Name="SpeedPing" FontFamily="{StaticResource Display}" FontSize="22" FontWeight="SemiBold"/>
                                         </StackPanel>
                                     </UniformGrid>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource ToolCard}">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,6">
+                                        <Button x:Name="LanScanBtn" DockPanel.Dock="Right" Content="Tara" Style="{StaticResource SmallBtn}" Margin="0" Click="LanScan_Click"/>
+                                        <TextBlock Style="{StaticResource CardIcon}" Text="&#xE968;"/>
+                                        <TextBlock Text="Ağımdaki cihazlar" Style="{StaticResource CardTitle}"/>
+                                    </DockPanel>
+                                    <TextBlock x:Name="LanInfo" Style="{StaticResource Hint}" TextWrapping="Wrap"
+                                               Text="Modeme bağlı telefon, TV, yazıcı… Tanımadığın bir cihaz varsa Wi-Fi şifreni değiştirebilirsin."/>
+                                    <ProgressBar x:Name="LanBar" Height="3" Maximum="1" Margin="0,8,0,0" BorderThickness="0" Visibility="Collapsed"
+                                                 Background="{DynamicResource Row}" Foreground="{DynamicResource Accent}"/>
+                                    <ItemsControl x:Name="LanList" Margin="0,8,0,0">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Style="{StaticResource StaticRow}">
+                                                    <DockPanel>
+                                                        <TextBlock Text="{Binding Icon}" FontFamily="{StaticResource Icons}" FontSize="16" Foreground="{DynamicResource Muted}"
+                                                                   VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                                        <StackPanel VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding Name}" Style="{StaticResource RowTitle}"/>
+                                                            <TextBlock Text="{Binding Details}" Style="{StaticResource RowSub}" FontFamily="Cascadia Mono, Consolas"/>
+                                                        </StackPanel>
+                                                    </DockPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
                                 </StackPanel>
                             </Border>
 

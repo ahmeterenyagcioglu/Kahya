@@ -22,6 +22,7 @@ namespace Kahya.Core
         public static string NetBlocked(string exe, bool wasBlocked) => Join("netblock", exe, Bit(wasBlocked));
         public static string PowerPlan(string guid) => Join("power", guid);
         public static string Toggle(string name, bool was) => Join("toggle", name, Bit(was));
+        public static string Consent(string capability, string sub, bool wasAllowed) => Join("consent", capability, sub ?? "", Bit(wasAllowed));
         /// <summary>Önceki DNS: boşsa otomatik.</summary>
         public static string Dns(System.Collections.Generic.IEnumerable<string> servers) => Join("dns", string.Join(",", servers ?? new string[0]));
 
@@ -57,6 +58,9 @@ namespace Kahya.Core
                     }
                     case "netblock":
                         if (Was(2)) NetBlock.Block(p[1], ctx); else NetBlock.Unblock(p[1], ctx);
+                        return null;
+                    case "consent":
+                        DeviceAccess.SetAllowed(p[1], p.Length > 2 && p[2].Length > 0 ? p[2] : null, Was(3));
                         return null;
                     case "power":
                         return PowerTools.SetActive(p[1]) ? null : T("Güç planı bulunamadı.");

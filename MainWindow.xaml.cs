@@ -320,6 +320,8 @@ namespace Kahya
             if (tab == NetTab && !_wifiLoaded)
                 _ = LoadWifiAsync();
             if (tab == PerfTab) StartPerf(); else StopPerf();
+            if (tab == PermTab)
+                _ = LoadPermissionsAsync();
             if (tab == CrashTab && !_crashLoaded)
                 _ = LoadCrashesAsync();
             if (tab == AboutTab)

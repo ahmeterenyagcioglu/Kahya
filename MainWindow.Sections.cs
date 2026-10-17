@@ -67,6 +67,7 @@ namespace Kahya
                 S("Windows ayarları",
                     P("Gizlilik", PrivacyTab, "Reklam ve veri toplama", () => SetPrivacyPage("privacy"), () => !_extMode && _privacyFilter == "privacy"),
                     P("Görünüm", PrivacyTab, "Gezgin, görev çubuğu, menüler", () => SetPrivacyPage("look"), () => !_extMode && _privacyFilter == "look"),
+                    P("İzinler", PermTab, "Kamera, mikrofon ve konumu kim kullandı"),
                     P("Güç", PowerTab, "Güç planı, performans, hazırda bekletme"),
                     P("Tarayıcı eklentileri", PrivacyTab, "Yüklü eklentiler ve izinleri", () => SetPrivacyPage("ext"), () => _extMode)),
                 S("Sistem",
