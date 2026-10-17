@@ -2391,4 +2391,12 @@
   <t tr="FromSoftware oyunları">FromSoftware games</t>
   <t tr="Elden Ring, Dark Souls, Sekiro kayıtları">Elden Ring, Dark Souls, Sekiro saves</t>
   <t tr="Hogwarts Legacy, Mortal Kombat vb. kayıtları">Hogwarts Legacy, Mortal Kombat etc. saves</t>
+  <t tr="hiç kullanmamış">never used</t>
+  <t tr="masaüstü programı · tek tek kapatılamaz">desktop program · can't be turned off individually</t>
+  <t tr="Windows masaüstü programlarının iznini tek tek değil, hep birlikte açıp kapatır: yukarıdaki Masaüstü programları anahtarı.">Windows switches desktop programs on or off all together, not one by one: use the Desktop programs switch above.</t>
+  <t tr="masaüstü">desktop</t>
+  <t tr="Windows Ayarlar">Windows Settings</t>
+  <t tr="Başlat menüsü önerileri">Start menu suggestions</t>
+  <t tr="Windows masaüstü programlarını (aşağıda 'masaüstü' yazanlar) tek tek kapatmaya izin vermez; bu anahtar hepsini birden kapatır.">Windows doesn't let you turn off desktop programs (marked 'desktop' below) one by one; this switch turns them all off together.</t>
+  <t tr="Windows hangi uygulamanın kamerayı, mikrofonu ve konumu ne zaman kullandığını kaydeder. Kaldırılmış programlar listede gösterilmez.">Windows records which app used the camera, microphone and location, and when. Uninstalled programs aren't shown.</t>
 </language>

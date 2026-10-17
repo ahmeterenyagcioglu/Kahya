@@ -2202,7 +2202,7 @@
                     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,8,0">
                         <StackPanel>
                             <TextBlock Style="{StaticResource Hint}" TextWrapping="Wrap" Margin="2,0,0,12"
-                                       Text="Windows hangi uygulamanın kamerayı, mikrofonu ve konumu ne zaman kullandığını kaydeder. Masaüstü programlarının izni tek tek değil, hep birlikte açılıp kapanır."/>
+                                       Text="Windows hangi uygulamanın kamerayı, mikrofonu ve konumu ne zaman kullandığını kaydeder. Kaldırılmış programlar listede gösterilmez."/>
                             <ItemsControl x:Name="PermList">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
@@ -2221,18 +2221,27 @@
                                                     <DockPanel>
                                                         <CheckBox DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding DesktopAllowed, Mode=OneWay}"
                                                                   Click="PermDesktop_Click" VerticalAlignment="Center" IsEnabled="{Binding Allowed}"/>
-                                                        <TextBlock Text="Masaüstü programları erişebilir" VerticalAlignment="Center"/>
+                                                        <StackPanel VerticalAlignment="Center">
+                                                            <TextBlock Text="Masaüstü programları erişebilir"/>
+                                                            <TextBlock Style="{StaticResource Hint}" TextWrapping="Wrap" Margin="0,2,0,0"
+                                                                       Text="Windows masaüstü programlarını (aşağıda 'masaüstü' yazanlar) tek tek kapatmaya izin vermez; bu anahtar hepsini birden kapatır."/>
+                                                        </StackPanel>
                                                     </DockPanel>
                                                 </Border>
                                                 <ItemsControl ItemsSource="{Binding Records}">
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate>
-                                                            <DockPanel Margin="12,6,12,6">
+                                                            <DockPanel Margin="12,5,12,5" MinHeight="30">
                                                                 <CheckBox x:Name="sw" DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding IsAllowed, Mode=OneWay}"
                                                                           Click="PermApp_Click" VerticalAlignment="Center" Visibility="Collapsed"/>
-                                                                <TextBlock x:Name="last" DockPanel.Dock="Right" Text="{Binding LastText}" Foreground="{DynamicResource Muted}"
-                                                                           FontSize="12" VerticalAlignment="Center" Margin="12,0,12,0"/>
-                                                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip="{Binding Path}"/>
+                                                                <TextBlock x:Name="note" DockPanel.Dock="Right" Text="{Binding ToggleNote}" Foreground="{DynamicResource Faint}"
+                                                                           FontSize="11.5" VerticalAlignment="Center" Margin="12,0,4,0"
+                                                                           ToolTip="{c:Tr 'Windows masaüstü programlarının iznini tek tek değil, hep birlikte açıp kapatır: yukarıdaki Masaüstü programları anahtarı.'}"/>
+                                                                <TextBlock VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip="{Binding Path}">
+                                                                    <Run Text="{Binding Name, Mode=OneWay}"/>
+                                                                    <Run Text="  ·  " Foreground="{DynamicResource Faint}"/>
+                                                                    <Run x:Name="last" Text="{Binding LastText, Mode=OneWay}" Foreground="{DynamicResource Muted}" FontSize="12"/>
+                                                                </TextBlock>
                                                             </DockPanel>
                                                             <DataTemplate.Triggers>
                                                                 <DataTrigger Binding="{Binding CanToggle}" Value="True">

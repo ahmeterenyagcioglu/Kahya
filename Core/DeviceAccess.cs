@@ -21,8 +21,10 @@ namespace Kahya.Core
         public bool? Allowed { get; set; }
 
         public string LastText => InUse ? T("şu an kullanıyor")
-            : LastStart == null ? T("izin verilmiş, hiç kullanmamış")
-            : T("son kullanım: {0}", Ago(LastStart.Value));
+            : LastStart == null ? T("hiç kullanmamış")
+            : Ago(LastStart.Value);
+        /// <summary>Masaüstü programı: Windows tek tek kapatmaya izin vermez.</summary>
+        public string ToggleNote => Package == null ? T("masaüstü") : null;
         public bool CanToggle => Package != null;
         public bool IsAllowed { get => Allowed != false; set => Allowed = value; }
 
@@ -88,6 +90,9 @@ namespace Kahya.Core
             }
             catch { }
             // Aynı program birkaç kez görünebilir (eski sürüm klasörleri): en yeni kullanım kalsın.
+            // Kaldırılmış programların kayıtları Windows'ta kalır; listede gösterilmez.
+            var packages = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Packages");
+            list = list.Where(r => r.Path != null ? File.Exists(r.Path) : Directory.Exists(Path.Combine(packages, r.Package))).ToList();
             return list.GroupBy(r => r.Package ?? r.Name, StringComparer.OrdinalIgnoreCase)
                        .Select(g => g.OrderByDescending(r => r.InUse).ThenByDescending(r => r.LastStart ?? DateTime.MinValue).First())
                        .OrderByDescending(r => r.InUse).ThenByDescending(r => r.LastStart ?? DateTime.MinValue)
@@ -150,7 +155,7 @@ namespace Kahya.Core
                 ["MSTeams"] = "Teams", ["MicrosoftTeams"] = "Teams", ["Microsoft.OutlookForWindows"] = "Outlook",
                 ["Microsoft.SkypeApp"] = "Skype", ["5319275A.WhatsAppDesktop"] = "WhatsApp", ["OpenAI.ChatGPT-Desktop"] = "ChatGPT",
                 ["Claude"] = "Claude", ["Microsoft.Windows.Cortana"] = "Cortana", ["Microsoft.XboxGamingOverlay"] = "Xbox Game Bar",
-                ["SpotifyAB.SpotifyMusic"] = "Spotify", ["Microsoft.GamingApp"] = "Xbox", ["Microsoft.Copilot"] = "Copilot",
+                ["SpotifyAB.SpotifyMusic"] = "Spotify", ["windows.immersivecontrolpanel"] = T("Windows Ayarlar"), ["Microsoft.GamingServices"] = "Gaming Services", ["Microsoft.StartExperiencesApp"] = T("Başlat menüsü önerileri"), ["Microsoft.GamingApp"] = "Xbox", ["Microsoft.Copilot"] = "Copilot",
             };
             var name = package;
             int us = name.LastIndexOf('_');
