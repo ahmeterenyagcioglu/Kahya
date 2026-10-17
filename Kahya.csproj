@@ -11,7 +11,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
     <!-- Sadece yayınlarken yükselt: düzeltme 1.0.x, yeni özellik 1.x.0. Notlar: Core/AppInfo.cs -->
-    <Version>1.8.5</Version>
+    <Version>1.9.3</Version>
     <Product>Kahya</Product>
     <Authors>Ahmet Eren Yağcıoğlu</Authors>
     <Company>Ahmet Eren Yağcıoğlu</Company>

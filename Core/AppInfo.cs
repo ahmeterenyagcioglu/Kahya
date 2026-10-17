@@ -40,6 +40,11 @@ namespace Kahya.Core
         {
             new ReleaseNote
             {
+                Version = "1.9.3", Date = T("17 Ekim 2026"),
+                Notes = T("• Windows 11 Ayarlar gibi görünüm: Mica arka planı, yumuşak sayfa geçişleri, menüde kayan seçim çubuğu\n• Sistem › Ağ: Wi-Fi şifresini göster ve QR ile paylaş; bir programın internetini tek tıkla kes\n• Temizlik › İndirilenler: unutulmuş kurulum dosyaları ve arşivler\n• Windows ayarları › Güç: oyun öncesi hazırlık (uygulamaları kapatır, en hızlı güç planı, bildirimleri susturur; bitince geri alır)\n• Varsayılan uygulamalar (PDF, video, tarayıcı) artık yedeğe girip geri yükleniyor\n• Format öncesi: Windows etkinleştirme durumu ve satmadan önce kontrol listesi; 15 GB'ı aşan klasörler için uyarı\n• Düzeltmeler: geri yükleme noktası hatası Türkçe ve 'Evet' Gölge Kopya hizmetini de açıyor; işlem sürerken liste kaydırılabiliyor; kabloyla internete bağlıyken Wi-Fi sürücüsü de geri yükleniyor"),
+            },
+            new ReleaseNote
+            {
                 Version = "1.8.5", Date = T("16 Ekim 2026"),
                 Notes = T("• Birden fazla ağ kartı olan bilgisayarlarda alınan yedekler geri yüklenemiyordu; düzeldi\n• Sade menü: 8 bölüm, alt sekmeler (Temizlik, Güncellemeler, Uygulamalar, Windows ayarları, Sistem, Yedekleme)\n• Kısa ve anlaşılır metinler\n• Program kur: Brave, Zoom gibi kurulu programlar artık tanınıyor\n• Sistem › Durum'da disk alanı; DNS satırındaki boşluk giderildi"),
             },
