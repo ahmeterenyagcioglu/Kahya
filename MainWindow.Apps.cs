@@ -52,18 +52,19 @@ namespace Kahya
             }
         }
 
-        bool _unusedOnly;
+        /// <summary>Yüklü listesinin süzgeci: all | programs | games | unused</summary>
+        string _appsFilter = "all";
 
-        void Unused_Click(object sender, RoutedEventArgs e)
+        void AppsFilter_Click(object sender, RoutedEventArgs e)
         {
-            _unusedOnly = !_unusedOnly;
+            _appsFilter = (string)((System.Windows.Controls.Button)sender).Tag;
             FilterPrograms();
         }
 
         /// <summary>Genel bakıştaki öneriden: Yüklü listesini kullanılmayanlarla aç.</summary>
         void ShowUnusedPrograms()
         {
-            _unusedOnly = true;
+            _appsFilter = "unused";
             Tabs.SelectedItem = AppsTab;
             SetAppsMode("programs");
             if (_programsLoaded) FilterPrograms();
@@ -76,11 +77,23 @@ namespace Kahya
                 ? _programs
                 : _programs.Where(a => a.Name.IndexOf(q, StringComparison.CurrentCultureIgnoreCase) >= 0 ||
                                        (a.Publisher ?? "").IndexOf(q, StringComparison.CurrentCultureIgnoreCase) >= 0).ToList();
-            if (_unusedOnly) list = list.Where(a => a.IsUnused).OrderByDescending(a => a.Size).ToList();
-            int unused = _programs.Count(a => a.IsUnused);
-            UnusedBtn.Visibility = (unused > 0 || _unusedOnly) && !_bloatMode && !_installMode ? Visibility.Visible : Visibility.Collapsed;
+            int unused = _programs.Count(a => a.IsUnused), games = _programs.Count(a => a.IsGame);
+            if (_appsFilter == "games" && games == 0 || _appsFilter == "unused" && unused == 0) _appsFilter = "all";
+            switch (_appsFilter)
+            {
+                case "programs": list = list.Where(a => !a.IsGame).ToList(); break;
+                case "games": list = list.Where(a => a.IsGame).OrderBy(a => a.Kind == GameDetector.Launcher).ThenByDescending(a => a.Size).ToList(); break;
+                case "unused": list = list.Where(a => a.IsUnused).OrderByDescending(a => a.Size).ToList(); break;
+            }
+            AppsFilterBar.Visibility = (games > 0 || unused > 0) && !_bloatMode && !_installMode ? Visibility.Visible : Visibility.Collapsed;
+            AppsGamesBtn.Visibility = games > 0 ? Visibility.Visible : Visibility.Collapsed;
+            AppsGamesBtn.Content = T("Oyunlar ({0})", games);
+            UnusedBtn.Visibility = unused > 0 ? Visibility.Visible : Visibility.Collapsed;
             UnusedBtn.Content = T("Kullanmadıklarım ({0})", unused);
-            Highlight(UnusedBtn, _unusedOnly);
+            Highlight(AppsAllBtn, _appsFilter == "all");
+            Highlight(AppsProgramsBtn, _appsFilter == "programs");
+            Highlight(AppsGamesBtn, _appsFilter == "games");
+            Highlight(UnusedBtn, _appsFilter == "unused");
             ProgramList.ItemsSource = list;
             if (!_bloatMode && !_installMode)
             {
@@ -135,7 +148,7 @@ namespace Kahya
             ListLoadBtn.Visibility = _installMode ? Visibility.Visible : Visibility.Collapsed;
             ListSaveBtn.Visibility = _bloatMode ? Visibility.Collapsed : Visibility.Visible;
             AppsEmpty.Visibility = Visibility.Collapsed;
-            UnusedBtn.Visibility = programs && (_unusedOnly || _programs.Any(p => p.IsUnused)) ? Visibility.Visible : Visibility.Collapsed;
+            AppsFilterBar.Visibility = programs && _programs.Any(p => p.IsUnused || p.IsGame) ? Visibility.Visible : Visibility.Collapsed;
         }
 
         async void AppsRefresh_Click(object sender, RoutedEventArgs e)

@@ -24,6 +24,10 @@ namespace Kahya.Core
         public string InstallFolder { get; set; }
         public ImageSource Icon { get; set; }
 
+        /// <summary>Oyun mu: "game", oyun platformu (Steam, Epic…): "launcher", değilse null.</summary>
+        public string Kind { get; set; }
+        public bool IsGame => Kind != null;
+
         /// <summary>En son ne zaman açıldı (<see cref="AppUsage"/>); bilinmiyorsa null.</summary>
         public DateTime? LastUsed { get; set; }
         /// <summary>Kullanım bilgisi güvenilir mi (yönetici değilken "hiç açılmadı" bilinemez).</summary>
@@ -44,6 +48,7 @@ namespace Kahya.Core
                 if (!string.IsNullOrEmpty(Publisher)) parts.Add(Publisher);
                 if (!string.IsNullOrEmpty(Version)) parts.Add("v" + Format.Version(Version));
                 if (InstallDate.HasValue) parts.Add(InstallDate.Value.ToString("d MMM yyyy", CultureInfo.CurrentCulture));
+                if (Kind == GameDetector.Launcher) parts.Add(T("oyun platformu"));
                 if (IsUnused && UsageText != null) parts.Add("⏳ " + UsageText);
                 return string.Join(" · ", parts);
             }
@@ -61,6 +66,7 @@ namespace Kahya.Core
             Read(apps, RegistryHive.LocalMachine, RegistryView.Registry64);
             Read(apps, RegistryHive.LocalMachine, RegistryView.Registry32);
             Read(apps, RegistryHive.CurrentUser, RegistryView.Registry64);
+            ReadEpic(apps);
             return apps.Values.OrderBy(a => a.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
         }
 
@@ -85,6 +91,55 @@ namespace Kahya.Core
                         }
                         catch { }
                     }
+                }
+            }
+            catch { }
+        }
+
+        /// <summary>
+        /// Epic Games oyunları Programlar ve Özellikler'e yazılmaz; kurulum kayıtları Epic'in Manifests klasöründedir.
+        /// Kaldırma Epic'in kendi adresiyle yapılır (launcher açılıp onay ister).
+        /// </summary>
+        static void ReadEpic(Dictionary<string, InstalledApp> apps)
+        {
+            try
+            {
+                var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), @"Epic\EpicGamesLauncher\Data\Manifests");
+                if (!Directory.Exists(folder)) return;
+                foreach (var f in Directory.GetFiles(folder, "*.item"))
+                {
+                    try
+                    {
+                        var json = File.ReadAllText(f);
+                        string Field(string name)
+                        {
+                            var m = Regex.Match(json, "\"" + name + "\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"");
+                            return m.Success ? Regex.Unescape(m.Groups[1].Value) : null;
+                        }
+                        var name = Field("DisplayName");
+                        var appName = Field("AppName");
+                        var location = Field("InstallLocation");
+                        if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(appName) || string.IsNullOrEmpty(location) || !Directory.Exists(location)) continue;
+                        if (apps.Values.Any(a => a.Name.Equals(name, StringComparison.OrdinalIgnoreCase))) continue;
+
+                        var app = new InstalledApp
+                        {
+                            Name = name,
+                            Publisher = "Epic Games",
+                            Version = Field("AppVersionString"),
+                            InstallFolder = location,
+                            UninstallCommand = $"com.epicgames.launcher://apps/{appName}?action=uninstall",
+                            Kind = GameDetector.Game,
+                            InstallDate = File.GetCreationTime(f),
+                        };
+                        var size = Regex.Match(json, "\"InstallSize\"\\s*:\\s*(\\d+)");
+                        if (size.Success && long.TryParse(size.Groups[1].Value, out var bytes)) app.Size = bytes;
+                        var exe = Field("LaunchExecutable");
+                        if (!string.IsNullOrEmpty(exe) && File.Exists(Path.Combine(location, exe)))
+                            app.Icon = StartupManager.ExtractIcon(Path.Combine(location, exe));
+                        apps["epic|" + appName] = app;
+                    }
+                    catch { }
                 }
             }
             catch { }
@@ -135,6 +190,7 @@ namespace Kahya.Core
                 }
             }
             catch { } // geçersiz karakterli yol: klasörü bilinmez, program yine listelenir
+            try { app.Kind = GameDetector.Classify(app, Path.GetFileName(k.Name), uninstall); } catch { }
             return app;
         }
 
@@ -162,6 +218,13 @@ namespace Kahya.Core
         /// <summary>Programın kendi kaldırıcısını başlatır ve kapanmasını bekler.</summary>
         public static void Uninstall(InstalledApp app, CleanContext ctx)
         {
+            // Oyun platformlarının adresleri (com.epicgames.launcher://…): platform açılır ve kaldırmayı kendisi yapar.
+            if (Regex.IsMatch(app.UninstallCommand ?? "", @"^[a-z][a-z0-9.+-]*://", RegexOptions.IgnoreCase))
+            {
+                Process.Start(new ProcessStartInfo(app.UninstallCommand) { UseShellExecute = true })?.Dispose();
+                return;
+            }
+
             var (exe, args) = SplitCommand(app.UninstallCommand);
 
             // MSI paketlerinde UninstallString çoğu zaman "/I" (onar/değiştir) olur; kaldırma için "/X".

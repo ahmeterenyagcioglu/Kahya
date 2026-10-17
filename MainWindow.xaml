@@ -749,8 +749,16 @@
                         </Grid.RowDefinitions>
 
                         <DockPanel Margin="0,0,0,12">
-                            <Button x:Name="UnusedBtn" DockPanel.Dock="Right" Style="{StaticResource Btn}" Margin="8,0,0,0" Visibility="Collapsed"
-                                    Click="Unused_Click" ToolTip="90 günden uzun süredir açılmamış programlar, büyükten küçüğe"/>
+                            <Border x:Name="AppsFilterBar" DockPanel.Dock="Right" Style="{StaticResource SegBar}" Margin="8,0,0,0" Visibility="Collapsed">
+                                <StackPanel Orientation="Horizontal">
+                                    <Button x:Name="AppsAllBtn" Content="Tümü" Style="{StaticResource Seg}" Tag="all" Click="AppsFilter_Click"/>
+                                    <Button x:Name="AppsProgramsBtn" Content="Programlar" Style="{StaticResource Seg}" Tag="programs" Click="AppsFilter_Click"/>
+                                    <Button x:Name="AppsGamesBtn" Style="{StaticResource Seg}" Tag="games" Click="AppsFilter_Click"
+                                            ToolTip="Steam, Epic, GOG, EA, Ubisoft, Battle.net ve mağazasız oyunlar; oyun platformları da burada"/>
+                                    <Button x:Name="UnusedBtn" Style="{StaticResource Seg}" Tag="unused" Click="AppsFilter_Click"
+                                            ToolTip="90 günden uzun süredir açılmamış programlar, büyükten küçüğe"/>
+                                </StackPanel>
+                            </Border>
                             <Border DockPanel.Dock="Right" Style="{StaticResource SegBar}" Visibility="Collapsed">
                                 <StackPanel Orientation="Horizontal">
                                     <Button x:Name="ProgramsModeBtn" Content="Yüklü programlar" Style="{StaticResource Seg}" Click="ProgramsMode_Click"/>

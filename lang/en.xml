@@ -2324,4 +2324,7 @@
   <t tr="Dosya seç…">Choose file…</t>
   <t tr=".dmp dosyasını buraya sürükle ya da seç: mavi ekran (C:\Windows\Minidump) ya da program çökmesi dökümü.">Drag a .dmp file here or choose one: a blue screen (C:\Windows\Minidump) or a program crash dump.</t>
   <t tr="Son kullanım bilgisi: {0}">Last-used info: {0}</t>
+  <t tr="oyun platformu">game platform</t>
+  <t tr="Oyunlar ({0})">Games ({0})</t>
+  <t tr="Steam, Epic, GOG, EA, Ubisoft, Battle.net ve mağazasız oyunlar; oyun platformları da burada">Steam, Epic, GOG, EA, Ubisoft, Battle.net and store-less games; game platforms are here too</t>
 </language>
