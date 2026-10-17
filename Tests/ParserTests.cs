@@ -270,3 +270,20 @@ namespace Kahya.Tests
         }
     }
 }
+
+namespace Kahya.Tests
+{
+    public class StoreAppTests
+    {
+        [Theory] // 1.9.3: Store'dan kurulan Spotify "kurulu değil" görünüyordu.
+        [InlineData("SpotifyAB.SpotifyMusic", "Spotify", true)]
+        [InlineData("5319275A.WhatsAppDesktop", "WhatsApp", true)]
+        [InlineData("Microsoft.WindowsTerminal", "Windows Terminal", true)]
+        [InlineData("Microsoft.WindowsNotepad", "Notepad++", false)]
+        [InlineData("Microsoft.WindowsStore", "Steam", false)]
+        public void Matches(string package, string catalog, bool expected)
+        {
+            Assert.Equal(expected, AppCatalog.StoreMatches(package, catalog));
+        }
+    }
+}

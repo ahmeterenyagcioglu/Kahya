@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.ComponentModel;
 using static Kahya.Core.Lang;
 
@@ -57,6 +58,19 @@ namespace Kahya.Core
     /// </summary>
     public static class AppCatalog
     {
+        /// <summary>
+        /// Microsoft Store'dan kurulmuş paket bu katalog programı mı: "SpotifyAB.SpotifyMusic" ~ "Spotify".
+        /// Yayıncıdan sonraki ad, programın adıyla başlamalı ("Microsoft.WindowsNotepad" Notepad++ değildir).
+        /// </summary>
+        public static bool StoreMatches(string package, string catalog)
+        {
+            string Compact(string s) => new string((s ?? "").Where(char.IsLetterOrDigit).ToArray()).ToLowerInvariant();
+            var name = Compact(System.Text.RegularExpressions.Regex.Replace(catalog, @"\s*\(.*?\)", ""));
+            int dot = (package ?? "").IndexOf('.');
+            var app = Compact(dot >= 0 ? package.Substring(dot + 1) : package);
+            return name.Length >= 4 && app.StartsWith(name);
+        }
+
         /// <summary>
         /// Kurulu programın adı katalogdaki adla başlıyor mu: "Zoom Workplace" ~ "Zoom", "Brave" ~ "Brave".
         /// Ad bir kelime sınırında bitmeli ("Steam" "Steamworks"e uymaz); parantezli ekler ("Java 8 (JRE)") yok sayılır.

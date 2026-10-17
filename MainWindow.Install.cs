@@ -90,7 +90,7 @@ namespace Kahya
             try
             {
                 var ctx = Context(token);
-                var (ids, names) = await Task.Run(() =>
+                var (ids, names, store) = await Task.Run(() =>
                 {
                     if (!Winget.IsInstalled())
                         throw new InvalidOperationException(T("winget bulunamadı. Microsoft Store'dan 'Uygulama Yükleyici' (App Installer) kurulmalı."));
@@ -98,12 +98,13 @@ namespace Kahya
                     // Programlar ve Özellikler'deki adlara da bakılır.
                     List<string> installed;
                     try { installed = InstalledApps.Load().Select(p => p.Name).ToList(); } catch { installed = new List<string>(); }
-                    return (Winget.InstalledIds(ctx), installed);
+                    var store = InstalledApps.StorePackages(ctx);
+                    return (Winget.InstalledIds(ctx), installed, store);
                 });
                 foreach (var a in _catalog)
                 {
                     a.IsInstalled = a.CanInstall && (ids.Contains(a.Id) || ids.Any(i => i.StartsWith(a.Id + ".", StringComparison.OrdinalIgnoreCase)) ||
-                                                     names.Any(n => AppCatalog.NameMatches(n, a.Name)));
+                                                     names.Any(n => AppCatalog.NameMatches(n, a.Name)) || store.Any(p => AppCatalog.StoreMatches(p, a.Name)));
                     if (a.IsInstalled) a.IsChecked = false;
                 }
                 _installedLoaded = true;

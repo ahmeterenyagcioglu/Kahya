@@ -136,6 +136,17 @@ namespace Kahya.Core
             return File.Exists(path) ? path : null;
         }
 
+        /// <summary>Bu kullanıcının Microsoft Store'dan kurduğu uygulamaların paket adları (Programlar ve Özellikler'de görünmezler).</summary>
+        public static List<string> StorePackages(CleanContext ctx)
+        {
+            try
+            {
+                return PowerShellRunner.Run("Get-AppxPackage -PackageTypeFilter Main | Where-Object { -not $_.IsFramework -and $_.SignatureKind -eq 'Store' } | ForEach-Object { $_.Name }", ctx)
+                    .Select(l => l.Trim()).Where(l => l.Length > 0).ToList();
+            }
+            catch { return new List<string>(); }
+        }
+
         /// <summary>Programın kendi kaldırıcısını başlatır ve kapanmasını bekler.</summary>
         public static void Uninstall(InstalledApp app, CleanContext ctx)
         {
