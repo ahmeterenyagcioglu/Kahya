@@ -873,6 +873,33 @@ namespace Kahya
                         Log("   ✖ " + T("{0} güncellenemedi: {1}", p.Name, p.Error));
                     }
                 }
+
+                var reinstall = selected.Where(Winget.NeedsReinstall).ToList();
+                if (reinstall.Count > 0 && KahyaDialog.Show(this,
+                        T("{0} programın yeni sürümü farklı bir kurulum türü kullanıyor:\n{1}\n\nKahya eski sürümü kaldırıp yenisini kurabilir. Ayarların genelde korunur, ama program bir süre kapalı kalır.\n\nŞimdi denensin mi?",
+                          reinstall.Count, string.Join("\n", reinstall.Select(p => "• " + p.Name))),
+                        "Kahya", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                {
+                    for (int i = 0; i < reinstall.Count; i++)
+                    {
+                        var p = reinstall[i];
+                        TotalCaption.Text = T("yeniden kuruluyor… ({0}/{1})", i + 1, reinstall.Count);
+                        Log($"▶ {p.Name}  " + T("eski sürümü kaldırarak güncelleniyor"));
+                        p.Status = "· " + T("güncelleniyor…");
+                        if (await Task.Run(() => Winget.Reinstall(p, ctx)))
+                        {
+                            ok++; failed--;
+                            p.Status = "· ✔ " + T("güncellendi");
+                            p.IsChecked = false;
+                            Log("   ✔ " + T("{0} güncellendi", p.Name));
+                        }
+                        else
+                        {
+                            p.Status = "· ✖ " + T("başarısız");
+                            Log("   ✖ " + T("{0} güncellenemedi: {1}", p.Name, p.Error));
+                        }
+                    }
+                }
             }
             catch (OperationCanceledException)
             {

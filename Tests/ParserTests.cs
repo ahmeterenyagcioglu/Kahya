@@ -286,4 +286,17 @@ namespace Kahya.Tests
             Assert.Equal(expected, AppCatalog.StoreMatches(package, catalog));
         }
     }
+
+    public class ReinstallTests
+    {
+        [Theory] // Audacity "farklı kurulum türü" yüzünden güncellenemiyordu; Edge kendini günceller.
+        [InlineData("Audacity.Audacity", "A newer version was found, but the install technology is different from the current version installed.", true)]
+        [InlineData("Microsoft.Edge", "A newer version was found, but the install technology is different from the current version installed.", false)]
+        [InlineData("Audacity.Audacity", "Installer failed with exit code: 1603", false)]
+        [InlineData("Audacity.Audacity", null, false)]
+        public void Needs(string id, string output, bool expected)
+        {
+            Assert.Equal(expected, Winget.NeedsReinstall(new UpgradePackage { Id = id, Output = output }));
+        }
+    }
 }

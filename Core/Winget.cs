@@ -92,7 +92,39 @@ namespace Kahya.Core
 
             p.Error = RunLogged(args, ctx, out var output);
             p.Output = output;
+            if (p.Error != null && (p.Id ?? "").StartsWith("Microsoft.Edge", StringComparison.OrdinalIgnoreCase))
+                p.Error = T("Edge kendini güncelliyor; Edge'de Ayarlar › Microsoft Edge hakkında sayfasını açman yeterli");
             return p.Error == null;
+        }
+
+        /// <summary>
+        /// Yeni sürüm farklı bir kurulum türü kullandığı için güncellenemedi mi? Edge kendini güncellediği için hariç.
+        /// </summary>
+        public static bool NeedsReinstall(UpgradePackage p) =>
+            p.Output != null && p.Output.IndexOf("install technology is different", StringComparison.OrdinalIgnoreCase) >= 0
+            && !(p.Id ?? "").StartsWith("Microsoft.Edge", StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// Kurulum türü değişen programı günceller: önce winget'in "eskisini kaldırarak güncelle" seçeneği,
+        /// o da olmazsa eski sürümü kaldırıp yenisini kurar.
+        /// </summary>
+        public static bool Reinstall(UpgradePackage p, CleanContext ctx)
+        {
+            var source = string.IsNullOrEmpty(p.Source) ? "" : $" --source \"{p.Source}\"";
+            p.Error = RunLogged($"upgrade --id \"{p.Id}\" --exact --silent --uninstall-previous --accept-package-agreements {CommonArgs}{source}", ctx, out var output);
+            p.Output = output;
+            if (p.Error == null) return true;
+            if (!NeedsReinstall(p)) return false;
+
+            ctx.Log("     " + T("Eski sürüm kaldırılıyor…"));
+            var error = RunLogged($"uninstall --id \"{p.Id}\" --exact --silent {CommonArgs}{source}", ctx, out output);
+            p.Output += "\n" + output;
+            if (error != null) { p.Error = T("Eski sürüm kaldırılamadı: {0}", error); return false; }
+
+            error = RunLogged($"install --id \"{p.Id}\" --exact --silent --accept-package-agreements {CommonArgs}{source}", ctx, out output, alreadyInstalledOk: true);
+            p.Output += "\n" + output;
+            p.Error = error == null ? null : T("Eski sürüm kaldırıldı ama yenisi kurulamadı: {0}. Programı kendi sitesinden yeniden kurman gerekebilir.", error);
+            return error == null;
         }
 
         /// <summary>
