@@ -405,6 +405,97 @@ namespace Kahya.Core
             return rip; // yalnızca çekirdek bulunduysa onu söyle
         }
 
+        /// <summary>
+        /// Kullanıcının seçtiği ya da sürüklediği .dmp dosyasını açıklar: mavi ekran dökümü (PAGEDU64) ya da program
+        /// çökmesi dökümü (MDMP). Okunamazsa anlaşılır bir mesajla hata fırlatır.
+        /// </summary>
+        public static CrashEvent ExplainDumpFile(string path)
+        {
+            byte[] b;
+            try { b = ReadHead(path, 64 * 1024 * 1024); }
+            catch (UnauthorizedAccessException) { throw new InvalidOperationException(T("Bu dosyayı okumak için Kahya'yı yönetici olarak aç.")); }
+            var date = File.GetLastWriteTime(path);
+
+            var kernel = ParseKernelDump(b);
+            if (kernel != null)
+            {
+                var e = BlueScreen(date, kernel.Code, kernel.Driver);
+                if (kernel.Driver == null)
+                    e.Detail += " " + T("(Bu dökümde sürücü listesi yok; sebep olan sürücü bulunamadı.)");
+                return e;
+            }
+
+            var app = ParseUserDump(b);
+            if (app != null)
+            {
+                if (app.Value.time > 0) date = DateTimeOffset.FromUnixTimeSeconds(app.Value.time).LocalDateTime;
+                var exe = app.Value.exe ?? Path.GetFileName(path);
+                var e = new CrashEvent { Date = date, Kind = "app", Title = T("{0} çöktü", FriendlyApp(exe, null)) };
+                if (app.Value.code == null)
+                {
+                    e.Title = T("{0} dökümü", FriendlyApp(exe, null));
+                    e.Detail = T("Bu döküm elle alınmış; içinde bir çökme kaydı yok.");
+                    return e;
+                }
+                bool own = app.Value.module == null || app.Value.module.Equals(exe, StringComparison.OrdinalIgnoreCase);
+                var what = CodeText(app.Value.code);
+                e.Detail = own ? T("Hata programın kendisinde: {0}", what) : T("Hata {0} dosyasında: {1}", app.Value.module, what);
+                e.Advice = AppAdvice(app.Value.module, app.Value.code) ??
+                           (own ? T("Programı güncelle; sürerse kaldırıp yeniden kur.")
+                                : T("{0} başka bir programa ya da sürücüye ait olabilir; programı ve sürücüleri güncelle.", app.Value.module));
+                return e;
+            }
+
+            if (b.Length >= 8 && Encoding.ASCII.GetString(b, 0, 8) == "PAGEDUMP")
+                throw new InvalidOperationException(T("Bu 32 bit Windows'tan bir mavi ekran dökümü; okunamıyor."));
+            throw new InvalidOperationException(T("Bu bir Windows döküm dosyası değil ya da bozuk."));
+        }
+
+        /// <summary>Program çökmesi dökümü (MDMP): program, hatanın olduğu dosya, özel durum kodu, zaman.</summary>
+        internal static (string exe, string module, string code, long time)? ParseUserDump(byte[] b)
+        {
+            if (b.Length < 32 || BitConverter.ToUInt32(b, 0) != 0x504D444D) return null; // "MDMP"
+            uint U(long o) => o >= 0 && o + 4 <= b.Length ? BitConverter.ToUInt32(b, (int)o) : 0;
+            ulong Q(long o) => o >= 0 && o + 8 <= b.Length ? BitConverter.ToUInt64(b, (int)o) : 0;
+            string Str(long rva)
+            {
+                uint len = U(rva);
+                if (rva <= 0 || len == 0 || len > 2048 || rva + 4 + len > b.Length) return null;
+                return Encoding.Unicode.GetString(b, (int)rva + 4, (int)len);
+            }
+
+            uint streams = U(8), dir = U(12);
+            long time = U(20);
+            var modules = new List<(string name, ulong start, ulong end)>();
+            ulong address = 0;
+            string code = null;
+            for (uint i = 0; i < Math.Min(streams, 512u); i++)
+            {
+                long e = dir + i * 12L;
+                uint type = U(e), rva = U(e + 8);
+                if (type == 4) // ModuleListStream
+                {
+                    uint count = U(rva);
+                    for (uint m = 0; m < Math.Min(count, 4096u); m++)
+                    {
+                        long mo = rva + 4 + m * 108L;
+                        var name = Str(U(mo + 20));
+                        ulong start = Q(mo);
+                        if (name != null) modules.Add((Path.GetFileName(name), start, start + U(mo + 8)));
+                    }
+                }
+                else if (type == 6) // ExceptionStream
+                {
+                    code = "0x" + U(rva + 8).ToString("x8");
+                    address = Q(rva + 24);
+                }
+            }
+            if (modules.Count == 0 && code == null) return null;
+            var exe = modules.Count > 0 ? modules[0].name : null; // ilk modül programın kendisi
+            var module = modules.FirstOrDefault(m => address >= m.start && address < m.end).name;
+            return (exe, module, code, time);
+        }
+
         static byte[] ReadHead(string path, int max)
         {
             using (var s = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))

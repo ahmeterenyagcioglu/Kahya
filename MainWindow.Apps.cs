@@ -38,6 +38,7 @@ namespace Kahya
                     return list;
                 });
                 _programsLoaded = true;
+                Log("   " + T("Son kullanım bilgisi: {0}", AppUsage.Diagnostic));
             }
             catch (Exception ex)
             {

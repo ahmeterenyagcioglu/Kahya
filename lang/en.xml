@@ -2308,4 +2308,20 @@
   <t tr="Çökmeler">Crashes</t>
   <t tr="Mavi ekranlar, beklenmedik kapanmalar, çöken programlar">Blue screens, unexpected shutdowns, crashing programs</t>
   <t tr="Bellek">Memory</t>
+  <t tr="Bu dosyayı okumak için Kahya'yı yönetici olarak aç.">Run Kahya as administrator to read this file.</t>
+  <t tr="(Bu dökümde sürücü listesi yok; sebep olan sürücü bulunamadı.)">(This dump has no driver list; the responsible driver couldn't be found.)</t>
+  <t tr="{0} dökümü">{0} dump</t>
+  <t tr="Bu döküm elle alınmış; içinde bir çökme kaydı yok.">This dump was taken manually; it contains no crash.</t>
+  <t tr="Programı güncelle; sürerse kaldırıp yeniden kur.">Update the program; if it continues, reinstall it.</t>
+  <t tr="{0} başka bir programa ya da sürücüye ait olabilir; programı ve sürücüleri güncelle.">{0} may belong to another program or a driver; update the program and drivers.</t>
+  <t tr="Bu 32 bit Windows'tan bir mavi ekran dökümü; okunamıyor.">This is a blue screen dump from 32-bit Windows; it can't be read.</t>
+  <t tr="Bu bir Windows döküm dosyası değil ya da bozuk.">This isn't a Windows dump file, or it's damaged.</t>
+  <t tr="Döküm dosyası seç">Choose a dump file</t>
+  <t tr="Döküm dosyaları">Dump files</t>
+  <t tr="Tüm dosyalar">All files</t>
+  <t tr="Döküm okundu: {0}">Dump read: {0}</t>
+  <t tr="Döküm dosyası oku">Read a dump file</t>
+  <t tr="Dosya seç…">Choose file…</t>
+  <t tr=".dmp dosyasını buraya sürükle ya da seç: mavi ekran (C:\Windows\Minidump) ya da program çökmesi dökümü.">Drag a .dmp file here or choose one: a blue screen (C:\Windows\Minidump) or a program crash dump.</t>
+  <t tr="Son kullanım bilgisi: {0}">Last-used info: {0}</t>
 </language>

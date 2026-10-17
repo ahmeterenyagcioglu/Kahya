@@ -20,7 +20,6 @@ namespace Kahya
             Title = $"Kahya {AppInfo.Version}";
             AboutVersion.Text = "v" + AppInfo.Version;
             AboutAuthor.Text = AppInfo.Author;
-            ReleaseNotesList.ItemsSource = AppInfo.ReleaseNotes;
             BuildLanguageButtons();
             // "Açık" sözlükte "On" (otomatik bakım açık) olarak çevriliyor; tema düğmesinde anlamı farklı.
             ThemeLightBtn.Content = Lang.Code == "tr" ? "Açık" : Lang.Code == "en" ? "Light" : T("Açık tema");
@@ -45,6 +44,8 @@ namespace Kahya
         }
 
         void LoadAbout() => RefreshHistoryList();
+
+        void ReleaseNotes_Click(object sender, RoutedEventArgs e) => new ReleaseNotesDialog { Owner = this }.ShowDialog();
 
         /// <summary>Geçmiş kartı: temizlikler ve geri alınabilir ayar değişiklikleri.</summary>
         void RefreshHistoryList()
