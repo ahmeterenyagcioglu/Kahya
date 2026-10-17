@@ -78,7 +78,7 @@ namespace Kahya
             _bloatMode = false;
             UpdateAppsMode();
             FilterInstall();
-            if (!_installedLoaded) await LoadInstalledAsync();
+            if (!_installedLoaded && !_busy) await LoadInstalledAsync();
         }
 
         /// <summary>Hangilerinin zaten kurulu olduğunu winget'e sorar (birkaç saniye sürer).</summary>

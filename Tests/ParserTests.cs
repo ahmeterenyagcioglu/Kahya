@@ -256,3 +256,17 @@ namespace Kahya.Tests
         }
     }
 }
+
+namespace Kahya.Tests
+{
+    public class RestorePointTests
+    {
+        [Theory] // 1.8.5: geri yükleme noktası hatası İngilizce ham metin olarak çıkıyordu.
+        [InlineData("This command cannot be run due to the following error: the service cannot be started because it is disabled or does not have enabled devices associated with it.", "Gölge Kopya")]
+        [InlineData("The restore point could not be created because System Restore is turned off.", "Sistem Koruması")]
+        public void English_errors_are_translated(string message, string expected)
+        {
+            Assert.Contains(expected, RestorePoint.Friendly(message));
+        }
+    }
+}

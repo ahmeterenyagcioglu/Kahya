@@ -25,6 +25,27 @@ namespace Kahya
             Tabs.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(180)));
         }
 
+        /// <summary>
+        /// İşlem sürerken sayfa kilitli (IsEnabled=false) ve kilitli öğeler fare tekerleğini almıyor: güncellemeler
+        /// sürerken listeyi kaydırmak mümkün değildi. Tekerlek pencerede yakalanır, farenin altındaki liste kaydırılır;
+        /// düğmeler ve kutular kilitli kalır.
+        /// </summary>
+        void BusyWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
+        {
+            if (!_busy) return;
+            var hit = VisualTreeHelper.HitTest(this, e.GetPosition(this))?.VisualHit;
+            for (var d = hit as DependencyObject; d != null; d = VisualTreeHelper.GetParent(d))
+            {
+                if (d is ScrollViewer sv && sv.ScrollableHeight > 0)
+                {
+                    if (sv.IsEnabled) return; // kilitli değil, kendisi kaydırır
+                    sv.ScrollToVerticalOffset(sv.VerticalOffset - e.Delta / 120.0 * 48);
+                    e.Handled = true;
+                    return;
+                }
+            }
+        }
+
         /// <summary>Menüdeki göstergeyi seçili öğenin hizasına taşır (ilk seferde ve hareket kapalıyken atlar).</summary>
         void MoveNavIndicator()
         {

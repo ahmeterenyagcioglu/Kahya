@@ -2045,4 +2045,10 @@
   <t tr="{0} kapanmadı; kaydedilmemiş bir şey soruyor olabilir">{0} didn't close; it may be asking about unsaved work</t>
   <t tr="çok büyük, yedek uzun sürer">very large, backup will take long</t>
   <t tr="Bu klasörler çok büyük:\n{0}\n\nYedek uzun sürer ve diske sığmayabilir. Büyük dosyaları (video, oyun) doğrudan dış diske kopyalamak daha hızlı. Yine de devam edilsin mi?">These folders are very large:\n{0}\n\nThe backup will take long and may not fit. Copying big files (videos, games) straight to an external drive is faster. Continue anyway?</t>
+  <t tr="Gölge Kopya (Volume Shadow Copy) hizmeti kapatılmış.">The Volume Shadow Copy service is disabled.</t>
+  <t tr="Sistem sürücüsünde Sistem Koruması kapalı.">System Protection is off on the system drive.</t>
+  <t tr="Yönetici izni gerekiyor.">Administrator permission is required.</t>
+  <t tr="Şu an başka bir geri yükleme noktası oluşturuluyor; birazdan tekrar dene.">Another restore point is being created; try again shortly.</t>
+  <t tr="Geri yükleme noktası oluşturulamadı: {0}\n\nEvet — gerekli Windows ayarlarını aç ve tekrar dene\nHayır — geri yükleme noktası olmadan devam et\nİptal — işlemi iptal et">Couldn't create a restore point: {0}\n\nYes — turn on the required Windows settings and try again\nNo — continue without a restore point\nCancel — cancel</t>
+  <t tr="Sistem Koruması ve Gölge Kopya hizmeti açıldı.">System Protection and the Shadow Copy service were turned on.</t>
 </language>

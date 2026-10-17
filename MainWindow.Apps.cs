@@ -79,7 +79,8 @@ namespace Kahya
             _bloatMode = false;
             _installMode = false;
             UpdateAppsMode();
-            if (!_programsLoaded) await LoadProgramsAsync();
+            // Başka bir işlem sürerken yükleme başlatılmaz: bitince o işlemin "meşgul" durumunu kapatırdı.
+            if (!_programsLoaded && !_busy) await LoadProgramsAsync();
             else FilterPrograms();
         }
 
@@ -88,7 +89,7 @@ namespace Kahya
             _bloatMode = true;
             _installMode = false;
             UpdateAppsMode();
-            if (!_bloatLoaded) await LoadBloatAsync();
+            if (!_bloatLoaded && !_busy) await LoadBloatAsync();
             else FilterBloat();
         }
 

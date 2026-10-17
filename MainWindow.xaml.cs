@@ -33,6 +33,7 @@ namespace Kahya
             Lang.TranslateTree(this);
             SourceInitialized += (s, e) => { Backdrop.Apply(this); TitleBar.Apply(this); };
             FitToWorkArea();
+            PreviewMouseWheel += BusyWheel;
             NameNavItems();
 
             _engine = new CleanEngine(Log);
@@ -854,7 +855,7 @@ namespace Kahya
                 {
                     var p = selected[i];
                     TotalCaption.Text = T("güncelleniyor… ({0}/{1})", i + 1, selected.Count);
-                    Log($"▶ {p.Name}  {p.Version} → {p.Available}");
+                    Log($"▶ {p.Name}  {Format.Version(p.Version)} → {Format.Version(p.Available)}");
                     p.Status = "· " + T("güncelleniyor…");
                     p.Error = null;
                     bool success = await Task.Run(() => Winget.Upgrade(p, ctx));
@@ -913,13 +914,13 @@ namespace Kahya
             Log("   ! " + T("Oluşturulamadı: {0}", error));
 
             var answer = KahyaDialog.Show(this,
-                T("Geri yükleme noktası oluşturulamadı:\n{0}\n\nBu genelde sistem sürücüsünde Sistem Koruması kapalı olduğunda olur.\n\nEvet — Sistem Korumasını sistem sürücüsü için aç ve tekrar dene\nHayır — geri yükleme noktası olmadan devam et\nİptal — işlemi iptal et", error),
+                T("Geri yükleme noktası oluşturulamadı: {0}\n\nEvet — gerekli Windows ayarlarını aç ve tekrar dene\nHayır — geri yükleme noktası olmadan devam et\nİptal — işlemi iptal et", error),
                 "Kahya", MessageBoxButton.YesNoCancel, MessageBoxImage.Warning);
             if (answer == MessageBoxResult.Cancel) return false;
             if (answer == MessageBoxResult.No) return true;
 
             var enableError = await Task.Run(() => RestorePoint.EnableOnSystemDrive(ctx));
-            Log(enableError == null ? "   ✔ " + T("Sistem Koruması açıldı.") : "   ! " + T("Sistem Koruması açılamadı: {0}", enableError));
+            Log(enableError == null ? "   ✔ " + T("Sistem Koruması ve Gölge Kopya hizmeti açıldı.") : "   ! " + T("Sistem Koruması açılamadı: {0}", enableError));
 
             error = await Task.Run(() => RestorePoint.Create(description, ctx));
             if (error == null)
