@@ -38,6 +38,17 @@ namespace Kahya
         void Notify(string n) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));
     }
 
+    /// <summary>Genel bakıştaki öneri kartı: yapılacak bir şey ve onu yapan sayfaya giden düğme.</summary>
+    public sealed class Suggestion
+    {
+        public string Key { get; set; }
+        public string Icon { get; set; }
+        public string Title { get; set; }
+        public string Detail { get; set; }
+        public string ActionText { get; set; }
+        public Action Open { get; set; }
+    }
+
     // Genel bakış: bilgisayarın durumu tek bakışta; her kutucuk ilgili sayfayı açar
     public partial class MainWindow
     {
@@ -45,6 +56,11 @@ namespace Kahya
         HealthTile _tDisk, _tClean, _tUpdates, _tLast, _tAuto, _tHealth, _tStartup, _tPrivacy, _tExtra;
         int _startupOn = -1;
         Task _bgUpdates;
+        readonly ObservableCollection<Suggestion> _tips = new ObservableCollection<Suggestion>();
+        long _oldDownloads = -1;
+        double _batteryHealth = -1;
+        DateTime? _lastAutoBackup;
+        bool _backupChecked;
         bool _overviewRefreshing;
 
         void InitOverview()
@@ -65,6 +81,74 @@ namespace Kahya
             _tPrivacy = Tile("", "Gizlilik", () => Tabs.SelectedItem = PrivacyTab);
             _tExtra = Tile("", "Açık kalma süresi", () => Tabs.SelectedItem = ToolsTab);
             TileList.ItemsSource = _tiles;
+            TipList.ItemsSource = _tips;
+        }
+
+        void Tip_Click(object sender, RoutedEventArgs e) =>
+            ((sender as FrameworkElement)?.DataContext as Suggestion)?.Open?.Invoke();
+
+        void TipDismiss_Click(object sender, RoutedEventArgs e)
+        {
+            if (!((sender as FrameworkElement)?.DataContext is Suggestion tip)) return;
+            Settings.DismissedTips[tip.Key] = DateTime.Today;
+            SaveSettings();
+            _tips.Remove(tip);
+        }
+
+        /// <summary>Eldeki bilgilerden öneri kartlarını yeniden kurar; gizlenenler 14 gün çıkmaz.</summary>
+        void RefreshTips()
+        {
+            var list = new System.Collections.Generic.List<Suggestion>();
+            void Add(string key, string icon, string title, string detail, string action, Action open)
+            {
+                if (Settings.DismissedTips.TryGetValue(key, out var day) && day > DateTime.Today.AddDays(-14)) return;
+                list.Add(new Suggestion { Key = key, Icon = icon, Title = title, Detail = detail, ActionText = action, Open = open });
+            }
+
+            if (_updatesChecked)
+            {
+                int n = _packages.Count(p => !p.IsIgnored);
+                if (n > 0)
+                    Add("updates", "", n == 1 ? T("1 uygulamanın yeni sürümü var") : T("{0} uygulamanın yeni sürümü var", n),
+                        string.Join(", ", _packages.Where(p => !p.IsIgnored).Take(3).Select(p => p.Name)) + (n > 3 ? "…" : ""),
+                        T("Güncelle"), () => Tabs.SelectedItem = UpdatesTab);
+            }
+            if (_backupChecked && Settings.AutoBackupMode == "off")
+            {
+                int days = _lastAutoBackup == null ? -1 : (int)(DateTime.Now - _lastAutoBackup.Value).TotalDays;
+                if (days < 0 || days > 30)
+                    Add("backup", "", days < 0 ? T("Düzenli yedeğin yok") : T("Son yedek {0} gün önce", days),
+                        T("Masaüstü, Belgeler ve Resimler'i haftada bir kendiliğinden yedekleyebilirsin"),
+                        T("Otomatik yedeği aç"), () => Tabs.SelectedItem = AutoBackupTab);
+            }
+            if (_oldDownloads >= 500L * 1024 * 1024)
+                Add("downloads", "", T("İndirilenler'de {0} eski dosya var", Format.Bytes(_oldDownloads)),
+                    T("3 aydan eski kurulum dosyaları ve arşivler"), T("Göz at"), () => Tabs.SelectedItem = DownloadsTab);
+            if (_batteryHealth >= 0 && _batteryHealth < 80)
+                Add("battery", "", T("Pil kapasitesi {0}'e düştü", Format.Percent(_batteryHealth)),
+                    _batteryHealth < 60 ? T("Pil eskimiş; şarjı eskisinden çok daha kısa sürer, değiştirmeyi düşünebilirsin")
+                                        : T("Pil yıprandıkça şarj süresi kısalır; ayrıntılar Durum sayfasında"),
+                    T("Ayrıntılar"), () => Tabs.SelectedItem = ToolsTab);
+
+            if (list.Select(t => t.Key).SequenceEqual(_tips.Select(t => t.Key)) &&
+                list.Select(t => t.Title).SequenceEqual(_tips.Select(t => t.Title))) return;
+            _tips.Clear();
+            foreach (var t in list) _tips.Add(t);
+        }
+
+        /// <summary>Önerilerin yavaş bilgileri: eski indirilenler ve son otomatik yedek.</summary>
+        async Task RefreshTipDataAsync()
+        {
+            var target = _backupTarget;
+            var (old, last) = await Task.Run(() =>
+            {
+                long size = 0;
+                try { size = DownloadsFinder.Find(DownloadsFinder.Folder, 90).Sum(d => d.Size); } catch { }
+                return (size, AutoBackup.Latest(target));
+            });
+            _oldDownloads = old;
+            _lastAutoBackup = last;
+            _backupChecked = true;
         }
 
         void Tile_Click(object sender, System.Windows.Input.MouseButtonEventArgs e) =>
@@ -96,6 +180,7 @@ namespace Kahya
                     RefreshStartupAndBootAsync(),
                     RefreshPrivacyTileAsync(),
                     RefreshExtraTileAsync(),
+                    RefreshTipDataAsync(),
                     _updatesChecked ? Task.CompletedTask : (_bgUpdates = BackgroundUpdatesAsync()),
                 };
                 await Task.WhenAll(tasks);
@@ -154,6 +239,8 @@ namespace Kahya
                 _tLast.Set(days == 0 ? T("Bugün") : days == 1 ? T("Dün") : T("{0} gün önce", days),
                            $"{last.KindText} · {last.Details}", days > 30 ? "warn" : "good");
             }
+
+            RefreshTips();
 
             // Özet
             bool waiting = _tiles.Any(t => t.Level == "wait");
@@ -288,6 +375,7 @@ namespace Kahya
             if (batteries.Count > 0)
             {
                 var b = batteries[0];
+                _batteryHealth = b.Health;
                 _tExtra.Icon = "";
                 _tExtra.Title = T("Pil sağlığı");
                 _tExtra.Set(b.HealthText, T("Yeniyken olan kapasitesine göre"), b.Health < 0 ? "info" : b.Healthy ? "good" : "warn");

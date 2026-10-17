@@ -36,11 +36,63 @@ namespace Kahya
             {
                 try { if (!Scheduler.Exists(Scheduler.BackupTaskName)) Settings.AutoBackupMode = "off"; } catch { }
             }
+            InitAutoBackupCloud();
+            RefreshAutoBackup();
+        }
+
+        System.Collections.Generic.List<CloudFolders.Cloud> _clouds = new System.Collections.Generic.List<CloudFolders.Cloud>();
+
+        /// <summary>Bulut kopyası seçenekleri: Kapalı + bu bilgisayarda bulunan bulut klasörleri. Kullanıcı seçmedikçe kapalı.</summary>
+        void InitAutoBackupCloud()
+        {
+            try { _clouds = CloudFolders.Detect(); } catch { _clouds.Clear(); }
+            // Seçili bulut artık bulunamıyorsa da listede kalsın: kullanıcı kapatabilsin.
+            if (Settings.AutoBackupCloud != null && !_clouds.Any(c => c.Path.Equals(Settings.AutoBackupCloud, StringComparison.OrdinalIgnoreCase)))
+                _clouds.Add(new CloudFolders.Cloud { Name = Path.GetFileName(Settings.AutoBackupCloud), Path = Settings.AutoBackupCloud });
+
+            AutoBackupCloudPanel.Children.Clear();
+            var off = new Button { Content = T("Kapalı"), Tag = "", Style = (Style)FindResource("Seg") };
+            off.Click += AutoBackupCloud_Click;
+            AutoBackupCloudPanel.Children.Add(off);
+            foreach (var c in _clouds)
+            {
+                var b = new Button { Content = c.Name, Tag = c.Path, ToolTip = c.Path, Style = (Style)FindResource("Seg") };
+                b.Click += AutoBackupCloud_Click;
+                AutoBackupCloudPanel.Children.Add(b);
+            }
+        }
+
+        void AutoBackupCloud_Click(object sender, RoutedEventArgs e)
+        {
+            var path = (string)((Button)sender).Tag;
+            if (path.Length == 0) path = null;
+            if (string.Equals(path, Settings.AutoBackupCloud, StringComparison.OrdinalIgnoreCase)) return;
+            if (path != null && !Confirm(T("Her otomatik yedekten sonra paketin bir kopyası buraya konur:\n{0}\n\nBulutta yalnızca en yeni kopya tutulur. Paket Wi-Fi şifrelerini de içerir; bulut hesabında iki adımlı doğrulama açık olsun. Bulutta yerin yetmezse eşitleme durur.\n\nAçılsın mı?",
+                                           CloudFolders.BackupFolder(path))))
+                return;
+            Settings.AutoBackupCloud = path;
+            SaveSettings();
+            Log(path == null ? T("Bulut kopyası kapatıldı. Buluttaki kopya silinmedi.") : T("Bulut kopyası açıldı: {0}", CloudFolders.BackupFolder(path)));
             RefreshAutoBackup();
         }
 
         void RefreshAutoBackup()
         {
+            MarkSeg(AutoBackupCloudPanel, b => string.Equals((string)b.Tag, Settings.AutoBackupCloud ?? "", StringComparison.OrdinalIgnoreCase));
+            if (Settings.AutoBackupCloud != null)
+            {
+                var copy = Directory.Exists(CloudFolders.BackupFolder(Settings.AutoBackupCloud))
+                    ? Directory.GetFiles(CloudFolders.BackupFolder(Settings.AutoBackupCloud), "Kahya-Yedek-*" + BackupArchive.PackageExtension)
+                               .Select(f => new FileInfo(f)).OrderByDescending(f => f.LastWriteTime).FirstOrDefault()
+                    : null;
+                AutoBackupCloudInfo.Text = copy == null
+                    ? T("Sonraki otomatik yedekte kopyalanacak: {0}", CloudFolders.BackupFolder(Settings.AutoBackupCloud))
+                    : T("Buluttaki kopya: {0:dd.MM.yyyy HH:mm} · {1}", copy.LastWriteTime, Format.Bytes(copy.Length));
+            }
+            else
+                AutoBackupCloudInfo.Text = _clouds.Count == 0
+                    ? T("OneDrive, Google Drive ya da Dropbox bulunamadı.")
+                    : T("İstersen her yedeğin bir kopyası bulut klasörüne de konur; bilgisayar çalınsa ya da bozulsa bile yedeğin kalır.");
             MarkSeg(AutoBackupModePanel, b => (string)b.Tag == Settings.AutoBackupMode);
             MarkSeg(AutoBackupDayPanel, b => (string)b.Tag == Settings.AutoBackupDay.ToString());
             MarkSeg(AutoBackupHourPanel, b => (string)b.Tag == Settings.AutoBackupHour.ToString());

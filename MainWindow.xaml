@@ -233,6 +233,8 @@
                 <DockPanel DockPanel.Dock="Top" Margin="8,0,0,26">
                     <Button x:Name="ThemeToggleBtn" DockPanel.Dock="Right" Style="{StaticResource IconBtn}" Click="ThemeToggle_Click"
                             VerticalAlignment="Center"/>
+                    <Button DockPanel.Dock="Right" Style="{StaticResource IconBtn}" Content="&#xE721;" Click="PaletteOpen_Click"
+                            VerticalAlignment="Center" ToolTip="Ara (Ctrl+K)"/>
                     <Image x:Name="SideIcon" Width="30" Height="30" Margin="0,0,10,0"/>
                     <TextBlock Text="Kahya" FontFamily="{StaticResource Display}" FontSize="19" FontWeight="SemiBold" VerticalAlignment="Center"/>
                 </DockPanel>
@@ -420,6 +422,27 @@
                                     </StackPanel>
                                 </DockPanel>
                             </Border>
+
+                            <ItemsControl x:Name="TipList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource ToolCard}" Padding="18,12" Margin="0,0,0,10">
+                                            <DockPanel>
+                                                <Button DockPanel.Dock="Right" Style="{StaticResource IconBtn}" Content="&#xE711;" FontSize="11"
+                                                        Click="TipDismiss_Click" ToolTip="{c:Tr '2 hafta gösterme'}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                                <Button DockPanel.Dock="Right" Style="{StaticResource Btn}" Margin="12,0,0,0" Content="{Binding ActionText}"
+                                                        Click="Tip_Click" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding Icon}" FontFamily="{StaticResource Icons}" FontSize="18" Foreground="{DynamicResource AccentText}"
+                                                           VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                                <StackPanel VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="13.5" TextWrapping="Wrap"/>
+                                                    <TextBlock Text="{Binding Detail}" Style="{StaticResource Hint}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                                </StackPanel>
+                                            </DockPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
 
                             <ItemsControl x:Name="TileList" Margin="0,0,-12,0">
                                 <ItemsControl.ItemsPanel>
@@ -888,6 +911,7 @@
                                                             <ColumnDefinition Width="Auto"/>
                                                             <ColumnDefinition Width="*"/>
                                                             <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="Auto"/>
                                                         </Grid.ColumnDefinitions>
                                                         <Grid Width="26" Height="26" Margin="0,0,14,0" VerticalAlignment="Center">
                                                             <TextBlock Style="{StaticResource IconFallback}"/>
@@ -901,11 +925,16 @@
                                                                 <Run Text="{Binding Details, Mode=OneWay}" Foreground="{DynamicResource Faint}"/>
                                                             </TextBlock>
                                                         </StackPanel>
-                                                        <CheckBox x:Name="sw" Grid.Column="2" Style="{StaticResource Switch}" Margin="14,0,0,0" VerticalAlignment="Center"
+                                                        <TextBlock x:Name="impact" Grid.Column="2" Text="{Binding ImpactText}" ToolTip="{Binding ImpactTip}"
+                                                                   FontSize="12" VerticalAlignment="Center" Margin="14,0,0,0" Foreground="{DynamicResource Muted}"/>
+                                                        <CheckBox x:Name="sw" Grid.Column="3" Style="{StaticResource Switch}" Margin="14,0,0,0" VerticalAlignment="Center"
                                                                   IsChecked="{Binding IsEnabled, Mode=TwoWay}" ToolTipService.ShowOnDisabled="True"/>
                                                     </Grid>
                                                 </Border>
                                                 <DataTemplate.Triggers>
+                                                    <DataTrigger Binding="{Binding Impact}" Value="high">
+                                                        <Setter TargetName="impact" Property="Foreground" Value="{DynamicResource Warn}"/>
+                                                    </DataTrigger>
                                                     <DataTrigger Binding="{Binding Locked}" Value="True">
                                                         <Setter TargetName="sw" Property="IsEnabled" Value="False"/>
                                                         <Setter TargetName="sw" Property="ToolTip" Value="{x:Static c:Elevation.LockedTip}"/>
@@ -2362,6 +2391,11 @@
                                     </StackPanel>
                                     <TextBlock Text="Yedeklenecek klasörler" Style="{StaticResource Label}" Margin="0,12,0,4"/>
                                     <WrapPanel x:Name="AutoBackupFolderPanel"/>
+                                    <TextBlock Text="Bulut kopyası" Style="{StaticResource Label}" Margin="0,12,0,4"/>
+                                    <Border Style="{StaticResource SegBar}" Background="{DynamicResource Row}" HorizontalAlignment="Left">
+                                        <StackPanel x:Name="AutoBackupCloudPanel" Orientation="Horizontal"/>
+                                    </Border>
+                                    <TextBlock x:Name="AutoBackupCloudInfo" Style="{StaticResource Hint}" TextWrapping="Wrap" Margin="0,6,0,0"/>
                                     <TextBlock x:Name="AutoBackupInfo" Style="{StaticResource Hint}" TextWrapping="Wrap" Margin="0,8,0,0"/>
                                 </StackPanel>
                             </Border>
@@ -2758,6 +2792,66 @@
                                TextTrimming="CharacterEllipsis" Text="Hazır"/>
                 </DockPanel>
             </Grid>
+        </Grid>
+        <!-- ═════════════ Komut paleti (Ctrl+K) ═════════════ -->
+        <Grid x:Name="Palette" Grid.ColumnSpan="2" Visibility="Collapsed" Background="#66000000"
+              MouseLeftButtonDown="PaletteBackdrop_MouseDown">
+            <Border Background="{DynamicResource Card}" CornerRadius="12" Padding="10" Margin="40,70,40,40" MaxWidth="620"
+                    VerticalAlignment="Top" MouseLeftButtonDown="PaletteBox_MouseDown">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="30" ShadowDepth="6" Opacity="0.35"/>
+                </Border.Effect>
+                <DockPanel>
+                    <Grid DockPanel.Dock="Top" Margin="0,0,0,8">
+                        <TextBox x:Name="PaletteSearch" Style="{StaticResource SearchBox}" Background="{DynamicResource Control}" FontSize="14"
+                                 TextChanged="PaletteSearch_TextChanged" PreviewKeyDown="PaletteSearch_PreviewKeyDown"/>
+                        <TextBlock Text="&#xE721;" FontFamily="{StaticResource Icons}" FontSize="13" Foreground="{DynamicResource Muted}"
+                                   IsHitTestVisible="False" VerticalAlignment="Center" Margin="11,0,0,0"/>
+                        <TextBlock x:Name="PaletteHint" Text="Sayfa ya da işlem ara…" Foreground="{DynamicResource Faint}" FontSize="14" IsHitTestVisible="False"
+                                   VerticalAlignment="Center" Margin="33,0,0,0"/>
+                    </Grid>
+                    <ListBox x:Name="PaletteList" Background="Transparent" BorderThickness="0" MaxHeight="420"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled" PreviewMouseLeftButtonUp="PaletteList_MouseUp">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="Cursor" Value="Hand"/>
+                                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <Border x:Name="bg" CornerRadius="8" Padding="12,8" Background="Transparent">
+                                                <ContentPresenter/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bg" Property="Background" Value="{DynamicResource NavHover}"/>
+                                                </Trigger>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter TargetName="bg" Property="Background" Value="{DynamicResource AccentSoft}"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <DockPanel>
+                                    <TextBlock DockPanel.Dock="Right" Text="{Binding Group}" Foreground="{DynamicResource Faint}" FontSize="12"
+                                               VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                    <TextBlock Text="{Binding Icon}" FontFamily="{StaticResource Icons}" FontSize="14" Foreground="{DynamicResource Muted}"
+                                               VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Title}" Foreground="{DynamicResource Text}" FontSize="13.5"/>
+                                        <TextBlock Text="{Binding Subtitle}" Style="{StaticResource Hint}" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                </DockPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
         </Grid>
     </Grid>
 </Window>

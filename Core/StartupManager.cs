@@ -22,6 +22,12 @@ namespace Kahya.Core
         public string Publisher { get; set; }
         public ImageSource Icon { get; set; }
         public bool FileMissing { get; set; }
+
+        /// <summary>Açılışa etkisi (Görev Yöneticisi'ndeki gibi): high | medium | low; ölçüm yoksa null.</summary>
+        public string Impact { get; set; }
+        public string ImpactText => StartupImpact.Text(Impact);
+        public string ImpactTip { get; set; }
+        internal string Exe;
         public string Details => FileMissing ? "⚠ " + T("Dosya bulunamadı — artık kaldırılmış bir programa ait olabilir") : Command;
 
         // StartupApproved kaydı: Görev Yöneticisi'nin "Devre dışı bırak" için kullandığı yer.
@@ -62,9 +68,29 @@ namespace Kahya.Core
             ReadFolder(list, Environment.GetFolderPath(Environment.SpecialFolder.Startup), RegistryHive.CurrentUser, T("Başlangıç klasörü · bu kullanıcı"));
             ReadFolder(list, Environment.GetFolderPath(Environment.SpecialFolder.CommonStartup), RegistryHive.LocalMachine, T("Başlangıç klasörü · tüm kullanıcılar"));
 
+            try { ApplyImpact(list); } catch { }
+
             return list.OrderByDescending(e => e.IsEnabled)
                        .ThenBy(e => e.Name, StringComparer.CurrentCultureIgnoreCase)
                        .ToList();
+        }
+
+        /// <summary>Windows'un açılış ölçümlerinden her programın açılışa etkisini ekler (yalnızca yöneticiyken okunabilir).</summary>
+        static void ApplyImpact(List<StartupEntry> list)
+        {
+            var usage = StartupImpact.Read();
+            var slow = BootTimes.Slowest(50).Where(x => x.kind == "app").ToList();
+            foreach (var e in list)
+            {
+                var file = string.IsNullOrEmpty(e.Exe) ? null : Path.GetFileName(e.Exe);
+                if (file == null || !usage.TryGetValue(file, out var u)) continue;
+                e.Impact = StartupImpact.Level(u);
+                e.ImpactTip = T("Son {0} açılışta ortalama {1} ms işlemci, {2} disk okuması", u.Boots, u.CpuMs, Format.Bytes(u.DiskBytes));
+                var delay = slow.FirstOrDefault(x => x.name.Equals(file, StringComparison.OrdinalIgnoreCase) ||
+                                                     x.name.Equals(Path.GetFileNameWithoutExtension(file), StringComparison.OrdinalIgnoreCase));
+                if (delay.name != null)
+                    e.ImpactTip += "\n" + T("Windows'a göre açılışı ortalama {0:0.0} sn geciktiriyor", delay.avgMs / 1000.0);
+            }
         }
 
         public static void SetEnabled(StartupEntry e, bool enabled)
@@ -129,6 +155,7 @@ namespace Kahya.Core
             var e = new StartupEntry
             {
                 Name = name,
+                Exe = exe,
                 Command = command,
                 Location = location,
                 Hive = hive,

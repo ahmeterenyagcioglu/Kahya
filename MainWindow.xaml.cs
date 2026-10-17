@@ -34,6 +34,7 @@ namespace Kahya
             SourceInitialized += (s, e) => { Backdrop.Apply(this); TitleBar.Apply(this); };
             FitToWorkArea();
             PreviewMouseWheel += BusyWheel;
+            PreviewKeyDown += Palette_WindowKeyDown;
             NameNavItems();
 
             _engine = new CleanEngine(Log);

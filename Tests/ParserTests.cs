@@ -299,4 +299,38 @@ namespace Kahya.Tests
             Assert.Equal(expected, Winget.NeedsReinstall(new UpgradePackage { Id = id, Output = output }));
         }
     }
+
+    public class StartupImpactTests
+    {
+        const string Xml = @"<?xml version=""1.0""?>
+<StartupData Version=""1"">
+  <Process Name=""C:\Users\a\AppData\Roaming\Spotify\Spotify.exe"" PID=""4120"">
+    <StartTime>2026-10-17T09:00:01Z</StartTime>
+    <DiskUsage Unit=""bytes"">5242880</DiskUsage>
+    <CpuUsage Unit=""ms"">1500</CpuUsage>
+  </Process>
+  <Process Name=""C:\Users\a\AppData\Roaming\Spotify\Spotify.exe"" PID=""4200"">
+    <DiskUsage Unit=""bytes"">0</DiskUsage>
+    <CpuUsage Unit=""ms"">100</CpuUsage>
+  </Process>
+  <Process Name=""C:\Program Files\Tool\tray.exe"" PID=""5000"">
+    <DiskUsage Unit=""bytes"">1000</DiskUsage>
+    <CpuUsage Unit=""ms"">20</CpuUsage>
+  </Process>
+</StartupData>";
+
+        [Fact]
+        public void ParsesAndAveragesPerBoot()
+        {
+            var boot = StartupImpact.Parse(Xml);
+            Assert.Equal(3, boot.Count);
+            var avg = StartupImpact.Average(new System.Collections.Generic.List<System.Collections.Generic.List<(string, int, long)>>
+                { boot, StartupImpact.Parse(Xml.Replace("1500", "500")) });
+            Assert.Equal(1100, avg["spotify.exe"].CpuMs); // (1600 + 600) / 2
+            Assert.Equal(2, avg["Spotify.exe"].Boots);
+            Assert.Equal("high", StartupImpact.Level(avg["Spotify.exe"]));
+            Assert.Equal("low", StartupImpact.Level(avg["tray.exe"]));
+            Assert.Equal("medium", StartupImpact.Level(new StartupImpact.Usage { CpuMs = 400 }));
+        }
+    }
 }

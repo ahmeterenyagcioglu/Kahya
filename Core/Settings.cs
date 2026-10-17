@@ -57,6 +57,19 @@ namespace Kahya.Core
             catch { }
         }
 
+        static Dictionary<string, DateTime> ParseTips(string value)
+        {
+            var tips = new Dictionary<string, DateTime>();
+            foreach (var part in value.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                var kv = part.Split(':');
+                if (kv.Length == 2 && DateTime.TryParseExact(kv[1], "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture,
+                        System.Globalization.DateTimeStyles.None, out var d) && d > DateTime.Today.AddDays(-14))
+                    tips[kv[0]] = d;
+            }
+            return tips;
+        }
+
         public static string FilePath => Path.Combine(Folder, "settings.ini");
 
         public static bool SkipRecentFiles { get; set; }
@@ -115,6 +128,12 @@ namespace Kahya.Core
         /// <summary>Kullanıcının uyarısını kapattığı ekran kartı sürücüsü sürümü (aynı sürüm için tekrar uyarılmaz).</summary>
         public static string GpuDismissed { get; set; }
 
+        /// <summary>Genel bakışta gizlenen öneriler: anahtar → gizlendiği gün (14 gün sonra yeniden çıkar).</summary>
+        /// <summary>Otomatik yedeğin bir kopyasının konacağı bulut klasörü (OneDrive vb.); null: kapalı. Kullanıcı açmadıkça kapalı.</summary>
+        public static string AutoBackupCloud { get; set; }
+
+        public static Dictionary<string, DateTime> DismissedTips { get; set; } = new Dictionary<string, DateTime>();
+
         /// <summary>Temizlik listesinde açık duran gruplar (çevrilmemiş adlarıyla). null: hiç ayarlanmadı.</summary>
         public static HashSet<string> ExpandedGroups { get; set; }
 
@@ -157,6 +176,8 @@ namespace Kahya.Core
                         case "maintUpdates": MaintenanceUpdates = value == "1"; break;
                         case "maintDrivers": MaintenanceDrivers = value == "1"; break;
                         case "gpuDismissed": GpuDismissed = value.Length > 0 ? value : null; break;
+                        case "autoBackupCloud": AutoBackupCloud = value.Length > 0 ? value : null; break;
+                        case "dismissedTips": DismissedTips = ParseTips(value); break;
                         case "maintClean": MaintenanceClean = value != "0"; break;
                         case "maintOptimize": MaintenanceOptimize = value == "1"; break;
                         case "maintItems": MaintenanceItems = Split(value); break;
@@ -231,6 +252,10 @@ namespace Kahya.Core
                     lines.Add("maintItems=" + string.Join(",", MaintenanceItems));
                 if (Language != null)
                     lines.Add("lang=" + Language);
+                if (AutoBackupCloud != null)
+                    lines.Add("autoBackupCloud=" + AutoBackupCloud);
+                if (DismissedTips.Count > 0)
+                    lines.Add("dismissedTips=" + string.Join("|", DismissedTips.Select(t => t.Key + ":" + t.Value.ToString("yyyy-MM-dd"))));
                 if (GpuDismissed != null)
                     lines.Add("gpuDismissed=" + GpuDismissed);
                 if (BackupTarget != null)

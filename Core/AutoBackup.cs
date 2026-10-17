@@ -102,6 +102,17 @@ namespace Kahya.Core
             }
 
             Prune(target, ctx);
+
+            if (Settings.AutoBackupCloud != null)
+            {
+                try
+                {
+                    ctx.Log(T("Bulut klasörüne kopyalanıyor: {0}", Settings.AutoBackupCloud));
+                    CloudFolders.CopyBackup(zip, Settings.AutoBackupCloud, ctx);
+                    ctx.Log("   ✔ " + T("Bulut kopyası hazır; eşitlemeyi bulut programı yapar."));
+                }
+                catch (Exception ex) { ctx.Log("   ! " + T("Bulut kopyası alınamadı: {0}", ex.Message)); } // asıl yedek yine de tamam
+            }
             return zip;
         }
 

@@ -143,6 +143,9 @@ namespace Kahya
                 {
                     int on = _startup.Count(s => s.IsEnabled);
                     StartupInfo.Text = T("{0} açık · {1} kapalı · değişiklik anında kaydedilir, sonraki açılışta geçerli olur", on, _startup.Count - on);
+                    int high = _startup.Count(s => s.IsEnabled && s.Impact == "high");
+                    if (high > 0) StartupInfo.Text += " · " + T("{0} tanesi açılışı belirgin yavaşlatıyor", high);
+                    else if (!Elevation.IsAdmin) StartupInfo.Text += " · " + T("açılışa etkisini görmek için yönetici olarak aç");
                     break;
                 }
             }
