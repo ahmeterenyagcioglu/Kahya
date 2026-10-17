@@ -40,6 +40,11 @@ namespace Kahya.Core
         {
             new ReleaseNote
             {
+                Version = "1.9.5", Date = T("18 Ekim 2026"),
+                Notes = T("• Ctrl+K ile arama (sol üstte arama kutusu); ilk açılışta kısa tanıtım\n• Ayarlar › Geçmiş: başlangıç, gizlilik, DNS, güç, internet engeli ve izin değişikliklerini tek tıkla geri al\n• Sistem › Çökmeler: mavi ekranlar, beklenmedik kapanmalar ve çöken programlar sade dille; .dmp dosyasını sürükle ya da seç, açıklasın\n• Sistem › Performans: şu an ne yavaşlatıyor; Ağ: internet hız testi ve ağdaki cihazlar\n• Windows ayarları › İzinler: kamera, mikrofon ve konumu hangi uygulama ne zaman kullandı, izinleri kapat\n• Uygulamalar: oyunlar ayrı (Steam, Epic, GOG… ve mağazasız oyunlar), kullanılmayan programlar, Microsoft Store uygulamaları tanınıyor, başlangıç etkisi ve açılış süresi grafiği\n• Genel bakışta öneri kartları; disk analizinde harita görünümü; tarayıcı eklentileri tarayıcıya göre\n• Otomatik yedeğin isteğe bağlı bulut kopyası (OneDrive, Google Drive, Dropbox); daha fazla oyun kaydı yedeği (ETS2, BeamNG, Elden Ring…)\n• Düzeltmeler: tarayıcı şifre düğmeleri sayfayı açıyor; kurulum türü değişen programlar güncellenebiliyor; Prefetch temizliği artık önerilmiyor; sürüm notları ayrı pencerede"),
+            },
+            new ReleaseNote
+            {
                 Version = "1.9.3", Date = T("17 Ekim 2026"),
                 Notes = T("• Windows 11 Ayarlar gibi görünüm: Mica arka planı, yumuşak sayfa geçişleri, menüde kayan seçim çubuğu\n• Sistem › Ağ: Wi-Fi şifresini göster ve QR ile paylaş; bir programın internetini tek tıkla kes\n• Temizlik › İndirilenler: unutulmuş kurulum dosyaları ve arşivler\n• Windows ayarları › Güç: oyun öncesi hazırlık (uygulamaları kapatır, en hızlı güç planı, bildirimleri susturur; bitince geri alır)\n• Varsayılan uygulamalar (PDF, video, tarayıcı) artık yedeğe girip geri yükleniyor\n• Format öncesi: Windows etkinleştirme durumu ve satmadan önce kontrol listesi; 15 GB'ı aşan klasörler için uyarı\n• Düzeltmeler: geri yükleme noktası hatası Türkçe ve 'Evet' Gölge Kopya hizmetini de açıyor; işlem sürerken liste kaydırılabiliyor; kabloyla internete bağlıyken Wi-Fi sürücüsü de geri yükleniyor"),
             },
