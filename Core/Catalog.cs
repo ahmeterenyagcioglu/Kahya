@@ -36,7 +36,7 @@ namespace Kahya.Core
                 R(@"%WINDIR%\Temp"), R(@"%WINDIR%\SystemTemp")));
 
             items.Add(Make("prefetch", GWindows, "Prefetch",
-                "Uygulama açılış önbelleği; Windows yeniden oluşturur.", true,
+                "Uygulama açılış önbelleği. Önerilmez: silinirse programlar ilk açılışta yavaşlar, Kahya da hangi programı kullanmadığını bilemez.", false,
                 R(@"%WINDIR%\Prefetch", "*.pf;*.db", recursive: false)));
 
             items.Add(new CleanItem

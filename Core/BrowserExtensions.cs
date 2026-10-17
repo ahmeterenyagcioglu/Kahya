@@ -24,7 +24,12 @@ namespace Kahya.Core
 
         /// <summary>Gözden geçirmeye değer: mağaza dışı, eski ya da çok güçlü izinler (hata ayıklayıcı, proxy, eklenti yönetimi).</summary>
         public bool Warning { get; set; }
-        public string Details => $"{Browser} · {Profile} · v{Version} · " + T("güncelleme {0:dd.MM.yyyy}", Updated);
+        /// <summary>Başlıktaki tarayıcı simgesi.</summary>
+        public ImageSource BrowserIcon => BrowserExtensions.IconOf(Browser);
+
+        /// <summary>Listede tarayıcıya (ve birden çok profil varsa profile) göre başlık.</summary>
+        public string Group => string.IsNullOrEmpty(Profile) ? Browser : $"{Browser} · {Profile}";
+        public string Details => $"v{Version} · " + T("güncelleme {0:dd.MM.yyyy}", Updated);
         public string FlagText => string.Join(" · ", Flags);
         public string StoreUrl => !FromStore ? null
             : Browser == "Edge" ? "https://microsoftedge.microsoft.com/addons/detail/" + Id
@@ -46,6 +51,41 @@ namespace Kahya.Core
             ("Opera", @"%APPDATA%\Opera Software\Opera Stable", true),
             ("Opera GX", @"%APPDATA%\Opera Software\Opera GX Stable", true),
         };
+
+        static readonly Dictionary<string, ImageSource> Icons = new Dictionary<string, ImageSource>();
+
+        /// <summary>Tarayıcının kendi simgesi (exe'sinden); bulunamazsa null.</summary>
+        public static ImageSource IconOf(string browser)
+        {
+            lock (Icons)
+            {
+                if (Icons.TryGetValue(browser ?? "", out var icon)) return icon;
+                string exe = null;
+                switch (browser)
+                {
+                    case "Chrome": exe = "chrome.exe"; break;
+                    case "Edge": exe = "msedge.exe"; break;
+                    case "Brave": exe = "brave.exe"; break;
+                    case "Vivaldi": exe = "vivaldi.exe"; break;
+                    case "Opera": case "Opera GX": exe = "opera.exe"; break;
+                }
+                string path = null;
+                if (exe != null)
+                    foreach (var root in new[] { Microsoft.Win32.Registry.CurrentUser, Microsoft.Win32.Registry.LocalMachine })
+                    {
+                        try
+                        {
+                            using (var k = root.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\" + exe))
+                                path = (k?.GetValue("") as string)?.Trim().Trim('"');
+                        }
+                        catch { }
+                        if (!string.IsNullOrEmpty(path) && File.Exists(path)) break;
+                        path = null;
+                    }
+                try { icon = path != null ? StartupManager.ExtractIcon(path) : null; } catch { icon = null; }
+                return Icons[browser ?? ""] = icon;
+            }
+        }
 
         // Tarayıcıların kendi bileşen eklentileri: kullanıcı kurmamıştır, listeyi kalabalıklaştırır.
         static readonly HashSet<string> BuiltIn = new HashSet<string>
@@ -83,7 +123,8 @@ namespace Kahya.Core
                     }
                 }
             }
-            return list.OrderByDescending(e => e.Warning).ThenBy(e => e.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
+            return list.OrderBy(e => e.Browser).ThenBy(e => e.Profile).ThenByDescending(e => e.Warning)
+                       .ThenBy(e => e.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
         }
 
         static BrowserExtension Read(string browser, string profile, string id, string folder)

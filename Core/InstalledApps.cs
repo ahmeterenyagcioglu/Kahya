@@ -27,16 +27,18 @@ namespace Kahya.Core
         /// <summary>Oyun mu: "game", oyun platformu (Steam, Epic…): "launcher", değilse null.</summary>
         public string Kind { get; set; }
         public bool IsGame => Kind != null;
+        /// <summary>Oyunlar sekmesindeki başlık.</summary>
+        public string GameGroup => Kind == GameDetector.Launcher ? T("Oyun platformları ve araçları") : T("Oyunlar");
 
         /// <summary>En son ne zaman açıldı (<see cref="AppUsage"/>); bilinmiyorsa null.</summary>
         public DateTime? LastUsed { get; set; }
         /// <summary>Kullanım bilgisi güvenilir mi (yönetici değilken "hiç açılmadı" bilinemez).</summary>
         public bool UsageKnown { get; set; }
         /// <summary>90 günden uzun süredir açılmamış (yeni kurulanlar hariç).</summary>
-        public bool IsUnused => UsageKnown && (LastUsed ?? DateTime.MinValue) < DateTime.Now.AddDays(-AppUsage.UnusedDays) &&
+        public bool IsUnused => UsageKnown && !IsGame && (LastUsed ?? DateTime.MinValue) < DateTime.Now.AddDays(-AppUsage.UnusedDays) &&
                                 (InstallDate ?? DateTime.MinValue) < DateTime.Now.AddDays(-AppUsage.UnusedDays);
         public string UsageText => !UsageKnown ? null
-            : LastUsed == null ? T("hiç açılmamış")
+            : LastUsed == null ? T("en az 90 gündür açılmamış")
             : IsUnused ? T("{0} gündür açılmadı", (int)(DateTime.Now - LastUsed.Value).TotalDays) : null;
 
         public string SizeText => Size > 0 ? Format.Bytes(Size) : "";

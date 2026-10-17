@@ -773,6 +773,18 @@
                             <Grid>
                                 <ScrollViewer x:Name="ProgramsPanel" VerticalScrollBarVisibility="Auto" Padding="0,0,6,0">
                                     <ItemsControl x:Name="ProgramList">
+                                        <ItemsControl.GroupStyle>
+                                            <GroupStyle>
+                                                <GroupStyle.HeaderTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Margin="12,12,0,6" FontWeight="SemiBold" Foreground="{DynamicResource Muted}" FontSize="12.5">
+                                                            <Run Text="{Binding Name, Mode=OneWay}"/>
+                                                            <Run Text="{Binding ItemCount, Mode=OneWay, StringFormat='  ·  {0}'}" Foreground="{DynamicResource Faint}"/>
+                                                        </TextBlock>
+                                                    </DataTemplate>
+                                                </GroupStyle.HeaderTemplate>
+                                            </GroupStyle>
+                                        </ItemsControl.GroupStyle>
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <Border Style="{StaticResource StaticRow}" Padding="14,8">
@@ -1031,6 +1043,21 @@
                             <Grid>
                                 <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,6,0">
                                     <ItemsControl x:Name="ExtList">
+                                        <ItemsControl.GroupStyle>
+                                            <GroupStyle>
+                                                <GroupStyle.HeaderTemplate>
+                                                    <DataTemplate>
+                                                        <DockPanel Margin="10,14,10,6">
+                                                            <TextBlock DockPanel.Dock="Right" Text="{Binding ItemCount, StringFormat='{}{0}'}" Foreground="{DynamicResource Faint}"
+                                                                       VerticalAlignment="Center"/>
+                                                            <Image Source="{Binding Items[0].BrowserIcon}" Width="20" Height="20" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                                            <TextBlock Text="{Binding Name}" FontFamily="{StaticResource Display}" FontSize="15" FontWeight="SemiBold"
+                                                                       VerticalAlignment="Center"/>
+                                                        </DockPanel>
+                                                    </DataTemplate>
+                                                </GroupStyle.HeaderTemplate>
+                                            </GroupStyle>
+                                        </ItemsControl.GroupStyle>
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <Border Style="{StaticResource StaticRow}">

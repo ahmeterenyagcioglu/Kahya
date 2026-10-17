@@ -182,7 +182,9 @@ namespace Kahya
             {
                 ApplyBusy(false);
             }
-            ExtList.ItemsSource = _extensions;
+            var view = new System.Windows.Data.ListCollectionView(_extensions);
+            view.GroupDescriptions.Add(new System.Windows.Data.PropertyGroupDescription(nameof(BrowserExtension.Group)));
+            ExtList.ItemsSource = view;
             int warn = _extensions.Count(x => x.Warning);
             ExtEmpty.Text = T("Chromium tabanlı tarayıcılarda eklenti bulunamadı.");
             ExtEmpty.Visibility = _extensions.Count == 0 ? Visibility.Visible : Visibility.Collapsed;

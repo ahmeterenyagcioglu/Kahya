@@ -39,7 +39,7 @@ namespace Kahya.Core
             {
                 var prefetch = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Prefetch");
                 int count = 0;
-                DateTime newest = DateTime.MinValue;
+                DateTime newest = DateTime.MinValue, oldest = DateTime.MaxValue;
                 foreach (var f in Directory.GetFiles(prefetch, "*.pf"))
                 {
                     // AD.EXE-1A2B3C4D.pf
@@ -50,9 +50,12 @@ namespace Kahya.Core
                     Put(name.Substring(0, dash), when);
                     count++;
                     if (when > newest) newest = when;
+                    if (when < oldest) oldest = when;
                 }
-                complete = count >= 100 && newest > DateTime.Now.AddDays(-3);
-                Diagnostic = $"Prefetch {count} ({(count > 0 ? newest.ToString("dd.MM HH:mm") : "-")})";
+                // Prefetch temizlenmişse (Kahya'nın Temizlik'i de temizleyebilir) geçmiş kısadır; o zaman "açılmadı" denemez.
+                complete = count >= 50 && newest > DateTime.Now.AddDays(-3) && oldest < DateTime.Now.AddDays(-UnusedDays);
+                Diagnostic = count > 0 ? $"Prefetch {count} ({oldest:dd.MM.yyyy} – {newest:dd.MM HH:mm})" : "Prefetch 0";
+                if (count > 0 && !complete) Diagnostic += " · geçmiş 90 günden kısa, kullanılmayanlar tahmin edilmiyor";
             }
             catch (Exception ex) { Diagnostic = "Prefetch: " + ex.GetType().Name; } // yönetici değilken erişilemez
 

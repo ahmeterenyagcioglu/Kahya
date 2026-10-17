@@ -92,7 +92,14 @@ namespace Kahya
             UnusedBtn.Content = T("Kullanmadıklarım ({0})", unused);
             foreach (var b in new[] { AppsAllBtn, AppsProgramsBtn, AppsGamesBtn, UnusedBtn })
                 b.Tag = (string)b.CommandParameter == _appsFilter ? "on" : null;
-            ProgramList.ItemsSource = list;
+            if (_appsFilter == "games")
+            {
+                // Oyunlar ve oyun platformları ayrı başlıklar altında.
+                var view = new System.Windows.Data.ListCollectionView(list);
+                view.GroupDescriptions.Add(new System.Windows.Data.PropertyGroupDescription(nameof(InstalledApp.GameGroup)));
+                ProgramList.ItemsSource = view;
+            }
+            else ProgramList.ItemsSource = list;
             if (!_bloatMode && !_installMode)
             {
                 long total = list.Where(a => a.Size > 0).Sum(a => a.Size);

@@ -2335,4 +2335,8 @@
   <t tr="Uyku ya da bekleme sırasında bir bileşen geç yanıt verdi.">A component responded late during sleep or standby.</t>
   <t tr="Sürücüleri güncelle.">Update drivers.</t>
   <t tr="Program ara…">Search programs…</t>
+  <t tr="Oyun platformları ve araçları">Game platforms and tools</t>
+  <t tr="Oyunlar">Games</t>
+  <t tr="en az 90 gündür açılmamış">not opened for at least 90 days</t>
+  <t tr="Uygulama açılış önbelleği. Önerilmez: silinirse programlar ilk açılışta yavaşlar, Kahya da hangi programı kullanmadığını bilemez.">App launch cache. Not recommended: if deleted, programs start slower the first time and Kahya can't tell which programs you don't use.</t>
 </language>
