@@ -230,14 +230,37 @@
         <!-- ═════════════ Sol menü ═════════════ -->
         <Border Background="{DynamicResource Side}">
             <DockPanel Margin="14,18,14,16">
-                <DockPanel DockPanel.Dock="Top" Margin="8,0,0,26">
+                <DockPanel DockPanel.Dock="Top" Margin="8,0,0,16">
                     <Button x:Name="ThemeToggleBtn" DockPanel.Dock="Right" Style="{StaticResource IconBtn}" Click="ThemeToggle_Click"
                             VerticalAlignment="Center"/>
-                    <Button DockPanel.Dock="Right" Style="{StaticResource IconBtn}" Content="&#xE721;" Click="PaletteOpen_Click"
-                            VerticalAlignment="Center" ToolTip="Ara (Ctrl+K)"/>
                     <Image x:Name="SideIcon" Width="30" Height="30" Margin="0,0,10,0"/>
                     <TextBlock Text="Kahya" FontFamily="{StaticResource Display}" FontSize="19" FontWeight="SemiBold" VerticalAlignment="Center"/>
                 </DockPanel>
+
+                <!-- Arama: komut paletini açar (Ctrl+K) -->
+                <Button DockPanel.Dock="Top" Margin="0,0,0,18" Click="PaletteOpen_Click" Cursor="IBeam" Focusable="False"
+                        AutomationProperties.Name="Ara">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="box" Background="{DynamicResource Control}" CornerRadius="8" Padding="11,8,10,8"
+                                    BorderThickness="1" BorderBrush="Transparent">
+                                <DockPanel>
+                                    <Border DockPanel.Dock="Right" Background="{DynamicResource Row}" CornerRadius="4" Padding="6,1">
+                                        <TextBlock Text="Ctrl+K" FontSize="11" Foreground="{DynamicResource Muted}"/>
+                                    </Border>
+                                    <TextBlock Text="&#xE721;" FontFamily="{StaticResource Icons}" FontSize="12" Foreground="{DynamicResource Muted}"
+                                               VerticalAlignment="Center" Margin="0,0,9,0"/>
+                                    <TextBlock Text="Ara…" Foreground="{DynamicResource Faint}" VerticalAlignment="Center"/>
+                                </DockPanel>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="box" Property="BorderBrush" Value="{DynamicResource AccentLine}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
 
                 <StackPanel DockPanel.Dock="Bottom">
                     <Button x:Name="MaintenanceBtn" Style="{StaticResource AccentBtn}" Margin="0" Padding="14,11"
