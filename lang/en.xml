@@ -2327,4 +2327,11 @@
   <t tr="oyun platformu">game platform</t>
   <t tr="Oyunlar ({0})">Games ({0})</t>
   <t tr="Steam, Epic, GOG, EA, Ubisoft, Battle.net ve mağazasız oyunlar; oyun platformları da burada">Steam, Epic, GOG, EA, Ubisoft, Battle.net and store-less games; game platforms are here too</t>
+  <t tr="Canlı rapor: {0}">Live report: {0}</t>
+  <t tr="Bilgisayar çökmedi: Windows bir donmayı ya da sürücü sıfırlamasını atlattı ve bunu kaydetti.">The PC didn't crash: Windows recovered from a hang or driver reset and recorded it.</t>
+  <t tr="Ekran kartının bir parçası yanıt vermedi; Windows sürücüyü yeniden başlattı.">Part of the graphics card stopped responding; Windows restarted the driver.</t>
+  <t tr="Ekran kartı sürücüsünü güncelle; sık oluyorsa ısınmaya bak.">Update the graphics driver; if it happens often, check temperatures.</t>
+  <t tr="Ekran kartı sürücüsünde sorun kaydedildi.">A graphics driver problem was recorded.</t>
+  <t tr="Uyku ya da bekleme sırasında bir bileşen geç yanıt verdi.">A component responded late during sleep or standby.</t>
+  <t tr="Sürücüleri güncelle.">Update drivers.</t>
 </language>

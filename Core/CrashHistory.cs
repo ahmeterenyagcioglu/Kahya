@@ -171,6 +171,9 @@ namespace Kahya.Core
                 case 0xEF: return ("CRITICAL_PROCESS_DIED", T("Windows'un kritik bir işlemi kapandı."), T("Sistem dosyalarını onar (SFC ve DISM)."), "sfc");
                 case 0xC000021A: return ("STATUS_SYSTEM_PROCESS_TERMINATED", T("Windows'un kritik bir işlemi kapandı."), T("Sistem dosyalarını onar (SFC ve DISM)."), "sfc");
                 case 0x24: return ("NTFS_FILE_SYSTEM", T("Dosya sisteminde hata."), T("Disk sağlığını kontrol et; Onarım'dan disk denetimi yap."), "disk");
+                case 0x141: return ("VIDEO_ENGINE_TIMEOUT_DETECTED", T("Ekran kartının bir parçası yanıt vermedi; Windows sürücüyü yeniden başlattı."), T("Ekran kartı sürücüsünü güncelle; sık oluyorsa ısınmaya bak."), "drivers");
+                case 0x193: return ("VIDEO_DXGKRNL_LIVEDUMP", T("Ekran kartı sürücüsünde sorun kaydedildi."), T("Ekran kartı sürücüsünü güncelle."), "drivers");
+                case 0x15C: return ("PDC_WATCHDOG_TIMEOUT_LIVEDUMP", T("Uyku ya da bekleme sırasında bir bileşen geç yanıt verdi."), T("Sürücüleri güncelle."), "drivers");
                 case 0x161: return ("LIVE_SYSTEM_DUMP", T("Çökme değil: Windows tanılama için anlık döküm aldı."), null, null);
                 default: return ("0x" + code.ToString("X"), T("Windows ciddi bir hatayla durdu."), T("Sürücüleri ve Windows'u güncelle; sürerse sistem dosyalarını onar."), "drivers");
             }
@@ -420,6 +423,13 @@ namespace Kahya.Core
             if (kernel != null)
             {
                 var e = BlueScreen(date, kernel.Code, kernel.Driver);
+                // LiveKernelReports: mavi ekran değil; Windows bir donmayı ya da ekran kartı sıfırlamasını atlatıp kaydetmiş.
+                if (path.IndexOf("LiveKernelReports", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    e.Kind = "app";
+                    e.Title = T("Canlı rapor: {0}", Explain(kernel.Code).name) + " · " + Path.GetFileName(Path.GetDirectoryName(path));
+                    e.Detail = T("Bilgisayar çökmedi: Windows bir donmayı ya da sürücü sıfırlamasını atlattı ve bunu kaydetti.") + " " + e.Detail;
+                }
                 if (kernel.Driver == null)
                     e.Detail += " " + T("(Bu dökümde sürücü listesi yok; sebep olan sürücü bulunamadı.)");
                 return e;
