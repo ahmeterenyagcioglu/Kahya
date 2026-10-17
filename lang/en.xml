@@ -2118,4 +2118,6 @@
   <t tr="Buluttaki kopya: {0:dd.MM.yyyy HH:mm} · {1}">Cloud copy: {0:dd.MM.yyyy HH:mm} · {1}</t>
   <t tr="OneDrive, Google Drive ya da Dropbox bulunamadı.">No OneDrive, Google Drive or Dropbox found.</t>
   <t tr="İstersen her yedeğin bir kopyası bulut klasörüne de konur; bilgisayar çalınsa ya da bozulsa bile yedeğin kalır.">Optionally, a copy of each backup also goes to a cloud folder, so it survives even if the PC is stolen or breaks.</t>
+  <t tr="{0} ağı göster">Show {0} networks</t>
+  <t tr="Şifre sayfası kendiliğinden açılamadı. Adresi panoya kopyaladım:\n\n{0}\n\nTarayıcının adres çubuğuna yapıştırıp (Ctrl+V) Enter'a bas.">The password page couldn't open by itself. I copied the address to the clipboard:\n\n{0}\n\nPaste it into the browser's address bar (Ctrl+V) and press Enter.</t>
 </language>

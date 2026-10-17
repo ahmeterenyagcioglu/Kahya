@@ -46,6 +46,8 @@ namespace Kahya
                 var profiles = await Task.Run(() => FormatBackup.WifiProfiles(new CleanContext(_ => { }, default)));
                 // Yönetici değilken bazı şifreler bu bilgisayara özel şifreli gelir; onlar gösterilemez.
                 WifiList.ItemsSource = profiles.Select(p => new WifiRow { Name = p.Name, Password = p.Protected ? null : p.Password }).ToList();
+                _wifiCount = profiles.Count;
+                ShowWifiList(WifiList.Visibility == Visibility.Visible);
                 WifiInfo.Text = profiles.Count == 0 ? T("Kayıtlı Wi-Fi ağı yok.")
                     : profiles.Any(p => p.Protected) && !Elevation.IsAdmin ? T("Bazı şifreleri görmek için Kahya'yı yönetici olarak aç.")
                     : T("Misafire şifreyi söylemek yerine QR'ı telefonuyla okutsun.");
@@ -55,6 +57,18 @@ namespace Kahya
                 WifiInfo.Text = T("Okunamadı: {0}", ex.Message);
             }
         }
+
+        int _wifiCount;
+
+        /// <summary>Liste uzun olabildiği için kapalı gelir; isteyen açar.</summary>
+        void ShowWifiList(bool show)
+        {
+            WifiList.Visibility = show && _wifiCount > 0 ? Visibility.Visible : Visibility.Collapsed;
+            WifiToggleBtn.Visibility = _wifiCount > 0 ? Visibility.Visible : Visibility.Collapsed;
+            WifiToggleBtn.Content = show ? T("Gizle") : T("{0} ağı göster", _wifiCount);
+        }
+
+        void WifiToggle_Click(object sender, RoutedEventArgs e) => ShowWifiList(WifiList.Visibility != Visibility.Visible);
 
         async void WifiRefresh_Click(object sender, RoutedEventArgs e) => await LoadWifiAsync();
 

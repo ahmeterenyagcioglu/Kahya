@@ -124,9 +124,9 @@ namespace Kahya
 
         /// <summary>
         /// Kontrol listesindeki düğme: tarayıcının şifre sayfası. Chrome ve Edge iç adreslerini (edge://…) dışarıdan
-        /// açmaz, boş sekme açar; bu yüzden tarayıcı açılır, adres panoya kopyalanır ve yapıştırması söylenir.
+        /// açmaz; tarayıcı açılınca adres çubuğuna Kahya yazar (BrowserPage). Olmazsa adres panoya kopyalanır.
         /// </summary>
-        void CheckAction_Click(object sender, RoutedEventArgs e)
+        async void CheckAction_Click(object sender, RoutedEventArgs e)
         {
             if (!((sender as FrameworkElement)?.DataContext is CheckAction a)) return;
             if (a.Exe == null)
@@ -138,13 +138,15 @@ namespace Kahya
             }
             try
             {
-                // Açıklama tarayıcıdan önce: tarayıcı açılınca öne geçer, sonra çıkan pencere arkasında kalırdı.
-                if (!string.IsNullOrEmpty(a.Args))
+                if (string.IsNullOrEmpty(a.Args))
                 {
-                    try { Clipboard.SetText(a.Args); } catch { }
-                    Info(T("Şifre sayfasının adresi panoya kopyalandı:\n\n{0}\n\nTamam'a basınca tarayıcı açılır. Sayfa kendiliğinden açılmazsa adres çubuğuna yapıştırıp (Ctrl+V) Enter'a bas, sonra Dışa aktar'ı seç.", a.Args));
+                    Process.Start(new ProcessStartInfo(a.Exe) { UseShellExecute = false });
+                    return;
                 }
-                Process.Start(new ProcessStartInfo(a.Exe, a.Args) { UseShellExecute = false });
+                if (await Task.Run(() => BrowserPage.Open(a.Exe, a.Args))) return;
+                // Tarayıcı öne gelmedi: adresi kullanıcı yapıştırsın.
+                try { Clipboard.SetText(a.Args); } catch { }
+                Info(T("Şifre sayfası kendiliğinden açılamadı. Adresi panoya kopyaladım:\n\n{0}\n\nTarayıcının adres çubuğuna yapıştırıp (Ctrl+V) Enter'a bas.", a.Args));
             }
             catch (Exception ex) { Log("! " + T("{0} açılamadı: {1}", a.Label, ex.Message)); }
         }

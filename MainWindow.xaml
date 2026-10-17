@@ -2545,11 +2545,13 @@
                                 <StackPanel>
                                     <DockPanel Margin="0,0,0,10">
                                         <Button DockPanel.Dock="Right" Content="&#xE72C;" Style="{StaticResource IconBtn}" Click="WifiRefresh_Click" ToolTip="Yenile"/>
+                                        <Button x:Name="WifiToggleBtn" DockPanel.Dock="Right" Style="{StaticResource SmallBtn}" Margin="0,0,6,0" VerticalAlignment="Center"
+                                                Click="WifiToggle_Click" Visibility="Collapsed"/>
                                         <TextBlock Style="{StaticResource CardIcon}" Text="&#xE701;"/>
                                         <TextBlock Text="Kayıtlı Wi-Fi ağları" Style="{StaticResource CardTitle}"/>
                                     </DockPanel>
                                     <TextBlock x:Name="WifiInfo" Style="{StaticResource Hint}" Margin="0,0,0,8"/>
-                                    <ItemsControl x:Name="WifiList">
+                                    <ItemsControl x:Name="WifiList" Visibility="Collapsed">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <Border Style="{StaticResource StaticRow}">

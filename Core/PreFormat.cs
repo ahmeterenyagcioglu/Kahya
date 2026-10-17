@@ -258,7 +258,7 @@ namespace Kahya.Core
                 if (Exists(data)) list.Add(new BrowserInfo { Name = name, Exe = AppPath(exe), PasswordPage = page });
             }
             Add("Chrome", @"%LOCALAPPDATA%\Google\Chrome\User Data", "chrome.exe", "chrome://password-manager/settings");
-            Add("Edge", @"%LOCALAPPDATA%\Microsoft\Edge\User Data", "msedge.exe", "edge://wallet/passwords");
+            Add("Edge", @"%LOCALAPPDATA%\Microsoft\Edge\User Data", "msedge.exe", "edge://settings/autofill/passwords");
             Add("Firefox", @"%APPDATA%\Mozilla\Firefox\Profiles", "firefox.exe", "about:logins");
             Add("Brave", @"%LOCALAPPDATA%\BraveSoftware\Brave-Browser\User Data", "brave.exe", "brave://password-manager/settings");
             Add("Opera", @"%APPDATA%\Opera Software", "opera.exe", "opera://settings/passwords");
