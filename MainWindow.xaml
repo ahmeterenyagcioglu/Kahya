@@ -242,20 +242,21 @@
                         AutomationProperties.Name="Ara">
                     <Button.Template>
                         <ControlTemplate TargetType="Button">
-                            <Border x:Name="box" Background="{DynamicResource Control}" CornerRadius="8" Padding="11,8,10,8"
-                                    BorderThickness="1" BorderBrush="Transparent">
+                            <Border x:Name="box" Background="{DynamicResource Card}" CornerRadius="8" Padding="12,0,8,0" MinHeight="36"
+                                    BorderThickness="1" BorderBrush="{DynamicResource Line}">
                                 <DockPanel>
-                                    <Border DockPanel.Dock="Right" Background="{DynamicResource Row}" CornerRadius="4" Padding="6,1">
-                                        <TextBlock Text="Ctrl+K" FontSize="11" Foreground="{DynamicResource Muted}"/>
+                                    <Border DockPanel.Dock="Right" BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="5" Padding="6,1"
+                                            VerticalAlignment="Center">
+                                        <TextBlock Text="Ctrl+K" FontSize="11" Foreground="{DynamicResource Faint}"/>
                                     </Border>
                                     <TextBlock Text="&#xE721;" FontFamily="{StaticResource Icons}" FontSize="12" Foreground="{DynamicResource Muted}"
-                                               VerticalAlignment="Center" Margin="0,0,9,0"/>
+                                               VerticalAlignment="Center" Margin="0,0,10,0"/>
                                     <TextBlock Text="Ara…" Foreground="{DynamicResource Faint}" VerticalAlignment="Center"/>
                                 </DockPanel>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="box" Property="BorderBrush" Value="{DynamicResource AccentLine}"/>
+                                    <Setter TargetName="box" Property="BorderBrush" Value="{DynamicResource CheckBorder}"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -749,16 +750,14 @@
                         </Grid.RowDefinitions>
 
                         <DockPanel Margin="0,0,0,12">
-                            <Border x:Name="AppsFilterBar" DockPanel.Dock="Right" Style="{StaticResource SegBar}" Margin="8,0,0,0" Visibility="Collapsed">
-                                <StackPanel Orientation="Horizontal">
-                                    <Button x:Name="AppsAllBtn" Content="Tümü" Style="{StaticResource Seg}" Tag="all" Click="AppsFilter_Click"/>
-                                    <Button x:Name="AppsProgramsBtn" Content="Programlar" Style="{StaticResource Seg}" Tag="programs" Click="AppsFilter_Click"/>
-                                    <Button x:Name="AppsGamesBtn" Style="{StaticResource Seg}" Tag="games" Click="AppsFilter_Click"
-                                            ToolTip="Steam, Epic, GOG, EA, Ubisoft, Battle.net ve mağazasız oyunlar; oyun platformları da burada"/>
-                                    <Button x:Name="UnusedBtn" Style="{StaticResource Seg}" Tag="unused" Click="AppsFilter_Click"
-                                            ToolTip="90 günden uzun süredir açılmamış programlar, büyükten küçüğe"/>
-                                </StackPanel>
-                            </Border>
+                            <StackPanel x:Name="AppsFilterBar" DockPanel.Dock="Right" Orientation="Horizontal" Margin="4,0,0,0" Visibility="Collapsed">
+                                <Button x:Name="AppsAllBtn" Content="Tümü" Style="{StaticResource Chip}" CommandParameter="all" Click="AppsFilter_Click"/>
+                                <Button x:Name="AppsProgramsBtn" Content="Programlar" Style="{StaticResource Chip}" CommandParameter="programs" Click="AppsFilter_Click"/>
+                                <Button x:Name="AppsGamesBtn" Style="{StaticResource Chip}" CommandParameter="games" Click="AppsFilter_Click"
+                                        ToolTip="Steam, Epic, GOG, EA, Ubisoft, Battle.net ve mağazasız oyunlar; oyun platformları da burada"/>
+                                <Button x:Name="UnusedBtn" Style="{StaticResource Chip}" CommandParameter="unused" Click="AppsFilter_Click"
+                                        ToolTip="90 günden uzun süredir açılmamış programlar, büyükten küçüğe"/>
+                            </StackPanel>
                             <Border DockPanel.Dock="Right" Style="{StaticResource SegBar}" Visibility="Collapsed">
                                 <StackPanel Orientation="Horizontal">
                                     <Button x:Name="ProgramsModeBtn" Content="Yüklü programlar" Style="{StaticResource Seg}" Click="ProgramsMode_Click"/>
@@ -767,13 +766,7 @@
                                             ToolTip="Yeni bilgisayar kurulumu: sık kullanılan programları işaretle, hepsi tek seferde kurulsun"/>
                                 </StackPanel>
                             </Border>
-                            <Grid>
-                                <TextBox x:Name="AppSearch" Style="{StaticResource SearchBox}" TextChanged="AppSearch_TextChanged"/>
-                                <TextBlock Text="&#xE721;" FontFamily="{StaticResource Icons}" FontSize="12" Foreground="{DynamicResource Muted}"
-                                           IsHitTestVisible="False" VerticalAlignment="Center" Margin="11,0,0,0"/>
-                                <TextBlock x:Name="AppSearchHint" Text="Ara…" Foreground="{DynamicResource Faint}" IsHitTestVisible="False"
-                                           VerticalAlignment="Center" Margin="33,0,0,0"/>
-                            </Grid>
+                            <TextBox x:Name="AppSearch" Style="{StaticResource SearchField}" Tag="{c:Tr 'Program ara…'}" TextChanged="AppSearch_TextChanged"/>
                         </DockPanel>
 
                         <Border Grid.Row="1" Style="{StaticResource ListCard}">

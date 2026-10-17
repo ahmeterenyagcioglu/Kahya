@@ -57,7 +57,7 @@ namespace Kahya
 
         void AppsFilter_Click(object sender, RoutedEventArgs e)
         {
-            _appsFilter = (string)((System.Windows.Controls.Button)sender).Tag;
+            _appsFilter = (string)((System.Windows.Controls.Button)sender).CommandParameter;
             FilterPrograms();
         }
 
@@ -90,10 +90,8 @@ namespace Kahya
             AppsGamesBtn.Content = T("Oyunlar ({0})", games);
             UnusedBtn.Visibility = unused > 0 ? Visibility.Visible : Visibility.Collapsed;
             UnusedBtn.Content = T("Kullanmadıklarım ({0})", unused);
-            Highlight(AppsAllBtn, _appsFilter == "all");
-            Highlight(AppsProgramsBtn, _appsFilter == "programs");
-            Highlight(AppsGamesBtn, _appsFilter == "games");
-            Highlight(UnusedBtn, _appsFilter == "unused");
+            foreach (var b in new[] { AppsAllBtn, AppsProgramsBtn, AppsGamesBtn, UnusedBtn })
+                b.Tag = (string)b.CommandParameter == _appsFilter ? "on" : null;
             ProgramList.ItemsSource = list;
             if (!_bloatMode && !_installMode)
             {
@@ -106,7 +104,6 @@ namespace Kahya
 
         void AppSearch_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            AppSearchHint.Visibility = AppSearch.Text.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
             if (_installMode)
                 FilterInstall();
             else if (_bloatMode)
