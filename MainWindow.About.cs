@@ -44,11 +44,32 @@ namespace Kahya
             catch { }
         }
 
-        void LoadAbout()
+        void LoadAbout() => RefreshHistoryList();
+
+        /// <summary>Geçmiş kartı: temizlikler ve geri alınabilir ayar değişiklikleri.</summary>
+        void RefreshHistoryList()
         {
-            var history = History.Load();
             HistorySummary.Text = History.Summary();
-            HistoryList.ItemsSource = history.Take(15).ToList();
+            HistoryList.ItemsSource = History.Load().Take(30).ToList();
+        }
+
+        async void HistoryUndo_Click(object sender, RoutedEventArgs e)
+        {
+            if (!((sender as FrameworkElement)?.DataContext is HistoryEntry h) || !h.CanUndo) return;
+            if (Undo.NeedsAdmin(h.Undo) && !RequireAdmin()) return;
+            if (!Confirm(T("Geri alınsın mı?\n\n{0}", h.Title))) return;
+            var error = await System.Threading.Tasks.Task.Run(() => Undo.Run(h.Undo, new CleanContext(_ => { }, default)));
+            if (error != null)
+            {
+                Info(T("Geri alınamadı: {0}", error));
+                return;
+            }
+            History.MarkUndone(h);
+            Log("↩ " + T("Geri alındı: {0}", h.Title));
+            RefreshHistoryList();
+            // Açık sayfalardaki anahtarlar yeni durumu göstersin.
+            _startupLoaded = false; _privacyLoaded = false;
+            if (_tasksLoaded || _servicesLoaded) { _tasksLoaded = false; _servicesLoaded = false; }
         }
 
         void OpenSettingsFolder_Click(object sender, RoutedEventArgs e)

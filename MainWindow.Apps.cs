@@ -31,7 +31,12 @@ namespace Kahya
             SetBusy(T("okunuyor…"));
             try
             {
-                _programs = await Task.Run(() => InstalledApps.Load());
+                _programs = await Task.Run(() =>
+                {
+                    var list = InstalledApps.Load();
+                    try { AppUsage.Apply(list); } catch { }
+                    return list;
+                });
                 _programsLoaded = true;
             }
             catch (Exception ex)
@@ -46,6 +51,23 @@ namespace Kahya
             }
         }
 
+        bool _unusedOnly;
+
+        void Unused_Click(object sender, RoutedEventArgs e)
+        {
+            _unusedOnly = !_unusedOnly;
+            FilterPrograms();
+        }
+
+        /// <summary>Genel bakıştaki öneriden: Yüklü listesini kullanılmayanlarla aç.</summary>
+        void ShowUnusedPrograms()
+        {
+            _unusedOnly = true;
+            Tabs.SelectedItem = AppsTab;
+            SetAppsMode("programs");
+            if (_programsLoaded) FilterPrograms();
+        }
+
         void FilterPrograms()
         {
             var q = AppSearch.Text.Trim();
@@ -53,6 +75,11 @@ namespace Kahya
                 ? _programs
                 : _programs.Where(a => a.Name.IndexOf(q, StringComparison.CurrentCultureIgnoreCase) >= 0 ||
                                        (a.Publisher ?? "").IndexOf(q, StringComparison.CurrentCultureIgnoreCase) >= 0).ToList();
+            if (_unusedOnly) list = list.Where(a => a.IsUnused).OrderByDescending(a => a.Size).ToList();
+            int unused = _programs.Count(a => a.IsUnused);
+            UnusedBtn.Visibility = (unused > 0 || _unusedOnly) && !_bloatMode && !_installMode ? Visibility.Visible : Visibility.Collapsed;
+            UnusedBtn.Content = T("Kullanmadıklarım ({0})", unused);
+            Highlight(UnusedBtn, _unusedOnly);
             ProgramList.ItemsSource = list;
             if (!_bloatMode && !_installMode)
             {
@@ -107,6 +134,7 @@ namespace Kahya
             ListLoadBtn.Visibility = _installMode ? Visibility.Visible : Visibility.Collapsed;
             ListSaveBtn.Visibility = _bloatMode ? Visibility.Collapsed : Visibility.Visible;
             AppsEmpty.Visibility = Visibility.Collapsed;
+            UnusedBtn.Visibility = programs && (_unusedOnly || _programs.Any(p => p.IsUnused)) ? Visibility.Visible : Visibility.Collapsed;
         }
 
         async void AppsRefresh_Click(object sender, RoutedEventArgs e)

@@ -102,7 +102,16 @@ namespace Kahya
         void PowerPlan_Click(object sender, RoutedEventArgs e)
         {
             var b = (Button)sender;
-            if (PowerTools.SetActive((string)b.Tag)) Log(T("Güç planı: {0}", b.Content));
+            var before = PowerTools.Plans().FirstOrDefault(p => p.Active);
+            if (PowerTools.SetActive((string)b.Tag))
+            {
+                Log(T("Güç planı: {0}", b.Content));
+                if (before != null && before.Guid != (string)b.Tag)
+                {
+                    History.AddChange(T("Güç planı"), T("{0} → {1}", before.Name, b.Content), Undo.PowerPlan(before.Guid));
+                    RefreshHistoryList();
+                }
+            }
             else Log("! " + T("Güç planı değiştirilemedi."));
             LoadPower();
         }
@@ -114,16 +123,18 @@ namespace Kahya
             LoadPower();
         }
 
-        void GameMode_Click(object sender, RoutedEventArgs e) => ApplyToggle(() => PowerTools.GameMode = GameModeSwitch.IsChecked == true, T("Oyun modu"), GameModeSwitch.IsChecked == true);
-        void Transparency_Click(object sender, RoutedEventArgs e) => ApplyToggle(() => PowerTools.Transparency = TransparencySwitch.IsChecked == true, T("Saydamlık efektleri"), TransparencySwitch.IsChecked == true);
-        void Animation_Click(object sender, RoutedEventArgs e) => ApplyToggle(() => PowerTools.Animations = AnimationSwitch.IsChecked == true, T("Animasyonlar"), AnimationSwitch.IsChecked == true);
+        void GameMode_Click(object sender, RoutedEventArgs e) => ApplyToggle(() => PowerTools.GameMode = GameModeSwitch.IsChecked == true, T("Oyun modu"), GameModeSwitch.IsChecked == true, "gamemode");
+        void Transparency_Click(object sender, RoutedEventArgs e) => ApplyToggle(() => PowerTools.Transparency = TransparencySwitch.IsChecked == true, T("Saydamlık efektleri"), TransparencySwitch.IsChecked == true, "transparency");
+        void Animation_Click(object sender, RoutedEventArgs e) => ApplyToggle(() => PowerTools.Animations = AnimationSwitch.IsChecked == true, T("Animasyonlar"), AnimationSwitch.IsChecked == true, "animations");
 
-        void ApplyToggle(Action apply, string name, bool on)
+        void ApplyToggle(Action apply, string name, bool on, string key)
         {
             try
             {
                 apply();
                 Log(on ? T("{0} açıldı.", name) : T("{0} kapatıldı.", name));
+                History.AddChange(T("Güç"), name + " · " + (on ? T("açıldı") : T("kapatıldı")), Undo.Toggle(key, !on));
+                RefreshHistoryList();
             }
             catch (Exception ex)
             {

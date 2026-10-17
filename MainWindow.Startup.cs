@@ -49,6 +49,7 @@ namespace Kahya
 
             _startupLoaded = true;
             UpdateStartupInfo();
+            LoadBootChart();
         }
 
         void Startup_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -61,6 +62,9 @@ namespace Kahya
             {
                 StartupManager.SetEnabled(entry, entry.IsEnabled);
                 Log(entry.IsEnabled ? "✔ " + T("Açılışta başlayacak: {0}", entry.Name) : "⏸ " + T("Açılışta artık başlamayacak: {0}", entry.Name));
+                History.AddChange(T("Başlangıç"), entry.IsEnabled ? T("{0} açılışta başlayacak", entry.Name) : T("{0} açılışta başlamayacak", entry.Name),
+                                  Undo.Startup(entry, !entry.IsEnabled));
+                RefreshHistoryList();
             }
             catch (Exception ex)
             {
@@ -94,6 +98,7 @@ namespace Kahya
             StartupTasksPanel.Visibility = _startupMode == "tasks" ? Visibility.Visible : Visibility.Collapsed;
             StartupServicesPanel.Visibility = _startupMode == "services" ? Visibility.Visible : Visibility.Collapsed;
             UpdateStartupInfo();
+            LoadBootChart();
         }
 
         async void StartupRefresh_Click(object sender, RoutedEventArgs e)
@@ -233,6 +238,10 @@ namespace Kahya
                 Log(item.Kind == "task"
                     ? (on ? "✔ " + T("Görev açıldı: {0}", item.Name) : "⏸ " + T("Görev kapatıldı: {0}", item.Name))
                     : (on ? "✔ " + T("Servis açılışta başlayacak: {0}", item.Name) : "⏸ " + T("Servis artık açılışta başlamayacak (elle): {0}", item.Name)));
+                History.AddChange(item.Kind == "task" ? T("Zamanlanmış görev") : T("Servis"),
+                                  item.Name + " · " + (on ? T("açıldı") : T("kapatıldı")),
+                                  item.Kind == "task" ? Undo.Task(item, !on) : Undo.Service(item, !on));
+                RefreshHistoryList();
             }
             else
             {

@@ -126,7 +126,13 @@ namespace Kahya
             DnsInfo.Text = T("Uygulanıyor…");
             try
             {
+                var before = await Task.Run(() => { try { return NetworkTools.CurrentDns(new CleanContext(_ => { }, default)); } catch { return null; } });
                 await Task.Run(() => NetworkTools.SetDns(p, new CleanContext(_ => { }, default)));
+                if (before != null && before.Count > 0)
+                {
+                    History.AddChange("DNS", T("DNS: {0}", p.Name), Undo.Dns(before[0].servers));
+                    RefreshHistoryList();
+                }
                 Log("🌐 " + T("DNS: {0}", p.Name) + (p.Automatic ? "" : " (" + string.Join(", ", p.V4.Concat(p.V6)) + ")"));
                 _customDnsOpen = false;
             }

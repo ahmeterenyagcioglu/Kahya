@@ -61,6 +61,8 @@ namespace Kahya
         double _batteryHealth = -1;
         DateTime? _lastAutoBackup;
         bool _backupChecked;
+        int _unusedCount;
+        long _unusedSize;
         bool _overviewRefreshing;
 
         void InitOverview()
@@ -124,6 +126,11 @@ namespace Kahya
             if (_oldDownloads >= 500L * 1024 * 1024)
                 Add("downloads", "", T("İndirilenler'de {0} eski dosya var", Format.Bytes(_oldDownloads)),
                     T("3 aydan eski kurulum dosyaları ve arşivler"), T("Göz at"), () => Tabs.SelectedItem = DownloadsTab);
+            if (_unusedCount >= 3)
+                Add("unused", "\uE74C", T("{0} programı 3 aydır açmadın", _unusedCount),
+                    _unusedSize > 0 ? T("Toplam {0} yer kaplıyorlar; kullanmıyorsan kaldırabilirsin", Format.Bytes(_unusedSize))
+                                    : T("Kullanmıyorsan kaldırabilirsin"),
+                    T("Göz at"), ShowUnusedPrograms);
             if (_batteryHealth >= 0 && _batteryHealth < 80)
                 Add("battery", "", T("Pil kapasitesi {0}'e düştü", Format.Percent(_batteryHealth)),
                     _batteryHealth < 60 ? T("Pil eskimiş; şarjı eskisinden çok daha kısa sürer, değiştirmeyi düşünebilirsin")
@@ -140,12 +147,16 @@ namespace Kahya
         async Task RefreshTipDataAsync()
         {
             var target = _backupTarget;
-            var (old, last) = await Task.Run(() =>
+            var (old, last, unused) = await Task.Run(() =>
             {
                 long size = 0;
                 try { size = DownloadsFinder.Find(DownloadsFinder.Folder, 90).Sum(d => d.Size); } catch { }
-                return (size, AutoBackup.Latest(target));
+                var apps = new System.Collections.Generic.List<InstalledApp>();
+                try { apps = InstalledApps.Load(); AppUsage.Apply(apps); apps = apps.Where(a => a.IsUnused).ToList(); } catch { }
+                return (size, AutoBackup.Latest(target), apps);
             });
+            _unusedCount = unused.Count;
+            _unusedSize = unused.Where(a => a.Size > 0).Sum(a => a.Size);
             _oldDownloads = old;
             _lastAutoBackup = last;
             _backupChecked = true;
@@ -228,7 +239,7 @@ namespace Kahya
             }
 
             // Son bakım
-            var last = History.Load().FirstOrDefault();
+            var last = History.Load().FirstOrDefault(h => h.Kind != "change");
             if (last == null)
             {
                 _tLast.Set(T("Hiç yapılmadı"), T("Tek tıkla bakımı başlatmak için tıkla"), "warn");

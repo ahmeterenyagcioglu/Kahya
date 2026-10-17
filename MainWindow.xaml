@@ -726,6 +726,8 @@
                         </Grid.RowDefinitions>
 
                         <DockPanel Margin="0,0,0,12">
+                            <Button x:Name="UnusedBtn" DockPanel.Dock="Right" Style="{StaticResource SmallBtn}" Margin="0,0,8,0" Visibility="Collapsed"
+                                    Click="Unused_Click" ToolTip="90 günden uzun süredir açılmamış programlar, büyükten küçüğe"/>
                             <Grid DockPanel.Dock="Right" Width="260">
                                 <TextBox x:Name="AppSearch" Style="{StaticResource SearchBox}" TextChanged="AppSearch_TextChanged"/>
                                 <TextBlock Text="&#xE721;" FontFamily="{StaticResource Icons}" FontSize="12" Foreground="{DynamicResource Muted}"
@@ -889,6 +891,28 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
+                        <StackPanel>
+                        <Border x:Name="BootCard" Style="{StaticResource ToolCard}" Padding="18,12" Margin="0,0,0,12" Visibility="Collapsed">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                                    <TextBlock Text="Açılış süresi" Foreground="{DynamicResource Muted}" FontSize="12.5"/>
+                                    <TextBlock x:Name="BootValue" FontFamily="{StaticResource Display}" FontSize="22" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="BootSub" Style="{StaticResource Hint}"/>
+                                </StackPanel>
+                                <Grid Grid.Column="1">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Canvas x:Name="BootChart" Height="56" ClipToBounds="True" SizeChanged="BootChart_SizeChanged" Background="Transparent"/>
+                                    <TextBlock x:Name="BootInsight" Grid.Row="1" Foreground="{DynamicResource Good}" FontSize="12.5" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                </Grid>
+                            </Grid>
+                        </Border>
                         <Border Style="{StaticResource SegBar}" Margin="0,0,0,12">
                             <StackPanel Orientation="Horizontal">
                                 <Button x:Name="StartupAppsBtn" Content="Uygulamalar" Style="{StaticResource Seg}" Tag="apps" Click="StartupMode_Click"/>
@@ -898,6 +922,7 @@
                                         ToolTip="Programların arka planda sürekli çalışan servisleri. Microsoft'un servisleri listelenmez."/>
                             </StackPanel>
                         </Border>
+                        </StackPanel>
 
                         <Border Grid.Row="1" Style="{StaticResource ListCard}">
                             <Grid>
@@ -1199,6 +1224,8 @@
                             <StackPanel x:Name="DiskPathRow">
                                 <DockPanel>
                                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                        <Button x:Name="DiskMapBtn" Style="{StaticResource SmallBtn}" Click="DiskMap_Click" Margin="0,0,10,0"
+                                                VerticalAlignment="Center" Visibility="Collapsed" ToolTip="Klasörleri kapladıkları yere göre kutular halinde göster"/>
                                         <TextBlock x:Name="DiskScanInfo" Style="{StaticResource Label}"/>
                                         <Button x:Name="DiskRescanBtn" Content="&#xE72C;" Style="{StaticResource IconBtn}" Click="DiskRescan_Click"
                                                 Visibility="Collapsed" ToolTip="Yeniden tara"/>
@@ -1367,6 +1394,8 @@
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
                                 </ScrollViewer>
+
+                                <Canvas x:Name="DiskMap" Margin="4" ClipToBounds="True" Visibility="Collapsed" SizeChanged="DiskMap_SizeChanged"/>
 
                                 <StackPanel VerticalAlignment="Center" Margin="20"
                                             Visibility="{Binding Visibility, ElementName=DiskEmpty}">
@@ -1964,19 +1993,33 @@
                                         <TextBlock Text="Geçmiş" Style="{StaticResource CardTitle}"/>
                                     </DockPanel>
                                     <TextBlock x:Name="HistorySummary" Style="{StaticResource Hint}" Margin="0,0,0,10"/>
-                                    <ItemsControl x:Name="HistoryList">
+                                    <ItemsControl x:Name="HistoryList" Grid.IsSharedSizeScope="True">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <Grid Margin="0,4">
+                                                <Grid Margin="0,3">
                                                     <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="130"/>
-                                                        <ColumnDefinition Width="150"/>
+                                                        <ColumnDefinition Width="Auto" SharedSizeGroup="hDate"/>
+                                                        <ColumnDefinition Width="Auto" SharedSizeGroup="hKind"/>
                                                         <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="{Binding DateText}" Foreground="{DynamicResource Muted}" FontSize="12.5"/>
-                                                    <TextBlock Grid.Column="1" Text="{Binding KindText}" FontSize="12.5"/>
-                                                    <TextBlock Grid.Column="2" Text="{Binding Details}" Foreground="{DynamicResource Good}" FontSize="12.5" TextWrapping="Wrap"/>
+                                                    <TextBlock Text="{Binding DateText}" Foreground="{DynamicResource Muted}" FontSize="12.5" Margin="0,0,20,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding KindText}" FontSize="12.5" Margin="0,0,20,0" VerticalAlignment="Center"/>
+                                                    <TextBlock x:Name="det" Grid.Column="2" Text="{Binding Details}" Foreground="{DynamicResource Good}" FontSize="12.5" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                                                    <Button x:Name="undo" Grid.Column="3" Content="{c:Tr 'Geri al'}" Style="{StaticResource SmallBtn}" Margin="12,0,0,0" Padding="10,3"
+                                                            Click="HistoryUndo_Click" Visibility="Collapsed"/>
                                                 </Grid>
+                                                <DataTemplate.Triggers>
+                                                    <DataTrigger Binding="{Binding CanUndo}" Value="True">
+                                                        <Setter TargetName="undo" Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Kind}" Value="change">
+                                                        <Setter TargetName="det" Property="Foreground" Value="{DynamicResource Text}"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Undone}" Value="True">
+                                                        <Setter TargetName="det" Property="Foreground" Value="{DynamicResource Muted}"/>
+                                                    </DataTrigger>
+                                                </DataTemplate.Triggers>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
@@ -2217,6 +2260,135 @@
                                     </ItemsControl>
                                 </StackPanel>
                             </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <TabItem x:Name="PerfTab">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <StackPanel>
+                            <UniformGrid Columns="2" Margin="0,0,-14,0">
+                                <Border Style="{StaticResource ToolCard}" Margin="0,0,14,14">
+                                    <StackPanel>
+                                        <TextBlock Text="İşlemci" Foreground="{DynamicResource Muted}" FontSize="12.5"/>
+                                        <TextBlock x:Name="PerfCpu" Text="…" FontFamily="{StaticResource Display}" FontSize="22" FontWeight="SemiBold"/>
+                                        <ProgressBar x:Name="PerfCpuBar" Height="4" Maximum="100" Margin="0,6,0,0" BorderThickness="0"
+                                                     Background="{DynamicResource Row}" Foreground="{DynamicResource Accent}"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource ToolCard}" Margin="0,0,14,14">
+                                    <StackPanel>
+                                        <TextBlock Text="Bellek (RAM)" Foreground="{DynamicResource Muted}" FontSize="12.5"/>
+                                        <TextBlock x:Name="PerfMem" Text="…" FontFamily="{StaticResource Display}" FontSize="22" FontWeight="SemiBold"/>
+                                        <ProgressBar x:Name="PerfMemBar" Height="4" Maximum="100" Margin="0,6,0,0" BorderThickness="0"
+                                                     Background="{DynamicResource Row}" Foreground="{DynamicResource Accent}"/>
+                                    </StackPanel>
+                                </Border>
+                            </UniformGrid>
+                            <TextBlock x:Name="PerfVerdict" TextWrapping="Wrap" FontWeight="SemiBold" Margin="2,0,0,10"/>
+                        </StackPanel>
+                        <Border Grid.Row="1" Style="{StaticResource ListCard}" Padding="6,6,2,6">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Grid Margin="14,6,48,6" Grid.IsSharedSizeScope="False">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto" SharedSizeGroup="pc"/>
+                                        <ColumnDefinition Width="Auto" SharedSizeGroup="pm"/>
+                                        <ColumnDefinition Width="Auto" SharedSizeGroup="pd"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Program" Style="{StaticResource Hint}"/>
+                                    <TextBlock Grid.Column="1" Text="İşlemci" Style="{StaticResource Hint}" MinWidth="70" TextAlignment="Right"/>
+                                    <TextBlock Grid.Column="2" Text="Bellek" Style="{StaticResource Hint}" MinWidth="90" TextAlignment="Right"/>
+                                    <TextBlock Grid.Column="3" Text="Disk" Style="{StaticResource Hint}" MinWidth="90" TextAlignment="Right"/>
+                                </Grid>
+                                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="0,0,6,0">
+                                    <ItemsControl x:Name="PerfList">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Style="{StaticResource StaticRow}">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <StackPanel VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding Name}" Style="{StaticResource RowTitle}" TextTrimming="CharacterEllipsis"/>
+                                                            <TextBlock Text="{Binding Sub}" Style="{StaticResource RowSub}" Visibility="{Binding HasSub, Converter={StaticResource BoolVis}}"/>
+                                                        </StackPanel>
+                                                        <TextBlock Grid.Column="1" Text="{Binding CpuText}" MinWidth="70" TextAlignment="Right" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="2" Text="{Binding MemoryText}" MinWidth="90" TextAlignment="Right" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="3" Text="{Binding DiskText}" MinWidth="90" TextAlignment="Right" VerticalAlignment="Center"/>
+                                                        <Button Grid.Column="4" Content="&#xE711;" Style="{StaticResource IconBtn}" FontSize="11" Margin="8,0,0,0"
+                                                                Click="PerfClose_Click" ToolTip="{c:Tr 'Programı kapat'}"/>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </TabItem>
+
+                <TabItem x:Name="CrashTab">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,8,0">
+                        <StackPanel>
+                            <Border Style="{StaticResource ToolCard}">
+                                <DockPanel>
+                                    <Button DockPanel.Dock="Right" Content="&#xE72C;" Style="{StaticResource IconBtn}" Click="CrashRefresh_Click" ToolTip="Yenile" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="CrashIcon" Text="&#xE9D9;" FontFamily="{StaticResource Icons}" FontSize="24" Foreground="{DynamicResource Muted}"
+                                               VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock x:Name="CrashTitle" Text="Okunuyor…" FontWeight="SemiBold" FontSize="15"/>
+                                        <TextBlock x:Name="CrashSub" Style="{StaticResource Hint}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                            <ItemsControl x:Name="CrashList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource ToolCard}" Padding="18,12" Margin="0,0,0,8">
+                                            <DockPanel>
+                                                <StackPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="12,0,0,0">
+                                                    <TextBlock Text="{Binding DateText}" Style="{StaticResource Hint}" HorizontalAlignment="Right"/>
+                                                    <Button x:Name="act" Content="{Binding ActionText}" Style="{StaticResource SmallBtn}" Margin="0,6,0,0" HorizontalAlignment="Right"
+                                                            Click="CrashAction_Click"/>
+                                                </StackPanel>
+                                                <TextBlock x:Name="ic" Text="{Binding Icon}" FontFamily="{StaticResource Icons}" FontSize="17" Foreground="{DynamicResource Warn}"
+                                                           VerticalAlignment="Top" Margin="0,2,14,0"/>
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                                    <TextBlock Text="{Binding Detail}" Style="{StaticResource Hint}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                                    <TextBlock x:Name="adv" Text="{Binding Advice}" Foreground="{DynamicResource AccentText}" FontSize="12.5" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                                </StackPanel>
+                                            </DockPanel>
+                                        </Border>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding ActionText}" Value="{x:Null}">
+                                                <Setter TargetName="act" Property="Visibility" Value="Collapsed"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding HasAdvice}" Value="False">
+                                                <Setter TargetName="adv" Property="Visibility" Value="Collapsed"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Kind}" Value="bluescreen">
+                                                <Setter TargetName="ic" Property="Foreground" Value="{DynamicResource Bad}"/>
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
                         </StackPanel>
                     </ScrollViewer>
                 </TabItem>
@@ -2671,6 +2843,34 @@
                             <Border Style="{StaticResource ToolCard}">
                                 <StackPanel>
                                     <DockPanel Margin="0,0,0,6">
+                                        <Button x:Name="SpeedBtn" DockPanel.Dock="Right" Content="Ölç" Style="{StaticResource SmallBtn}" Margin="0" Click="Speed_Click"/>
+                                        <TextBlock Style="{StaticResource CardIcon}" Text="&#xEC4A;"/>
+                                        <TextBlock Text="İnternet hızı" Style="{StaticResource CardTitle}"/>
+                                    </DockPanel>
+                                    <TextBlock x:Name="SpeedInfo" Style="{StaticResource Hint}" TextWrapping="Wrap"
+                                               Text="Yaklaşık 15 saniye sürer; Cloudflare'in test sunucusu kullanılır."/>
+                                    <ProgressBar x:Name="SpeedBar" Height="3" Maximum="1" Margin="0,8,0,0" BorderThickness="0" Visibility="Collapsed"
+                                                 Background="{DynamicResource Row}" Foreground="{DynamicResource Accent}"/>
+                                    <UniformGrid x:Name="SpeedResults" Columns="3" Margin="0,10,0,0" Visibility="Collapsed">
+                                        <StackPanel>
+                                            <TextBlock Text="İndirme" Foreground="{DynamicResource Muted}" FontSize="12.5"/>
+                                            <TextBlock x:Name="SpeedDown" FontFamily="{StaticResource Display}" FontSize="22" FontWeight="SemiBold"/>
+                                        </StackPanel>
+                                        <StackPanel>
+                                            <TextBlock Text="Yükleme" Foreground="{DynamicResource Muted}" FontSize="12.5"/>
+                                            <TextBlock x:Name="SpeedUp" FontFamily="{StaticResource Display}" FontSize="22" FontWeight="SemiBold"/>
+                                        </StackPanel>
+                                        <StackPanel>
+                                            <TextBlock Text="Gecikme" Foreground="{DynamicResource Muted}" FontSize="12.5"/>
+                                            <TextBlock x:Name="SpeedPing" FontFamily="{StaticResource Display}" FontSize="22" FontWeight="SemiBold"/>
+                                        </StackPanel>
+                                    </UniformGrid>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource ToolCard}">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,6">
                                         <Button DockPanel.Dock="Right" Content="Program seç…" Style="{StaticResource SmallBtn}" Margin="0" c:Elevation.Required="True"
                                                 Click="BlockAdd_Click"/>
                                         <TextBlock Style="{StaticResource CardIcon}" Text="&#xE8F8;"/>
@@ -2853,6 +3053,26 @@
                         </ListBox.ItemTemplate>
                     </ListBox>
                 </DockPanel>
+            </Border>
+        </Grid>
+        <!-- ═════════════ İlk açılış tanıtımı ═════════════ -->
+        <Grid x:Name="Tour" Grid.ColumnSpan="2" Visibility="Collapsed" Background="#66000000">
+            <Border Background="{DynamicResource Card}" CornerRadius="14" Padding="28,24" Margin="40" MaxWidth="520"
+                    VerticalAlignment="Center" HorizontalAlignment="Center">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="30" ShadowDepth="6" Opacity="0.35"/>
+                </Border.Effect>
+                <StackPanel>
+                    <TextBlock x:Name="TourIcon" FontFamily="{StaticResource Icons}" FontSize="34" Foreground="{DynamicResource AccentText}" Margin="0,0,0,14"/>
+                    <TextBlock x:Name="TourTitle" FontFamily="{StaticResource Display}" FontSize="20" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                    <TextBlock x:Name="TourText" Foreground="{DynamicResource Muted}" FontSize="13.5" TextWrapping="Wrap" Margin="0,8,0,0" LineHeight="21"/>
+                    <DockPanel Margin="0,24,0,0">
+                        <Button x:Name="TourNextBtn" DockPanel.Dock="Right" Style="{StaticResource AccentBtn}" Margin="0" Click="TourNext_Click"/>
+                        <Button x:Name="TourBackBtn" DockPanel.Dock="Right" Content="Geri" Style="{StaticResource Btn}" Click="TourBack_Click"/>
+                        <Button x:Name="TourSkipBtn" Content="Atla" Style="{StaticResource GhostBtn}" Click="TourSkip_Click" HorizontalAlignment="Left"/>
+                        <StackPanel x:Name="TourDots" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </DockPanel>
+                </StackPanel>
             </Border>
         </Grid>
     </Grid>

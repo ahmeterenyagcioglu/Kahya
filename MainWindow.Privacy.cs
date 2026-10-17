@@ -67,6 +67,9 @@ namespace Kahya
             {
                 Privacy.Apply(t, t.IsApplied);
                 Log(t.IsApplied ? "🛡 " + T("Uygulandı: {0}", t.Name) : "↩ " + T("Windows varsayılanına döndü: {0}", t.Name));
+                History.AddChange(t.Section == T("Görünüm ve kullanım") ? T("Görünüm") : T("Gizlilik"), t.Name + " · " + (t.IsApplied ? T("uygulandı") : T("varsayılana döndü")),
+                                  Undo.Tweak(t, !t.IsApplied));
+                RefreshHistoryList();
                 if (t.RestartsExplorer)
                     Log("   " + T("Görmek için 'Gezgin'i yeniden başlat'a bas."));
             }

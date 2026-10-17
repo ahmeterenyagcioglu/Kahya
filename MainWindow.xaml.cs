@@ -78,7 +78,10 @@ namespace Kahya
                 if (App.StartWizard || RestoreState.Load()?.Interrupted == true)
                     OpenRestoreWizard(App.StartRestore);
                 else
+                {
                     _ = OfferRestoreOnNewWindowsAsync();
+                    if (!Settings.TourDone && !App.StartMaintenance) ShowTour();
+                }
                 _ = CheckAppUpdateAsync(silent: true);
                 _ = CheckGpuAsync(silent: true);
                 var analyze = AnalyzeAsync();
@@ -316,6 +319,9 @@ namespace Kahya
                 _ = LoadBlocksAsync();
             if (tab == NetTab && !_wifiLoaded)
                 _ = LoadWifiAsync();
+            if (tab == PerfTab) StartPerf(); else StopPerf();
+            if (tab == CrashTab && !_crashLoaded)
+                _ = LoadCrashesAsync();
             if (tab == AboutTab)
                 LoadAbout();
             if (tab == OverviewTab)

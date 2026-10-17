@@ -241,6 +241,7 @@ namespace Kahya
             if (_diskResult == null)
             {
                 DiskList.ItemsSource = null;
+                ShowDiskMap(null);
                 DiskEmpty.Text = _diskEmptyDefault;
                 DiskEmpty.Visibility = Visibility.Visible;
                 DiskPath.Text = "";
@@ -259,6 +260,7 @@ namespace Kahya
 
             DiskList.ItemsSource = rows;
             DiskScroll.ScrollToTop();
+            ShowDiskMap(rows);
             DiskUpBtn.IsEnabled = (_diskMode == DiskMode.Folders && _diskCurrent?.Parent != null) ||
                                   (_diskMode == DiskMode.Types && _typeGroup != null);
             if (rows.Count == 0)

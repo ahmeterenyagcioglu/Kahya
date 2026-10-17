@@ -167,6 +167,8 @@ namespace Kahya
             {
                 await System.Threading.Tasks.Task.Run(() => NetBlock.Block(exe, new CleanContext(_ => { }, default)));
                 Log("🚫 " + T("İnterneti kesildi: {0}", exe));
+                History.AddChange(T("İnternet engeli"), T("{0} internete çıkamaz", System.IO.Path.GetFileName(exe)), Undo.NetBlocked(exe, false));
+                RefreshHistoryList();
             }
             catch (System.Exception ex) { Info(T("Kural eklenemedi: {0}", ex.Message)); }
             await LoadBlocksAsync();
@@ -179,6 +181,8 @@ namespace Kahya
             {
                 await System.Threading.Tasks.Task.Run(() => NetBlock.Unblock(b.Path, new CleanContext(_ => { }, default)));
                 Log("✔ " + T("İnternete izin verildi: {0}", b.Name));
+                History.AddChange(T("İnternet engeli"), T("{0} yeniden internete çıkabilir", b.Name), Undo.NetBlocked(b.Path, true));
+                RefreshHistoryList();
             }
             catch (System.Exception ex) { Info(T("Kural kaldırılamadı: {0}", ex.Message)); }
             await LoadBlocksAsync();

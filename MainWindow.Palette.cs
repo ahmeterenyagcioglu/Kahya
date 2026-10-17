@@ -75,6 +75,7 @@ namespace Kahya
             items.Add(Action("", "Tek tıkla bakım", "Temizlik, güncellemeler ve diğer bakım adımları", T("bakım"), () => Maintenance_Click(null, null)));
             items.Add(Action("", "Rapor oluştur", "Bilgisayarın durumunu tek sayfada kaydet", T("pdf yardım"), () => Report_Click(null, null)));
             items.Add(Action("", "Temayı değiştir", "Açık ya da koyu görünüm", T("karanlık aydınlık"), () => ThemeToggle_Click(null, null)));
+            items.Add(Action("", "Tanıtımı göster", "Kahya'nın kısa tanıtımı", T("yardım rehber"), ShowTour));
             items.Add(Action("", "İşlem kaydı", "Yapılanların ayrıntılı kaydını aç ya da kapat", T("log"), () => LogToggle_Click(null, null)));
 
             foreach (var i in items)
@@ -110,6 +111,16 @@ namespace Kahya
             if (e.Key == Key.K && Keyboard.Modifiers == ModifierKeys.Control)
             {
                 if (Palette.Visibility == Visibility.Visible) ClosePalette(); else OpenPalette();
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Escape && Tour.Visibility == Visibility.Visible)
+            {
+                EndTour();
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Escape && Tour.Visibility == Visibility.Visible)
+            {
+                EndTour();
                 e.Handled = true;
             }
             else if (e.Key == Key.Escape && Palette.Visibility == Visibility.Visible)

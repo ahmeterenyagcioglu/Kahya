@@ -333,4 +333,83 @@ namespace Kahya.Tests
             Assert.Equal("medium", StartupImpact.Level(new StartupImpact.Usage { CpuMs = 400 }));
         }
     }
+
+    public class CrashHistoryTests
+    {
+        static byte[] Dump(ulong param4, ulong rip)
+        {
+            var b = new byte[0x3200];
+            void U(int o, uint v) => BitConverter.GetBytes(v).CopyTo(b, o);
+            void Q(int o, ulong v) => BitConverter.GetBytes(v).CopyTo(b, o);
+            void S(int o, string s) { U(o, (uint)s.Length); System.Text.Encoding.Unicode.GetBytes(s).CopyTo(b, o + 4); }
+            System.Text.Encoding.ASCII.GetBytes("PAGEDU64").CopyTo(b, 0);
+            U(0x38, 0xD1);
+            Q(0x58, param4);
+            const int t = 0x2000;
+            U(t + 0x0C, 0x2100);            // CONTEXT
+            Q(0x2100 + 0xF8, rip);
+            U(t + 0x30, 0x3000); U(t + 0x34, 2);       // sürücü listesi
+            U(t + 0x38, 0x3100); U(t + 0x3C, 0x100);  // dizgi havuzu
+            U(0x3000, 0x3100); Q(0x3000 + 0x38, 0xFFFFF80000000000UL); U(0x3000 + 0x48, 0x1000000);
+            U(0x3080, 0x3140); Q(0x3080 + 0x38, 0xFFFFF80010000000UL); U(0x3080 + 0x48, 0x100000);
+            S(0x3100, "ntoskrnl.exe");
+            S(0x3140, "nvlddmkm.sys");
+            return b;
+        }
+
+        [Fact]
+        public void ReadsBugCheckAndDriverFromParameter()
+        {
+            var info = CrashHistory.ParseKernelDump(Dump(0xFFFFF80010000123UL, 0xFFFFF80000000500UL));
+            Assert.Equal(0xD1u, info.Code);
+            Assert.Equal("nvlddmkm.sys", info.Driver);
+        }
+
+        [Fact]
+        public void FallsBackToKernelWhenOnlyKernelSeen()
+        {
+            var info = CrashHistory.ParseKernelDump(Dump(0, 0xFFFFF80000000500UL));
+            Assert.Equal("ntoskrnl.exe", info.Driver);
+        }
+
+        [Fact]
+        public void RejectsOtherFiles()
+        {
+            Assert.Null(CrashHistory.ParseKernelDump(new byte[0x3000]));
+        }
+
+        [Theory]
+        [InlineData("0x0000009f (0x0000000000000003, 0xffffd1, 0x0, 0x0)", 0x9Fu)]
+        [InlineData("0x116", 0x116u)]
+        [InlineData("", 0u)]
+        public void ParsesBugCheckText(string text, uint code)
+        {
+            Assert.Equal(code, CrashHistory.ParseBugCheck(text));
+        }
+    }
+
+    public class TreemapTests
+    {
+        [Fact]
+        public void AreasAreProportionalAndInside()
+        {
+            var values = new double[] { 50, 25, 12.5, 6.25, 6.25 };
+            var area = new System.Windows.Rect(0, 0, 400, 200);
+            var rects = Treemap.Layout(values, area);
+            Assert.Equal(5, rects.Count);
+            for (int i = 0; i < values.Length; i++)
+            {
+                Assert.Equal(values[i] / 100 * 80000, rects[i].Width * rects[i].Height, 3);
+                Assert.True(rects[i].Left >= -0.001 && rects[i].Right <= 400.001 && rects[i].Top >= -0.001 && rects[i].Bottom <= 200.001);
+            }
+        }
+
+        [Fact]
+        public void IgnoresZero()
+        {
+            var rects = Treemap.Layout(new double[] { 10, 0 }, new System.Windows.Rect(0, 0, 100, 100));
+            Assert.True(rects[1].IsEmpty);
+            Assert.Equal(10000, rects[0].Width * rects[0].Height, 3);
+        }
+    }
 }
